@@ -1,5 +1,9 @@
 {
   "name": "arakne/web",
+  "description": "Web site for Araknemu server",
+  "keywords": ["araknemu", "dofus retro", "dofus 1.29"],
+  "license": "LGPL-3.0-or-later",
+  "type": "project",
   "authors": [
     {
       "name": "Vincent QUATREVIEUX",
