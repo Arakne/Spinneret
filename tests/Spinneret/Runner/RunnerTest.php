@@ -1,0 +1,280 @@
+<?php
+
+namespace Arakne\Tests\Spinneret\Runner;
+
+use Arakne\Spinneret\Presenter\PresenterDispatcher;
+use Arakne\Spinneret\Presenter\RequestPresenter;
+use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Router\RoutedRequest;
+use Arakne\Spinneret\Router\Router;
+use Arakne\Spinneret\Runner\InternalServerError;
+use Arakne\Spinneret\Runner\Runner;
+use Arakne\Spinneret\View\Engine;
+use Arakne\Tests\Spinneret\Runner\Fixtures\Base64ResponseMiddleware;
+use Arakne\Tests\Spinneret\Runner\Fixtures\ErrorMiddleware;
+use Arakne\Tests\Spinneret\Runner\Fixtures\FooErrorRenderer;
+use Arakne\Tests\Spinneret\Runner\Fixtures\FooErrorResponse;
+use Arakne\Tests\Spinneret\Runner\Fixtures\FooPresenter;
+use Arakne\Tests\Spinneret\Runner\Fixtures\FooRequest;
+use Arakne\Tests\Spinneret\Runner\Fixtures\FooSuccessRenderer;
+use Arakne\Tests\Spinneret\Runner\Fixtures\FooSuccessResponse;
+use Arakne\Tests\Spinneret\Runner\Fixtures\InternalServerErrorRenderer;
+use Arakne\Tests\Spinneret\Runner\Fixtures\ReverseMiddleware;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Quatrevieux\Form\DefaultFormFactory;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\Routing\RequestContext;
+
+class RunnerTest extends TestCase
+{
+    private PresenterDispatcher $presenterDispatcher;
+    private Router $router;
+    private Engine $view;
+
+    protected function setUp(): void
+    {
+        $container = new ContainerBuilder();
+        $container->autowire(FooPresenter::class, FooPresenter::class);
+        $container->autowire(FooSuccessRenderer::class, FooSuccessRenderer::class);
+        $container->autowire(FooErrorRenderer::class, FooErrorRenderer::class);
+        $container->autowire(RequestPresenter::class, RequestPresenter::class);
+        $container->autowire(InternalServerErrorRenderer::class, InternalServerErrorRenderer::class);
+
+        $routesBuilder = new RouteCollectionBuilder();
+        $routesBuilder->get('/foo', FooRequest::class);
+
+        $this->router = new Router(
+            new UrlMatcher($routesBuilder->routes, new RequestContext()),
+            DefaultFormFactory::runtime()
+        );
+        $this->presenterDispatcher = new PresenterDispatcher($container, [
+            FooRequest::class => FooPresenter::class,
+            InternalServerError::class => RequestPresenter::class,
+        ]);
+        $this->view = new Engine(
+            $container,
+            new Psr17Factory(),
+            new Psr17Factory(),
+            [
+                FooSuccessResponse::class => FooSuccessRenderer::class,
+                FooErrorResponse::class => FooErrorRenderer::class,
+                InternalServerError::class => InternalServerErrorRenderer::class,
+            ]
+        );
+    }
+
+    #[Test]
+    public function handleSuccessSimple()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=42');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('{"foo":{"message":"success 42"}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function handleRequestError()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('{"error":{"message":"error This value is required"}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function handlePresenterException()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=error');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('{"error":"Exception : runtime error","step":"Presenter","request":{"bar":"error"}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function handleViewException()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=view-error');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('{"error":"Exception : view error","step":"View","request":{"bar":"view-error"}}', (string) $response->getBody());
+    }
+
+
+    #[Test]
+    public function handleSuccessWithMiddleware()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view,
+            [
+                new ReverseMiddleware(),
+                new Base64ResponseMiddleware(),
+            ]
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?rab=hello');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('fX0iaGVsbG8gc3NlY2N1cyI6ImVnYXNzZW0iezoib29mIns=', (string) $response->getBody());
+        $this->assertEquals('}}"hello sseccus":"egassem"{:"oof"{', base64_decode((string) $response->getBody()));
+    }
+
+    #[Test]
+    public function handleMiddlewareException()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view,
+            [
+                new ErrorMiddleware(),
+            ]
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=error');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('{"error":"Exception : Error","step":"Middleware","request":null}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function handleRoutedRequestSuccessSimple()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=42');
+        $req = new FooRequest();
+        $req->bar = 'test';
+        $routedRequest = new RoutedRequest(
+            $psrRequest,
+            $req,
+        );
+
+        $response = $runner->handleRoutedRequest($routedRequest, false);
+
+        $this->assertEquals('{"foo":{"message":"success test"}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function handleRoutedRequestPresenterExceptionNotCatch()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('runtime error');
+
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=42');
+        $req = new FooRequest();
+        $req->bar = 'error';
+        $routedRequest = new RoutedRequest(
+            $psrRequest,
+            $req,
+        );
+
+        $runner->handleRoutedRequest($routedRequest, false);
+    }
+
+    #[Test]
+    public function handleRoutedRequestPresenterExceptionCatch()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=42');
+        $req = new FooRequest();
+        $req->bar = 'error';
+        $routedRequest = new RoutedRequest(
+            $psrRequest,
+            $req,
+        );
+
+        $response = $runner->handleRoutedRequest($routedRequest, true);
+
+        $this->assertEquals('{"error":"Exception : runtime error","step":"Presenter","request":{"bar":"error"}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function handleRoutedRequestViewExceptionNotCatch()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('view error');
+
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=42');
+        $req = new FooRequest();
+        $req->bar = 'view-error';
+        $routedRequest = new RoutedRequest(
+            $psrRequest,
+            $req,
+        );
+
+        $runner->handleRoutedRequest($routedRequest, false);
+    }
+
+    #[Test]
+    public function handleRoutedRequestViewExceptionCatch()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=42');
+        $req = new FooRequest();
+        $req->bar = 'view-error';
+        $routedRequest = new RoutedRequest(
+            $psrRequest,
+            $req,
+        );
+
+        $response = $runner->handleRoutedRequest($routedRequest, true);
+
+        $this->assertEquals('{"error":"Exception : view error","step":"View","request":{"bar":"view-error"}}', (string) $response->getBody());
+    }
+}

@@ -1,0 +1,57 @@
+<?php
+
+namespace Arakne\Tests\Spinneret\Router;
+
+use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
+use Arakne\Spinneret\Router\Compiler\UrlMatcherCompilerInterface;
+use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Router\RouteCollectionLoader;
+use Arakne\Spinneret\Router\RouteCollectionLoaderInterface;
+use Arakne\Spinneret\Router\Router;
+use Arakne\Spinneret\Router\RouterInterface;
+use Arakne\Spinneret\Router\RouterModule;
+use Arakne\Spinneret\Router\UrlMatcherLoader;
+use Arakne\Spinneret\Router\UrlMatcherLoaderInterface;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Quatrevieux\Form\DefaultFormFactory;
+use Quatrevieux\Form\FormFactoryInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouteCollection;
+
+class RouterModuleTest extends TestCase
+{
+    #[Test]
+    public function emptyMethods()
+    {
+        $routerModule = new RouterModule();
+        $this->assertSame([], $routerModule->presenters());
+        $this->assertSame([], $routerModule->renderers());
+
+        $routes = new RouteCollectionBuilder();
+        $routerModule->configureRoutes($routes);
+
+        $this->assertEquals(new RouteCollection(), $routes->routes);
+    }
+
+    #[Test]
+    public function register()
+    {
+        $app = new Application();
+        $container = new ContainerBuilder();
+
+        $container->set(Application::class, $app);
+        $container->set(FormFactoryInterface::class, DefaultFormFactory::runtime());
+
+        $routerModule = new RouterModule();
+        $routerModule->register($container);
+
+        $this->assertInstanceOf(Router::class, $container->get(RouterInterface::class));
+        $this->assertInstanceOf(UrlMatcherLoader::class, $container->get(UrlMatcherLoaderInterface::class));
+        $this->assertInstanceOf(UrlMatcherCompiler::class, $container->get(UrlMatcherCompilerInterface::class));
+        $this->assertInstanceOf(RouteCollectionLoader::class, $container->get(RouteCollectionLoaderInterface::class));
+        $this->assertEquals(new RequestContext(), $container->get(RequestContext::class));
+    }
+}
