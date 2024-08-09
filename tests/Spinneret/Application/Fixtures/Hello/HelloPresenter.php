@@ -1,9 +1,9 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Fixtures\Hello;
+namespace Arakne\Tests\Spinneret\Application\Fixtures\Hello;
 
-use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Presenter\PresenterInterface;
+use Arakne\Spinneret\Router\RoutedRequest;
 use Override;
 
 /**

@@ -2,7 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Application;
 
-use Arakne\Tests\Spinneret\Fixtures\TestApplication;
+use Arakne\Tests\Spinneret\Application\Fixtures\TestApplication;
 
 class FunctionalApplicationDevModeTest extends FunctionalApplicationTest
 {

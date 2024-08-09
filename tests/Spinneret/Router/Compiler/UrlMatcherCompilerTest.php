@@ -134,4 +134,26 @@ PHP
 
         $this->assertSame(['name' => 'John'], $extractor($psrRequest));
     }
+
+    #[Test]
+    public function loadCompiledInvalidFile()
+    {
+        $compiler = new UrlMatcherCompiler();
+        $compiler->compile($this->app, $this->routes);
+
+        file_put_contents(self::CACHE_DIR . '/compiled_routes.php', '<?php return 42;');
+
+        $this->assertNull($compiler->load($this->app, new RequestContext()));
+    }
+
+    #[Test]
+    public function loadCompiledError()
+    {
+        $compiler = new UrlMatcherCompiler();
+        $compiler->compile($this->app, $this->routes);
+
+        file_put_contents(self::CACHE_DIR . '/compiled_routes.php', '<?php syntax error!');
+
+        $this->assertNull($compiler->load($this->app, new RequestContext()));
+    }
 }

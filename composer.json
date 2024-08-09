@@ -34,5 +34,8 @@
     "psr-4": {
       "Arakne\\Tests\\": "tests/"
     }
+  },
+  "scripts": {
+    "coverage": "XDEBUG_MODE=coverage phpunit --coverage-html=coverage"
   }
 }

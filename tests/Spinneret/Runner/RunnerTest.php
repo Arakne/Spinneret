@@ -46,6 +46,7 @@ class RunnerTest extends TestCase
 
         $routesBuilder = new RouteCollectionBuilder();
         $routesBuilder->get('/foo', FooRequest::class);
+        $routesBuilder->get('/invalid', 'invalid', 'invalid');
 
         $this->router = new Router(
             new UrlMatcher($routesBuilder->routes, new RequestContext()),
@@ -110,6 +111,21 @@ class RunnerTest extends TestCase
         $response = $runner->handle($psrRequest);
 
         $this->assertEquals('{"error":"Exception : runtime error","step":"Presenter","request":{"bar":"error"}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function handleRouterException()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/invalid');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('{"error":"ReflectionException : Class \"invalid\" does not exist","step":"Router","request":null}', (string) $response->getBody());
     }
 
     #[Test]

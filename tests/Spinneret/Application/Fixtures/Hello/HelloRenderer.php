@@ -1,11 +1,10 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Fixtures\Hello;
+namespace Arakne\Tests\Spinneret\Application\Fixtures\Hello;
 
 use Arakne\Spinneret\View\View;
 use Arakne\Spinneret\View\ViewRendererInterface;
 use Override;
-
 use function htmlentities;
 
 /**

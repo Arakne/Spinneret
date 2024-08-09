@@ -4,8 +4,8 @@ namespace Arakne\Tests\Spinneret\Application;
 
 use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
-use Arakne\Tests\Spinneret\Fixtures\Hello\HelloRequest;
-use Arakne\Tests\Spinneret\Fixtures\TestApplication;
+use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRequest;
+use Arakne\Tests\Spinneret\Application\Fixtures\TestApplication;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -160,7 +160,39 @@ HTML
         if ($this->app->isDev) {
             $this->assertStringContainsString('<p>Error</p>', (string) $response->getBody());
             $this->assertStringContainsString('During stage Presenter', (string) $response->getBody());
-            $this->assertStringContainsString('Arakne\Tests\Spinneret\Fixtures\Error\RaiseErrorRequest', (string) $response->getBody());
+            $this->assertStringContainsString('Arakne\Tests\Spinneret\Application\Fixtures\Error\RaiseErrorRequest', (string) $response->getBody());
         }
+    }
+
+    #[Test]
+    public function postRequestSuccess()
+    {
+        $request = new ServerRequest('POST', '/register');
+        $request = $request->withParsedBody([
+            'name' => 'John',
+            'email' => 'john.doe@example.com',
+            'password' => '$tr0ngP@$$w0rd',
+        ]);
+
+        $response = $this->app->handle($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('{"success":{"user":{"name":"John","email":"john.doe@example.com","password":"$tr0ngP@$$w0rd"}}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function postRequestError()
+    {
+        $request = new ServerRequest('POST', '/register');
+        $request = $request->withParsedBody([
+            'name' => '',
+            'email' => 'invalid',
+            'password' => '123',
+        ]);
+
+        $response = $this->app->handle($request);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertStringContainsString('{"error":{"errors":{"name":"This value is required","email":"This value is not a valid.","password":"The password is too weak"}}}', (string) $response->getBody());
     }
 }

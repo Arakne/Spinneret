@@ -5,7 +5,7 @@ namespace Arakne\Tests\Spinneret\View;
 use Arakne\Spinneret\View\AbstractViewRenderer;
 use Arakne\Spinneret\View\D;
 use Arakne\Spinneret\View\View;
-use Arakne\Tests\Spinneret\Fixtures\Hello\HelloResponse;
+use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloResponse;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 

@@ -2,4 +2,5 @@
 .phpunit.cache
 var
 vendor
+coverage
 composer.lock

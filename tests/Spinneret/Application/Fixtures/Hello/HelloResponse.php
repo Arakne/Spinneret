@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Fixtures\Hello;
+namespace Arakne\Tests\Spinneret\Application\Fixtures\Hello;
 
 final class HelloResponse
 {

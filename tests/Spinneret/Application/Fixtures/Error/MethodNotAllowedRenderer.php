@@ -1,9 +1,8 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Fixtures\Error;
+namespace Arakne\Tests\Spinneret\Application\Fixtures\Error;
 
 use Arakne\Spinneret\Router\Result\MethodNotAllowed;
-use Arakne\Spinneret\Router\Result\NotFound;
 use Arakne\Spinneret\View\AbstractViewRenderer;
 use Arakne\Spinneret\View\ResponseConfiguratorInterface;
 use Arakne\Spinneret\View\View;

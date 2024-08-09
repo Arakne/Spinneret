@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Fixtures\Error;
+namespace Arakne\Tests\Spinneret\Application\Fixtures\Error;
 
 use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
