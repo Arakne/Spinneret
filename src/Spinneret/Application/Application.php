@@ -22,11 +22,17 @@ use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainer
 /**
  * Base class for a Spinneret application
  * Should be extended by the application class
+ *
+ * @api
  */
 class Application implements RunnerInterface
 {
     private readonly ContainerInterface $container;
     private readonly RunnerInterface $runner;
+
+    /**
+     * @var list<ModuleInterface>|null
+     */
     private ?array $modules = null;
 
     public function __construct(
@@ -39,12 +45,11 @@ class Application implements RunnerInterface
         /**
          * Strategy to load or compile the container
          * If null, the container is not compiled
-         *
-         * @var ContainerCompilerInterface|null
          */
         private readonly ?ContainerCompilerInterface $containerCompiler = new ContainerCompiler(),
     ) {
         $this->container = $this->loadContainer();
+        /** @psalm-suppress MixedAssignment : The service RunnerInterface may be overridden, but it will raise an error anyway */
         $this->runner = $this->container->get(RunnerInterface::class);
     }
 
@@ -132,9 +137,8 @@ class Application implements RunnerInterface
      */
     private function loadContainer(): ContainerInterface
     {
-        if ($this->isDev || !($container = $this->containerCompiler?->load($this))) {
-            $container = $this->buildContainer();
-        }
+        $container = !$this->isDev ? $this->containerCompiler?->load($this) : null;
+        $container ??= $this->buildContainer(); // Container not found or in dev mode : build it
 
         $container->set(Application::class, $this);
 

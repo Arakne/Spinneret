@@ -8,6 +8,8 @@ use Override;
 /**
  * Simple presenter which returns the request as is.
  * So it can be used to directly render the request as a response.
+ *
+ * @implements PresenterInterface<object>
  */
 final class RequestPresenter implements PresenterInterface
 {

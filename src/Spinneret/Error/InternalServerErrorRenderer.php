@@ -21,6 +21,9 @@ final class InternalServerErrorRenderer extends AbstractViewRenderer implements 
     ) {
     }
 
+    /**
+     * @psalm-suppress ForbiddenCode
+     */
     public function __invoke(View $view, InternalServerError $data): void
     {
 ?>

@@ -28,6 +28,8 @@ final readonly class RequestBody implements RequestFieldInterface
     #[Override]
     public function extractAll(ServerRequestInterface $request): array
     {
+        // Not actually the case (keys may be int), but adding a check is costly for nothing
+        /** @var array<string, mixed> */
         return (array) ($request->getParsedBody() ?? []);
     }
 

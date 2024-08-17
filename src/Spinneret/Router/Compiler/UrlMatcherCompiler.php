@@ -3,6 +3,7 @@
 namespace Arakne\Spinneret\Router\Compiler;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Router\Field\FieldsExtractor;
 use Override;
 use Symfony\Component\Routing\Matcher\CompiledUrlMatcher;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
@@ -10,12 +11,14 @@ use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 use Throwable;
-
+use function class_exists;
 use function dirname;
 use function file_put_contents;
 use function is_array;
 use function is_dir;
 use function is_file;
+use function is_string;
+use function is_subclass_of;
 use function md5;
 use function mkdir;
 use function serialize;
@@ -85,7 +88,7 @@ final readonly class UrlMatcherCompiler implements UrlMatcherCompilerInterface
             $target = $route->getDefault('_target');
             $extractor = $route->getDefault('_fields_extractor');
 
-            if (!$target || !$extractor) {
+            if (!is_string($target) || $extractor !== FieldsExtractor::class || !class_exists($target)) {
                 continue;
             }
 

@@ -36,13 +36,14 @@ final readonly class Engine implements ViewEngineInterface
     {
         $view = new View($data);
 
-        $renderer = $this->renderers[$data::class] ?? null;
+        $rendererClassName = $this->renderers[$data::class] ?? null;
 
-        if ($renderer === null) {
+        if ($rendererClassName === null) {
             throw new RuntimeException('No renderer found for ' . $data::class);
         }
 
-        $renderer = $this->container->get($renderer);
+        /** @var ViewRendererInterface $renderer */
+        $renderer = $this->container->get($rendererClassName);
 
         // @todo handle layout : use $view->parent property
         $content = $renderer->render($view, $data);

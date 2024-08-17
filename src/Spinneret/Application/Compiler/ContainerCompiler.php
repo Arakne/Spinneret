@@ -60,6 +60,7 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
     {
         $dumper = new PhpDumper($container);
 
+        /** @var array<string, string> $files */
         $files = $dumper->dump([
             'as_files' => true,
             'class' => $this->containerClassName($application),

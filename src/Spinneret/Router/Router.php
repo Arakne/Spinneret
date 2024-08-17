@@ -2,15 +2,21 @@
 
 namespace Arakne\Spinneret\Router;
 
+use Arakne\Spinneret\Router\Field\FieldsExtractorInterface;
 use Arakne\Spinneret\Router\Result\MethodNotAllowed;
 use Arakne\Spinneret\Router\Result\NotFound;
+use LogicException;
 use Override;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Quatrevieux\Form\FormFactoryInterface;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 
+use function array_values;
+use function is_callable;
+use function sprintf;
 use function str_starts_with;
 
 /**
@@ -51,12 +57,18 @@ final readonly class Router implements RouterInterface
         }
 
         try {
+            /** @var array<string, scalar> $attributes */
             $attributes = $matcher->match($path);
         } catch (ResourceNotFoundException) {
             return new RoutedRequest($request, new NotFound(), false, null);
         } catch (MethodNotAllowedException $e) {
-            return new RoutedRequest($request, new MethodNotAllowed($method, $e->getAllowedMethods()), false, null);
+            return new RoutedRequest($request, new MethodNotAllowed($method, array_values($e->getAllowedMethods())), false, null);
         }
+
+        /** @var class-string $target */
+        $target = $attributes['_target'] ?? throw new LogicException('Route must have a _target attribute');
+        /** @var class-string<FieldsExtractorInterface> $fieldsExtractorClassName */
+        $fieldsExtractorClassName = $attributes['_fields_extractor'] ?? throw new LogicException('Route must have a _fields_extractor attribute');
 
         // Set attributes as request attributes, except those starting with _
         foreach ($attributes as $key => $value) {
@@ -67,8 +79,14 @@ final readonly class Router implements RouterInterface
 
         // @todo check attributes
         // @todo optimisation: field extractor vide et request en singleton
-        $form = $this->formFactory->create($attributes['_target']);
-        $fieldsExtractor = new $attributes['_fields_extractor']($attributes['_target']);
+        $form = $this->formFactory->create($target);
+
+        /** @var callable(RequestInterface):array<string, mixed> $fieldsExtractor */
+        $fieldsExtractor = new $fieldsExtractorClassName($target);
+
+        if (!is_callable($fieldsExtractor)) {
+            throw new LogicException(sprintf('Fields extractor for route %s must be a callable', $target));
+        }
 
         $submitted = $form->submit($fieldsExtractor($request));
 

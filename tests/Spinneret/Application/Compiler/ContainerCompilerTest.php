@@ -14,6 +14,8 @@ class ContainerCompilerTest extends TestCase
 {
     const CACHE_DIR = '/tmp/container_compiler_test';
 
+    private Application $app;
+
     protected function setUp(): void
     {
         $this->clearCache();
@@ -65,7 +67,7 @@ class ContainerCompilerTest extends TestCase
         $this->assertInstanceOf(\stdClass::class, $compiledContainer->get('service'));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function loadInvalidFile()
     {
         $compiler = new ContainerCompiler();

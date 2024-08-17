@@ -34,13 +34,14 @@ final readonly class PresenterDispatcher implements PresenterDispatcherInterface
     #[Override]
     public function dispatch(RoutedRequest $routedRequest): object
     {
-        $presenter = $this->presenters[$routedRequest->routedRequest::class] ?? null;
+        $presenterClassName = $this->presenters[$routedRequest->routedRequest::class] ?? null;
 
-        if ($presenter === null) {
+        if ($presenterClassName === null) {
             throw new LogicException('No presenter found for ' . $routedRequest->routedRequest::class);
         }
 
-        $presenter = $this->container->get($presenter);
+        /** @var PresenterInterface $presenter */
+        $presenter = $this->container->get($presenterClassName);
 
         if ($routedRequest->success) {
             return $presenter->handleSuccess($routedRequest->routedRequest, $routedRequest);

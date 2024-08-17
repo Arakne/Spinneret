@@ -120,9 +120,10 @@ abstract class AbstractModule implements ModuleInterface
      *
      * @param string $path The URL path
      * @param class-string $target The request class name
-     * @param class-string $presenter The presenter class name
+     * @param class-string<PresenterInterface> $presenter The presenter class name
      *
      * @return void
+     * @api
      */
     final protected function get(string $path, string $target, string $presenter): void
     {
@@ -143,6 +144,7 @@ abstract class AbstractModule implements ModuleInterface
      * @param class-string<PresenterInterface> $presenter The presenter class name
      *
      * @return void
+     * @api
      */
     final protected function post(string $path, string $target, string $presenter): void
     {
@@ -158,9 +160,12 @@ abstract class AbstractModule implements ModuleInterface
     /**
      * Register the renderer for a specific view.
      *
-     * @param class-string $response The response class name
-     * @param class-string<ViewRendererInterface> $renderer The renderer class name
+     * @param class-string<R> $response The response class name
+     * @param class-string<ViewRendererInterface<R>> $renderer The renderer class name
      * @return void
+     * @api
+     *
+     * @template R as object
      */
     final protected function renderer(string $response, string $renderer): void
     {
@@ -170,12 +175,15 @@ abstract class AbstractModule implements ModuleInterface
     /**
      * Register the presenter for a specific request.
      *
-     * @param class-string $request The request class name
-     * @param class-string<PresenterInterface> $presenter The presenter class name
+     * @param class-string<R> $request The request class name
+     * @param class-string<PresenterInterface<R>> $presenter The presenter class name
      * @return void
      *
      * @see AbstractModule::get() To register a route and presenter for a GET request
      * @see AbstractModule::post() To register a route and presenter for a POST request
+     * @api
+     *
+     * @template R as object
      */
     final protected function presenter(string $request, string $presenter): void
     {

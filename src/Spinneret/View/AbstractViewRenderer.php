@@ -28,12 +28,14 @@ use function ob_start;
  * @implements ViewRendererInterface<D>
  *
  * @method void __invoke(View $view, D $data): void
+ * @psalm-method void __invoke(View $view, D $data): void
  */
 abstract class AbstractViewRenderer implements ViewRendererInterface
 {
     #[Override]
     public function display(View $view, object $data): void
     {
+        /** @var callable(View, D): void $this */
         $this($view, $data);
     }
 
@@ -41,7 +43,7 @@ abstract class AbstractViewRenderer implements ViewRendererInterface
     public function render(View $view, object $data): string
     {
         ob_start();
-        $this($view, $data);
+        $this->display($view, $data);
         return ob_get_clean();
     }
 }

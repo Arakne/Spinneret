@@ -18,7 +18,7 @@ use function var_export;
  *
  * Then, for each request class field with an attribute, extract the field from the request.
  */
-final readonly class FieldsExtractor
+final readonly class FieldsExtractor implements FieldsExtractorInterface
 {
     private const string DEFAULT_EXTRACTOR = "\0";
 
@@ -47,6 +47,7 @@ final readonly class FieldsExtractor
 
         foreach ($extractors as $name => $extractor) {
             if ($name !== self::DEFAULT_EXTRACTOR) {
+                /** @psalm-suppress MixedAssignment */
                 $fields[$name] = $extractor->extract($request, $name);
             }
         }
@@ -96,6 +97,7 @@ final readonly class FieldsExtractor
      *
      * @param string $method The HTTP method of the request
      * @return array<string, RequestFieldInterface>{"\0": RequestFieldInterface}
+     * @psalm-return array{"\0": RequestFieldInterface, ...<string, RequestFieldInterface>}
      */
     private function fieldsExtractors(string $method): array
     {
