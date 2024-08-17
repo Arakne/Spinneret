@@ -6,18 +6,15 @@ use Arakne\Spinneret\Application\Application;
 use Override;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Throwable;
 
-use function chmod;
 use function dirname;
 use function file_put_contents;
 use function is_dir;
 use function is_file;
 use function mkdir;
 use function preg_replace;
-use function umask;
 
 /**
  * Default implementation of {@see ContainerCompilerInterface}.
@@ -73,11 +70,10 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
             $dir = dirname($fullPath);
 
             if (!is_dir($dir)) {
-                mkdir($dir, 0777, true);
+                mkdir($dir, 0o777, true);
             }
 
             file_put_contents($fullPath, $content);
-            @chmod($fullPath, 0666 & ~umask());
         }
     }
 

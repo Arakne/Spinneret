@@ -75,6 +75,9 @@ jobs:
 
             - name: Run type coverage
               run: ./vendor/bin/psalm --shepherd --no-cache --output-format=github
+
+            - name: Run checkstyle
+              run: ./vendor/bin/php-cs-fixer check --diff
     #
     #    - name: Run Infection
     #      run: |

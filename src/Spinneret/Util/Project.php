@@ -24,7 +24,7 @@ final class Project
      * @throws RuntimeException if the project root directory could not be located (no composer.json file found)
      * @throws \ReflectionException if the application class could not be reflected
      */
-    static public function directory(string $applicationClass): string
+    public static function directory(string $applicationClass): string
     {
         $r = new ReflectionClass($applicationClass);
         $currentDir = dirname($r->getFileName());

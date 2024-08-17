@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 use Throwable;
+
 use function class_exists;
 use function dirname;
 use function file_put_contents;
@@ -18,7 +19,6 @@ use function is_array;
 use function is_dir;
 use function is_file;
 use function is_string;
-use function is_subclass_of;
 use function md5;
 use function mkdir;
 use function serialize;
@@ -100,27 +100,27 @@ final readonly class UrlMatcherCompiler implements UrlMatcherCompilerInterface
         }
 
         return <<<PHP
-if (!class_exists($fieldExtractorClassName::class)) {
-    final readonly class $fieldExtractorClassName
-    {
-        public function __construct(
-            private string \$requestClassName,
-        ) {
-        }
-    
-        public function __invoke(\Psr\Http\Message\ServerRequestInterface \$request): array
-        {
-            \$extractor = match (\$this->requestClassName) {
-{$body}
-                default => throw new \RuntimeException("No fields extractor found for class \$this->requestClassName"),
-            };
-    
-            return \$extractor(\$request);
-        }
-    }
-}
-
-PHP;
+            if (!class_exists($fieldExtractorClassName::class)) {
+                final readonly class $fieldExtractorClassName
+                {
+                    public function __construct(
+                        private string \$requestClassName,
+                    ) {
+                    }
+                
+                    public function __invoke(\Psr\Http\Message\ServerRequestInterface \$request): array
+                    {
+                        \$extractor = match (\$this->requestClassName) {
+            {$body}
+                            default => throw new \RuntimeException("No fields extractor found for class \$this->requestClassName"),
+                        };
+                
+                        return \$extractor(\$request);
+                    }
+                }
+            }
+            
+            PHP;
     }
 
     /**
@@ -149,7 +149,7 @@ PHP;
         $cacheDir = dirname($cacheFile);
 
         if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0777, true);
+            mkdir($cacheDir, 0o777, true);
         }
 
         file_put_contents($cacheFile, $content);

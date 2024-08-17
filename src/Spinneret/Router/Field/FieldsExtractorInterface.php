@@ -2,7 +2,6 @@
 
 namespace Arakne\Spinneret\Router\Field;
 
-
 use Psr\Http\Message\ServerRequestInterface;
 
 /**

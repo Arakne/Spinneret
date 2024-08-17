@@ -48,9 +48,9 @@ class ErrorModuleTest extends TestCase
                     <p>Something went wrong</p>
             </body>
 </html>
-
+        
 HTML
-, $response->getBody()
+, (string) $response->getBody()
 );
     }
 

@@ -132,11 +132,12 @@ final readonly class Runner implements RunnerInterface
      */
     private function buildMiddlewareStack(array $middlewares): RequestHandlerInterface
     {
-        $requestHandler = new readonly class($this->handleServerRequest(...)) implements RequestHandlerInterface {
+        $requestHandler = new readonly class ($this->handleServerRequest(...)) implements RequestHandlerInterface {
             /**
              * @param Closure(ServerRequestInterface):ResponseInterface $handler
              */
-            public function __construct(private Closure $handler) {
+            public function __construct(private Closure $handler)
+            {
             }
 
             #[Override]
@@ -147,7 +148,7 @@ final readonly class Runner implements RunnerInterface
         };
 
         foreach ($middlewares as $middleware) {
-            $requestHandler = new readonly class($middleware, $requestHandler) implements RequestHandlerInterface {
+            $requestHandler = new readonly class ($middleware, $requestHandler) implements RequestHandlerInterface {
                 public function __construct(
                     private MiddlewareInterface $middleware,
                     private RequestHandlerInterface $next,

@@ -26,7 +26,7 @@ final class InternalServerErrorRenderer extends AbstractViewRenderer implements 
      */
     public function __invoke(View $view, InternalServerError $data): void
     {
-?>
+        ?>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -49,7 +49,7 @@ final class InternalServerErrorRenderer extends AbstractViewRenderer implements 
         <?php endif; ?>
     </body>
 </html>
-<?php
+        <?php
     }
 
     #[Override]
