@@ -3,6 +3,8 @@
 namespace Arakne\Tests\Spinneret\Router;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Application\Compiler\ContainerCompiler;
+use Arakne\Spinneret\Application\Compiler\ContainerCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
 use Arakne\Spinneret\Router\Field\FieldsExtractor;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
@@ -19,12 +21,13 @@ use Symfony\Component\Routing\RouteCollection;
 
 class UrlMatcherLoaderTest extends TestCase
 {
-    const CACHE_DIR = '/tmp/url_matcher_loader_test';
+    public string $cacheDir;
 
     private RouteCollectionLoaderInterface $routesLoader;
 
     protected function setUp(): void
     {
+        $this->cacheDir  = '/tmp/url_matcher_loader_test';
         $this->routesLoader = new class implements RouteCollectionLoaderInterface {
             public function load(Application $application): RouteCollection
             {
@@ -40,10 +43,15 @@ class UrlMatcherLoaderTest extends TestCase
         $this->clearCache();
     }
 
+    protected function tearDown(): void
+    {
+        $this->clearCache();
+    }
+
     private function clearCache(): void
     {
-        if (file_exists(self::CACHE_DIR)) {
-            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(self::CACHE_DIR, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+        if (file_exists($this->cacheDir)) {
+            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->cacheDir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
 
             foreach ($it as $file) {
                 if ($file->isDir()) {
@@ -75,7 +83,7 @@ class UrlMatcherLoaderTest extends TestCase
             '_route' => HelloRequest::class,
         ], $matcher->match('/hello'));
 
-        $this->assertFileExists(self::CACHE_DIR . '/compiled_routes.php');
+        $this->assertFileExists($this->cacheDir . '/compiled_routes.php');
     }
 
     #[Test]
@@ -85,7 +93,7 @@ class UrlMatcherLoaderTest extends TestCase
         $loader = new UrlMatcherLoader($this->routesLoader, new RequestContext(), new UrlMatcherCompiler());
 
         $matcher = $loader->load($app);
-        $this->assertFileExists(self::CACHE_DIR . '/compiled_routes.php');
+        $this->assertFileExists($this->cacheDir . '/compiled_routes.php');
 
         $this->assertInstanceOf(UrlMatcher::class, $matcher);
         $this->assertNotInstanceOf(CompiledUrlMatcher::class, $matcher);
@@ -113,7 +121,7 @@ class UrlMatcherLoaderTest extends TestCase
         $loader = new UrlMatcherLoader($this->routesLoader, new RequestContext(), null);
 
         $matcher = $loader->load($app);
-        $this->assertFileDoesNotExist(self::CACHE_DIR . '/compiled_routes.php');
+        $this->assertFileDoesNotExist($this->cacheDir . '/compiled_routes.php');
 
         $this->assertInstanceOf(UrlMatcher::class, $matcher);
         $this->assertNotInstanceOf(CompiledUrlMatcher::class, $matcher);
@@ -131,10 +139,17 @@ class UrlMatcherLoaderTest extends TestCase
     private function createApp(bool $dev): Application
     {
         try {
-            return new class($dev) extends Application {
+            return new class($this->cacheDir, $dev) extends Application {
+                public function __construct(
+                    private readonly string $cacheDir,
+                    bool $isDev
+                ) {
+                    parent::__construct($isDev);
+                }
+
                 public function cacheDir(): string
                 {
-                    return UrlMatcherLoaderTest::CACHE_DIR;
+                    return $this->cacheDir;
                 }
             };
         } finally {

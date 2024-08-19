@@ -3,6 +3,8 @@
 namespace Arakne\Tests\Spinneret\Router\Compiler;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Application\Compiler\ContainerCompiler;
+use Arakne\Spinneret\Application\Compiler\ContainerCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
@@ -16,33 +18,50 @@ use Symfony\Component\Routing\RouteCollection;
 
 class UrlMatcherCompilerTest extends TestCase
 {
-    const CACHE_DIR = '/tmp/url_matcher_compiler_test';
-
     private RouteCollection $routes;
     private Application $app;
+    private string $cacheDir;
 
     protected function setUp(): void
     {
+        $this->cacheDir = '/tmp/url_matcher_compiler_test';
         $routesBuilder = new RouteCollectionBuilder();
 
         $routesBuilder->get('/hello', HelloRequest::class);
         $routesBuilder->post('/test', MixedFieldsRequest::class);
 
         $this->routes = $routesBuilder->routes;
-        $this->app = new class extends Application {
+        $this->app = new class($this->cacheDir) extends Application {
+            public function __construct(private string $cacheDir)
+            {
+                parent::__construct();
+            }
+
             public function cacheDir(): string
             {
-                return UrlMatcherCompilerTest::CACHE_DIR;
+                return $this->cacheDir;
             }
         };
 
-        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(self::CACHE_DIR, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+        $this->clearCache();
+    }
 
-        foreach ($it as $file) {
-            if ($file->isDir()) {
-                @rmdir($file->getRealPath());
-            } else {
-                @unlink($file->getRealPath());
+    protected function tearDown(): void
+    {
+        $this->clearCache();
+    }
+
+    private function clearCache(): void
+    {
+        if (file_exists($this->cacheDir)) {
+            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->cacheDir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+
+            foreach ($it as $file) {
+                if ($file->isDir()) {
+                    @rmdir($file->getRealPath());
+                } else {
+                    @unlink($file->getRealPath());
+                }
             }
         }
     }
@@ -57,7 +76,7 @@ class UrlMatcherCompilerTest extends TestCase
 
         $this->assertEquals($routes, $this->routes);
 
-        $this->assertFileExists(self::CACHE_DIR . '/compiled_routes.php');
+        $this->assertFileExists($this->cacheDir . '/compiled_routes.php');
         $this->assertEquals(<<<'PHP'
 <?php
 
@@ -103,7 +122,7 @@ return [
 ];
 
 PHP
-, file_get_contents(self::CACHE_DIR . '/compiled_routes.php')
+, file_get_contents($this->cacheDir . '/compiled_routes.php')
 );
     }
 
@@ -141,7 +160,7 @@ PHP
         $compiler = new UrlMatcherCompiler();
         $compiler->compile($this->app, $this->routes);
 
-        file_put_contents(self::CACHE_DIR . '/compiled_routes.php', '<?php return 42;');
+        file_put_contents($this->cacheDir . '/compiled_routes.php', '<?php return 42;');
 
         $this->assertNull($compiler->load($this->app, new RequestContext()));
     }
@@ -152,7 +171,7 @@ PHP
         $compiler = new UrlMatcherCompiler();
         $compiler->compile($this->app, $this->routes);
 
-        file_put_contents(self::CACHE_DIR . '/compiled_routes.php', '<?php syntax error!');
+        file_put_contents($this->cacheDir . '/compiled_routes.php', '<?php syntax error!');
 
         $this->assertNull($compiler->load($this->app, new RequestContext()));
     }

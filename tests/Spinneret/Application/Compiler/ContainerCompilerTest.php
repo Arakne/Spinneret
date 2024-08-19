@@ -4,6 +4,7 @@ namespace Arakne\Tests\Spinneret\Application\Compiler;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\Compiler\ContainerCompiler;
+use Arakne\Spinneret\Application\Compiler\ContainerCompilerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
@@ -12,30 +13,40 @@ use Symfony\Component\DependencyInjection\Definition;
 
 class ContainerCompilerTest extends TestCase
 {
-    const CACHE_DIR = '/tmp/container_compiler_test';
-
     private Application $app;
+    private string $cacheDir;
 
     protected function setUp(): void
     {
+        $this->cacheDir = '/tmp/container_compiler_test';
         $this->clearCache();
-        $this->app = new class extends Application {
+        $this->app = new class($this->cacheDir) extends Application {
+            public function __construct(private string $cacheDir)
+            {
+                parent::__construct();
+            }
+
             public function cacheDir(): string
             {
-                return ContainerCompilerTest::CACHE_DIR;
+                return $this->cacheDir;
             }
         };
 
         $this->clearCache();
     }
 
+    protected function tearDown(): void
+    {
+        $this->clearCache();
+    }
+
     private function clearCache(): void
     {
-        if (!is_dir(self::CACHE_DIR)) {
+        if (!is_dir($this->cacheDir)) {
             return;
         }
 
-        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(self::CACHE_DIR, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->cacheDir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
 
         foreach ($it as $file) {
             if ($file->isDir()) {
@@ -59,7 +70,7 @@ class ContainerCompilerTest extends TestCase
 
         $compiler->compile($this->app, $container);
 
-        $this->assertDirectoryExists(self::CACHE_DIR);
+        $this->assertDirectoryExists($this->cacheDir);
 
         $compiledContainer = $compiler->load($this->app);
         $this->assertInstanceOf(Container::class, $compiledContainer);
@@ -76,22 +87,22 @@ class ContainerCompilerTest extends TestCase
         $container->compile();
         $compiler->compile($this->app, $container);
 
-        foreach (scandir(self::CACHE_DIR) as $file) {
+        foreach (scandir($this->cacheDir) as $file) {
             if ($file === '.' || $file === '..') {
                 continue;
             }
 
-            file_put_contents(self::CACHE_DIR . '/' . $file, '<?php return "invalid";');
+            file_put_contents($this->cacheDir . '/' . $file, '<?php return "invalid";');
         }
 
         $this->assertNull($compiler->load($this->app));
 
-        foreach (scandir(self::CACHE_DIR) as $file) {
+        foreach (scandir($this->cacheDir) as $file) {
             if ($file === '.' || $file === '..') {
                 continue;
             }
 
-            file_put_contents(self::CACHE_DIR . '/' . $file, '<?php syntax!error;');
+            file_put_contents($this->cacheDir . '/' . $file, '<?php syntax!error;');
         }
         $this->assertNull($compiler->load($this->app));
     }
