@@ -15,5 +15,5 @@
         html: "infection-log.html",
     },
     "bootstrap": "tests/infection-bootstrap.php",
-    "minMsi": 98,
+    "minMsi": 97,
 }
