@@ -3,17 +3,14 @@
 namespace Arakne\Spinneret\Application\Compiler;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Util\Files;
 use Override;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Throwable;
 
-use function dirname;
-use function file_put_contents;
-use function is_dir;
 use function is_file;
-use function mkdir;
 use function preg_replace;
 
 /**
@@ -63,18 +60,7 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
             'class' => $this->containerClassName($application),
         ]);
 
-        $basePath = $application->cacheDir().'/'.$this->savePath;
-
-        foreach ($files as $file => $content) {
-            $fullPath = $basePath.'/'.$file;
-            $dir = dirname($fullPath);
-
-            if (!is_dir($dir)) {
-                mkdir($dir, 0o777, true);
-            }
-
-            file_put_contents($fullPath, $content);
-        }
+        Files::writeAll($application->cacheDir().'/'.$this->savePath, $files);
     }
 
     private function containerClassName(Application $application): string

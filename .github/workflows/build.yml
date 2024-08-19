@@ -63,9 +63,13 @@ jobs:
                   php-version: 8.3
                   extensions: json
                   ini-values: date.timezone=Europe/Paris
-            #
-            #    - name: Install Infection
-            #      run: composer global require infection/infection
+
+            - name: Install Infection
+              run: |
+                wget https://github.com/infection/infection/releases/download/0.28.1/infection.phar
+                wget https://github.com/infection/infection/releases/download/0.28.1/infection.phar.asc
+                chmod +x infection.phar
+                gpg --recv-keys C6D76C329EBADE2FB9C458CFC5095986493B4AA0 && gpg --with-fingerprint --verify infection.phar.asc infection.phar
 
             - name: Validate composer.json and composer.lock
               run: composer validate --strict
@@ -78,11 +82,10 @@ jobs:
 
             - name: Run checkstyle
               run: ./vendor/bin/php-cs-fixer check --diff
-    #
-    #    - name: Run Infection
-    #      run: |
-    #        git fetch --depth=1 origin $GITHUB_BASE_REF
-    #        ~/.composer/vendor/bin/infection --logger-github --git-diff-filter=AM
+
+            - name: Run Infection
+              run: |
+                ./infection.phar --logger-github
 
 #    coverage:
 #        name: Test coverage

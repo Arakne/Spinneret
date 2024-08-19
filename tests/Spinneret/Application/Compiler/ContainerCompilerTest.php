@@ -79,6 +79,27 @@ class ContainerCompilerTest extends TestCase
     }
 
     #[Test]
+    public function customSavePath()
+    {
+        $compiler = new ContainerCompiler('foo');
+
+        $this->assertNull($compiler->load($this->app));
+
+        $container = new ContainerBuilder();
+        $container->setDefinition('service', new Definition('stdClass'))->setPublic(true);
+        $container->compile();
+
+        $compiler->compile($this->app, $container);
+
+        $this->assertDirectoryExists($this->cacheDir.'/foo');
+
+        $compiledContainer = $compiler->load($this->app);
+        $this->assertInstanceOf(Container::class, $compiledContainer);
+
+        $this->assertInstanceOf(\stdClass::class, $compiledContainer->get('service'));
+    }
+
+    #[Test]
     public function loadInvalidFile()
     {
         $compiler = new ContainerCompiler();

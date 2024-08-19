@@ -8,6 +8,7 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
@@ -107,5 +108,23 @@ class FunctionalRouterTest extends TestCase
 
         $this->assertEquals(['key'], array_keys($resolved->form->errors()));
         $this->assertEquals('The value length is invalid. It should be between 10 and 10 characters long.', $resolved->form->errors()['key']->localizedMessage());
+    }
+
+    #[Test]
+    public function invalidFieldExtractorError(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Fields extractor for route Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest must be a callable');
+
+        $builder = new RouteCollectionBuilder();
+        $builder->get('/hello', HelloRequest::class, \stdClass::class);
+
+        $router = new Router(
+            new UrlMatcher($builder->routes, new RequestContext()),
+            DefaultFormFactory::runtime()
+        );
+
+        $psrRequest = new ServerRequest('GET', '/hello');
+        $router->request($psrRequest);
     }
 }

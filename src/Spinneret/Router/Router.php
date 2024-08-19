@@ -77,7 +77,6 @@ final readonly class Router implements RouterInterface
             }
         }
 
-        // @todo check attributes
         // @todo optimisation: field extractor vide et request en singleton
         $form = $this->formFactory->create($target);
 

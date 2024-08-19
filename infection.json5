@@ -4,6 +4,9 @@
         "directories": [
             "src"
         ],
+        "excludes": [
+            "src/Spinneret/Application/var", // Generated because of mutation testing
+        ]
     },
     "mutators": {
         "@default": true
@@ -12,4 +15,5 @@
         html: "infection-log.html",
     },
     "bootstrap": "tests/infection-bootstrap.php",
+    "minMsi": 98,
 }

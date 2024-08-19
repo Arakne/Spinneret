@@ -3,7 +3,6 @@
 namespace Arakne\Tests\Spinneret\Runner;
 
 use Arakne\Spinneret\Presenter\PresenterDispatcher;
-use Arakne\Spinneret\Presenter\RequestPresenter;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Router\Router;
@@ -18,8 +17,10 @@ use Arakne\Tests\Spinneret\Runner\Fixtures\FooPresenter;
 use Arakne\Tests\Spinneret\Runner\Fixtures\FooRequest;
 use Arakne\Tests\Spinneret\Runner\Fixtures\FooSuccessRenderer;
 use Arakne\Tests\Spinneret\Runner\Fixtures\FooSuccessResponse;
+use Arakne\Tests\Spinneret\Runner\Fixtures\InternalServerErrorPresenter;
 use Arakne\Tests\Spinneret\Runner\Fixtures\InternalServerErrorRenderer;
 use Arakne\Tests\Spinneret\Runner\Fixtures\ReverseMiddleware;
+use LogicException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
@@ -34,6 +35,7 @@ class RunnerTest extends TestCase
     private PresenterDispatcher $presenterDispatcher;
     private Router $router;
     private Engine $view;
+    private ContainerBuilder $container;
 
     protected function setUp(): void
     {
@@ -41,8 +43,10 @@ class RunnerTest extends TestCase
         $container->autowire(FooPresenter::class, FooPresenter::class);
         $container->autowire(FooSuccessRenderer::class, FooSuccessRenderer::class);
         $container->autowire(FooErrorRenderer::class, FooErrorRenderer::class);
-        $container->autowire(RequestPresenter::class, RequestPresenter::class);
+        $container->autowire(InternalServerErrorPresenter::class, InternalServerErrorPresenter::class);
         $container->autowire(InternalServerErrorRenderer::class, InternalServerErrorRenderer::class);
+
+        $this->container = $container;
 
         $routesBuilder = new RouteCollectionBuilder();
         $routesBuilder->get('/foo', FooRequest::class);
@@ -54,7 +58,7 @@ class RunnerTest extends TestCase
         );
         $this->presenterDispatcher = new PresenterDispatcher($container, [
             FooRequest::class => FooPresenter::class,
-            InternalServerError::class => RequestPresenter::class,
+            InternalServerError::class => InternalServerErrorPresenter::class,
         ]);
         $this->view = new Engine(
             $container,
@@ -111,6 +115,9 @@ class RunnerTest extends TestCase
         $response = $runner->handle($psrRequest);
 
         $this->assertEquals('{"error":"Exception : runtime error","step":"Presenter","request":{"bar":"error"}}', (string) $response->getBody());
+        $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
+        $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
+        $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
     }
 
     #[Test]
@@ -126,6 +133,9 @@ class RunnerTest extends TestCase
         $response = $runner->handle($psrRequest);
 
         $this->assertEquals('{"error":"ReflectionException : Class \"invalid\" does not exist","step":"Router","request":null}', (string) $response->getBody());
+        $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
+        $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
+        $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
     }
 
     #[Test]
@@ -141,8 +151,10 @@ class RunnerTest extends TestCase
         $response = $runner->handle($psrRequest);
 
         $this->assertEquals('{"error":"Exception : view error","step":"View","request":{"bar":"view-error"}}', (string) $response->getBody());
+        $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
+        $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
+        $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
     }
-
 
     #[Test]
     public function handleSuccessWithMiddleware()
@@ -180,6 +192,9 @@ class RunnerTest extends TestCase
         $response = $runner->handle($psrRequest);
 
         $this->assertEquals('{"error":"Exception : Error","step":"Middleware","request":null}', (string) $response->getBody());
+        $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
+        $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
+        $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
     }
 
     #[Test]
@@ -292,5 +307,93 @@ class RunnerTest extends TestCase
         $response = $runner->handleRoutedRequest($routedRequest, true);
 
         $this->assertEquals('{"error":"Exception : view error","step":"View","request":{"bar":"view-error"}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function handleErrorDuringErrorHandlingShouldNotResultToInfiniteLoopAfterPresenterError()
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('No presenter found for Arakne\Spinneret\Runner\InternalServerError');
+
+        $presenterDispatcher = new PresenterDispatcher($this->container, [
+            FooRequest::class => FooPresenter::class,
+        ]);
+        $runner = new Runner(
+            $this->router,
+            $presenterDispatcher,
+            $this->view
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=error');
+        $runner->handle($psrRequest);
+    }
+
+    #[Test]
+    public function handleErrorDuringErrorHandlingShouldNotResultToInfiniteLoopAfterMiddlewareError()
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('No presenter found for Arakne\Spinneret\Runner\InternalServerError');
+
+        $presenterDispatcher = new PresenterDispatcher($this->container, [
+            FooRequest::class => FooPresenter::class,
+        ]);
+
+        $runner = new Runner(
+            $this->router,
+            $presenterDispatcher,
+            $this->view,
+            [
+                new ErrorMiddleware(),
+            ]
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=error');
+        $runner->handle($psrRequest);
+    }
+
+    #[Test]
+    public function handleErrorDuringErrorHandlingShouldNotResultToInfiniteLoopAfterViewError()
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('No presenter found for Arakne\Spinneret\Runner\InternalServerError');
+
+        $presenterDispatcher = new PresenterDispatcher($this->container, [
+            FooRequest::class => FooPresenter::class,
+        ]);
+
+        $runner = new Runner(
+            $this->router,
+            $presenterDispatcher,
+            $this->view,
+            [
+                new ErrorMiddleware(),
+            ]
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=view-error');
+        $runner->handle($psrRequest);
+    }
+
+    #[Test]
+    public function handleErrorDuringErrorHandlingShouldNotResultToInfiniteLoopAfterRouterError()
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('No presenter found for Arakne\Spinneret\Runner\InternalServerError');
+
+        $presenterDispatcher = new PresenterDispatcher($this->container, [
+            FooRequest::class => FooPresenter::class,
+        ]);
+
+        $runner = new Runner(
+            $this->router,
+            $presenterDispatcher,
+            $this->view,
+            [
+                new ErrorMiddleware(),
+            ]
+        );
+
+        $psrRequest = new ServerRequest('GET', '/invalid');
+        $runner->handle($psrRequest);
     }
 }

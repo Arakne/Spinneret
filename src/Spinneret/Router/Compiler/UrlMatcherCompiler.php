@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\Router\Compiler;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Router\Field\FieldsExtractor;
+use Arakne\Spinneret\Util\Files;
 use Override;
 use Symfony\Component\Routing\Matcher\CompiledUrlMatcher;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
@@ -13,14 +14,10 @@ use Symfony\Component\Routing\RouteCollection;
 use Throwable;
 
 use function class_exists;
-use function dirname;
-use function file_put_contents;
 use function is_array;
-use function is_dir;
 use function is_file;
 use function is_string;
 use function md5;
-use function mkdir;
 use function serialize;
 use function var_export;
 
@@ -146,12 +143,7 @@ final readonly class UrlMatcherCompiler implements UrlMatcherCompilerInterface
     private function save(Application $application, string $content): void
     {
         $cacheFile = $application->cacheDir() . '/' . $this->targetFile;
-        $cacheDir = dirname($cacheFile);
 
-        if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0o777, true);
-        }
-
-        file_put_contents($cacheFile, $content);
+        Files::write($cacheFile, $content);
     }
 }
