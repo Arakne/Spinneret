@@ -3,10 +3,14 @@
 namespace Arakne\Tests\Spinneret\View;
 
 use Arakne\Spinneret\View\Engine;
+use Arakne\Tests\Spinneret\View\Fixtures\Layout;
+use Arakne\Tests\Spinneret\View\Fixtures\LayoutRenderer;
 use Arakne\Tests\Spinneret\View\Fixtures\OtherResponse;
 use Arakne\Tests\Spinneret\View\Fixtures\RendererWithResponseConfigurator;
+use Arakne\Tests\Spinneret\View\Fixtures\ResponseWithParent;
 use Arakne\Tests\Spinneret\View\Fixtures\SimpleRenderer;
 use Arakne\Tests\Spinneret\View\Fixtures\SimpleResponse;
+use Arakne\Tests\Spinneret\View\Fixtures\WithParentRenderer;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +28,8 @@ class EngineTest extends TestCase
         $container = new ContainerBuilder();
         $container->set(SimpleRenderer::class, $this->renderer = new SimpleRenderer());
         $container->set(RendererWithResponseConfigurator::class, new RendererWithResponseConfigurator());
+        $container->set(WithParentRenderer::class, new WithParentRenderer());
+        $container->set(LayoutRenderer::class, new LayoutRenderer());
 
         $this->engine = new Engine(
             $container,
@@ -32,6 +38,8 @@ class EngineTest extends TestCase
             [
                 SimpleResponse::class => SimpleRenderer::class,
                 OtherResponse::class => RendererWithResponseConfigurator::class,
+                ResponseWithParent::class => WithParentRenderer::class,
+                Layout::class => LayoutRenderer::class,
             ]
         );
     }
@@ -46,6 +54,13 @@ class EngineTest extends TestCase
 
         $this->assertSame($r, $this->renderer->data);
         $this->assertSame($r, $this->renderer->view->data);
+    }
+
+    #[Test]
+    public function renderSimple()
+    {
+        $response = $this->engine->render(new SimpleResponse('Hello, world!'));
+        $this->assertSame('<p>Hello, world!</p>', $response);
     }
 
     #[Test]
@@ -65,5 +80,27 @@ class EngineTest extends TestCase
         $this->expectExceptionMessage('No renderer found for stdClass');
 
         $this->engine->response(new stdClass());
+    }
+
+    #[Test]
+    public function responseWithLayout()
+    {
+        $response = $this->engine->response($r = new ResponseWithParent('Hello, world!'));
+
+        $this->assertSame(<<<'HTML'
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>My page</title>
+            </head>
+            <body>
+                <p>Hello, world!</p>            </body>
+        </html>
+        
+HTML
+, (string) $response->getBody());
+        $this->assertSame(200, $response->getStatusCode());
     }
 }

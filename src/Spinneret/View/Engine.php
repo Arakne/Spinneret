@@ -35,18 +35,14 @@ final readonly class Engine implements ViewEngineInterface
     public function response(object $data): ResponseInterface
     {
         $view = new View($data);
+        $renderer = $this->renderer($data);
 
-        $rendererClassName = $this->renderers[$data::class] ?? null;
-
-        if ($rendererClassName === null) {
-            throw new RuntimeException('No renderer found for ' . $data::class);
-        }
-
-        /** @var ViewRendererInterface $renderer */
-        $renderer = $this->container->get($rendererClassName);
-
-        // @todo handle layout : use $view->parent property
         $content = $renderer->render($view, $data);
+        $view->content = $content;
+
+        if ($view->parent) {
+            $content = $this->render($view->parent, $view);
+        }
 
         // @todo allow null render ? or allow ViewRendererInterface|ResponseConfiguratorInterface union type instead
         $response = $this->responseFactory->createResponse();
@@ -57,5 +53,33 @@ final readonly class Engine implements ViewEngineInterface
         }
 
         return $response;
+    }
+
+    #[Override]
+    public function render(object $data, ?View $view = null): string
+    {
+        $view ??= new View($data);
+
+        return $this->renderer($data)->render($view, $data);
+    }
+
+    /**
+     * Resolve the renderer object for the given data object
+     *
+     * @param D $data
+     * @return ViewRendererInterface<D>
+     *
+     * @template D as object
+     */
+    private function renderer(object $data): ViewRendererInterface
+    {
+        $rendererClassName = $this->renderers[$data::class] ?? null;
+
+        if ($rendererClassName === null) {
+            throw new RuntimeException('No renderer found for ' . $data::class);
+        }
+
+        /** @var ViewRendererInterface<D> */
+        return $this->container->get($rendererClassName);
     }
 }
