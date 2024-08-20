@@ -2,7 +2,14 @@
 
 namespace Arakne\Spinneret\Util;
 
+use FilesystemIterator;
+use InvalidArgumentException;
+use RecursiveDirectoryIterator;
+
+use RecursiveIteratorIterator;
+
 use function dirname;
+use function file_exists;
 use function file_put_contents;
 use function is_dir;
 use function mkdir;
@@ -46,5 +53,29 @@ final class Files
         foreach ($files as $filename => $content) {
             self::write($targetDirectory . '/' . $filename, $content);
         }
+    }
+
+    public static function rmdir(string $directory): void
+    {
+        if (!file_exists($directory)) {
+            return;
+        }
+
+        if (!is_dir($directory)) {
+            throw new InvalidArgumentException('The given path is not a directory');
+        }
+
+        $it = new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS);
+
+        /** @var \SplFileInfo $file */
+        foreach (new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST) as $file) {
+            if ($file->isDir()) {
+                @rmdir($file->getRealPath());
+            } else {
+                @unlink($file->getRealPath());
+            }
+        }
+
+        rmdir($directory);
     }
 }

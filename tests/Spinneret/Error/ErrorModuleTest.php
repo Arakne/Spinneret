@@ -7,6 +7,7 @@ use Arakne\Spinneret\Error\ErrorModule;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Runner\InternalServerError;
 use Arakne\Spinneret\Runner\RunnerStepEnum;
+use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -72,6 +73,7 @@ HTML
                 RunnerStepEnum::Presenter,
                 new \Exception('test'),
                 $req,
+                new HelloRequest(),
             ),
             success: false,
         ));
@@ -80,5 +82,6 @@ HTML
         $this->assertStringContainsString('<p>test</p>', (string) $response->getBody());
         $this->assertStringContainsString('<p>During stage Presenter</p>', (string) $response->getBody());
         $this->assertStringContainsString('Arakne\Tests\Spinneret\Error\ErrorModuleTest->functionalDev()', (string) $response->getBody());
+        $this->assertStringContainsString('Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest', (string) $response->getBody());
     }
 }

@@ -3,10 +3,9 @@
 namespace Arakne\Tests\Spinneret\Router\Compiler;
 
 use Arakne\Spinneret\Application\Application;
-use Arakne\Spinneret\Application\Compiler\ContainerCompiler;
-use Arakne\Spinneret\Application\Compiler\ContainerCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use Nyholm\Psr7\ServerRequest;
@@ -53,17 +52,7 @@ class UrlMatcherCompilerTest extends TestCase
 
     private function clearCache(): void
     {
-        if (file_exists($this->cacheDir)) {
-            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->cacheDir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
-
-            foreach ($it as $file) {
-                if ($file->isDir()) {
-                    @rmdir($file->getRealPath());
-                } else {
-                    @unlink($file->getRealPath());
-                }
-            }
-        }
+        Files::rmdir($this->cacheDir);
     }
 
     #[Test]

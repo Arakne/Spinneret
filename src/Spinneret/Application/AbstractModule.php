@@ -7,6 +7,8 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\View\ViewRendererInterface;
 use Override;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Parameter;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Simple module implementation
@@ -60,10 +62,19 @@ abstract class AbstractModule implements ModuleInterface
      */
     private array $routes = [];
 
-    public function __construct()
-    {
-        $this->configure();
-    }
+    /**
+     * @var array<class-string, array{
+     *     params: list<mixed>,
+     *     autowire: bool,
+     *     public: bool,
+     * }>
+     */
+    private array $services = [];
+
+    /**
+     * Whether the module has been configured
+     */
+    private bool $configured = false;
 
     /**
      * Must be implemented by the child class to register
@@ -84,6 +95,8 @@ abstract class AbstractModule implements ModuleInterface
     #[Override]
     final public function register(ContainerBuilder $containerBuilder): void
     {
+        $this->callConfigure();
+
         foreach ($this->presenters as $presenterClass) {
             $containerBuilder->autowire($presenterClass, $presenterClass)->setPublic(true);
         }
@@ -92,12 +105,22 @@ abstract class AbstractModule implements ModuleInterface
             $containerBuilder->autowire($rendererClass, $rendererClass)->setPublic(true);
         }
 
+        foreach ($this->services as $class => $arguments) {
+            $containerBuilder->register($class, $class)
+                ->setArguments($arguments['params'])
+                ->setPublic($arguments['public'])
+                ->setAutowired($arguments['autowire'])
+            ;
+        }
+
         $this->configureContainer($containerBuilder);
     }
 
     #[Override]
     final public function configureRoutes(RouteCollectionBuilder $builder): void
     {
+        $this->callConfigure();
+
         foreach ($this->routes as ['methods' => $methods, 'path' => $path, 'target' => $target]) {
             $builder->add($path, $target, $methods);
         }
@@ -106,12 +129,16 @@ abstract class AbstractModule implements ModuleInterface
     #[Override]
     final public function presenters(): array
     {
+        $this->callConfigure();
+
         return $this->presenters;
     }
 
     #[Override]
     final public function renderers(): array
     {
+        $this->callConfigure();
+
         return $this->renderers;
     }
 
@@ -189,4 +216,65 @@ abstract class AbstractModule implements ModuleInterface
     {
         $this->presenters[$request] = $presenter;
     }
+
+    /**
+     * Register a service in the container.
+     *
+     * This is equivalent to calling `$containerBuilder->register($class, $class)->setArguments($parameters);`
+     * into the `configureContainer` method.
+     *
+     * @param class-string $class The service class name
+     * @param list<mixed> $parameters The service arguments
+     * @param bool $autowire Whether the service should be autowired
+     * @param bool $public Whether the service should be public
+     *
+     * @return void
+     *
+     * @see ContainerBuilder::register()
+     */
+    final protected function service(string $class, array $parameters = [], bool $autowire = false, bool $public = false): void
+    {
+        $this->services[$class] = [
+            'params' => $parameters,
+            'autowire' => $autowire,
+            'public' => $public,
+        ];
+    }
+
+    /**
+     * Autowire a service for the container.
+     *
+     * This is equivalent to calling `$containerBuilder->autowire($class, $class)->setPublic($public);`
+     * into the `configureContainer` method.
+     *
+     * @param class-string $class The service class name
+     * @param bool $public Whether the service should be public
+     *
+     * @return void
+     *
+     * @see ContainerBuilder::register()
+     */
+    final protected function autowire(string $class, bool $public = false): void
+    {
+        $this->service($class, autowire: true, public: $public);
+    }
+
+    private function callConfigure(): void
+    {
+        if (!$this->configured) {
+            $this->configure();
+            $this->configured = true;
+        }
+    }
+}
+
+/**
+ * Helper function to create a new service reference.
+ *
+ * @param string $id The service identifier
+ * @return Reference
+ */
+function service(string $id): Reference
+{
+    return new Reference($id);
 }

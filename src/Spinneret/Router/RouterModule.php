@@ -3,7 +3,7 @@
 namespace Arakne\Spinneret\Router;
 
 use Arakne\Spinneret\Application\Application;
-use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Application\ConfigurableModuleInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompilerInterface;
 use Override;
@@ -20,6 +20,7 @@ use Symfony\Component\Routing\RequestContext;
  * Required services:
  * - {@see FormFactoryInterface} - can be provided by the {@see FormModule}
  * - {@see Application} - provided by the Application itself
+ * - {@see RouterConfig} - provided by the config system
  *
  * Provided services:
  * - {@see RouterInterface} - alias to {@see Router}
@@ -30,9 +31,28 @@ use Symfony\Component\Routing\RequestContext;
  * - {@see RequestContext}
  *
  * Note: no services are marked as public, as they are not meant to be used directly.
+ *
+ * @implements ConfigurableModuleInterface<RouterConfig>
  */
-final class RouterModule implements ModuleInterface
+final readonly class RouterModule implements ConfigurableModuleInterface
 {
+    public function __construct(
+        private RouterConfig $config = new RouterConfig(),
+    ) {
+    }
+
+    #[Override]
+    public function withConfiguration(object $configuration): static
+    {
+        return new static($configuration);
+    }
+
+    #[Override]
+    public function configuration(): RouterConfig
+    {
+        return $this->config;
+    }
+
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
@@ -67,7 +87,10 @@ final class RouterModule implements ModuleInterface
         $containerBuilder->register(RouteCollectionLoader::class, RouteCollectionLoader::class);
         $containerBuilder->setAlias(RouteCollectionLoaderInterface::class, RouteCollectionLoader::class);
 
-        $containerBuilder->register(RequestContext::class, RequestContext::class); // @todo configure
+        $containerBuilder->register(RequestContext::class, RequestContext::class)
+            ->setFactory([self::class, 'createRequestContext'])
+            ->setArguments([new Reference(RouterConfig::class)])
+        ;
     }
 
     #[Override]
@@ -86,5 +109,11 @@ final class RouterModule implements ModuleInterface
     public function renderers(): array
     {
         return [];
+    }
+
+    public static function createRequestContext(RouterConfig $config): RequestContext
+    {
+        /** @psalm-suppress RiskyTruthyFalsyComparison */
+        return $config->baseUrl ? RequestContext::fromUri($config->baseUrl) : new RequestContext();
     }
 }

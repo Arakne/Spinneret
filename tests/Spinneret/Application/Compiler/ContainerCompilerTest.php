@@ -4,7 +4,7 @@ namespace Arakne\Tests\Spinneret\Application\Compiler;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\Compiler\ContainerCompiler;
-use Arakne\Spinneret\Application\Compiler\ContainerCompilerInterface;
+use Arakne\Spinneret\Util\Files;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
@@ -42,19 +42,7 @@ class ContainerCompilerTest extends TestCase
 
     private function clearCache(): void
     {
-        if (!is_dir($this->cacheDir)) {
-            return;
-        }
-
-        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->cacheDir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
-
-        foreach ($it as $file) {
-            if ($file->isDir()) {
-                @rmdir($file->getRealPath());
-            } else {
-                @unlink($file->getRealPath());
-            }
-        }
+        Files::rmdir($this->cacheDir);
     }
 
     #[Test]

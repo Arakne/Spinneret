@@ -4,6 +4,8 @@ namespace Arakne\Spinneret\Application;
 
 use Arakne\Spinneret\Application\Compiler\ContainerCompiler;
 use Arakne\Spinneret\Application\Compiler\ContainerCompilerInterface;
+use Arakne\Spinneret\Application\Config\ConfigLoaderInterface;
+use Arakne\Spinneret\Application\Config\PhpConfigLoader;
 use Arakne\Spinneret\Error\ErrorModule;
 use Arakne\Spinneret\Form\FormModule;
 use Arakne\Spinneret\Presenter\PresenterModule;
@@ -35,6 +37,12 @@ class Application implements RunnerInterface
      */
     private ?array $modules = null;
 
+    /**
+     * @var array<class-string, object>|null
+     * @psalm-var class-string-map<T, T>|null
+     */
+    private ?array $config = null;
+
     public function __construct(
         /**
          * Whether the application is in development mode
@@ -47,6 +55,14 @@ class Application implements RunnerInterface
          * If null, the container is not compiled
          */
         private readonly ?ContainerCompilerInterface $containerCompiler = new ContainerCompiler(),
+
+        /**
+         * Strategy to load the configuration
+         * By default, will load all *.php files from the config directory
+         *
+         * @var ConfigLoaderInterface
+         */
+        private readonly ConfigLoaderInterface $configLoader = new PhpConfigLoader(),
     ) {
         $this->container = $this->loadContainer();
         /** @psalm-suppress MixedAssignment : The service RunnerInterface may be overridden, but it will raise an error anyway */
@@ -79,7 +95,7 @@ class Application implements RunnerInterface
             return $this->modules;
         }
 
-        $this->modules = $modules = [
+        $modules = [
             new RouterModule(),
             new PresenterModule(),
             new ViewModule(),
@@ -89,7 +105,38 @@ class Application implements RunnerInterface
             ...$this->applicationModules(),
         ];
 
-        return $modules;
+        $config = $this->config();
+
+        foreach ($modules as $i => $module) {
+            if ($module instanceof ConfigurableModuleInterface) {
+                $configItem = $config[$module->configuration()::class] ?? null;
+
+                if ($configItem) {
+                    /** @psalm-suppress ArgumentTypeCoercion */
+                    $modules[$i] = $module->withConfiguration($configItem);
+                }
+            }
+        }
+
+        return $this->modules = $modules;
+    }
+
+    /**
+     * Load configuration objects from the config directory
+     *
+     * The returned array is indexed by the class name of the configuration object.
+     * Config instances will be created only once, so the exact same array will be returned on each call.
+     *
+     * @return array<class-string, object>
+     * @psalm-return class-string-map<T, T>
+     */
+    final public function config(): array
+    {
+        /**
+         * @var class-string-map<T, T>
+         * @psalm-suppress MixedAssignment
+         */
+        return $this->config ??= $this->configLoader->load($this);
     }
 
     /**
@@ -128,6 +175,18 @@ class Application implements RunnerInterface
     }
 
     /**
+     * Get the directory where configurations files are stored
+     *
+     * By default, the cache directory is config in the project root directory.
+     *
+     * @return string
+     */
+    public function configDir(): string
+    {
+        return $this->projectDir().'/config';
+    }
+
+    /**
      * Load the container
      *
      * When {@see Application::isDev} is true, the container is always reloaded.
@@ -141,6 +200,13 @@ class Application implements RunnerInterface
         $container ??= $this->buildContainer(); // Container not found or in dev mode : build it
 
         $container->set(Application::class, $this);
+
+        foreach ($this->modules() as $module) {
+            if ($module instanceof ConfigurableModuleInterface) {
+                $config = $module->configuration();
+                $container->set($config::class, $config);
+            }
+        }
 
         return $container;
     }
@@ -162,6 +228,11 @@ class Application implements RunnerInterface
 
             $presenters += $module->presenters();
             $renderers += $module->renderers();
+
+            if ($module instanceof ConfigurableModuleInterface) {
+                $config = $module->configuration();
+                $containerBuilder->register($config::class)->setSynthetic(true);
+            }
         }
 
         $containerBuilder->setParameter(ViewModule::RENDERERS_PARAMETER, $renderers);

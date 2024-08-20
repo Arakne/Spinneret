@@ -9,6 +9,7 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RouteCollectionLoader;
 use Arakne\Spinneret\Router\RouteCollectionLoaderInterface;
 use Arakne\Spinneret\Router\Router;
+use Arakne\Spinneret\Router\RouterConfig;
 use Arakne\Spinneret\Router\RouterInterface;
 use Arakne\Spinneret\Router\RouterModule;
 use Arakne\Spinneret\Router\UrlMatcherLoader;
@@ -44,6 +45,7 @@ class RouterModuleTest extends TestCase
 
         $container->set(Application::class, $app);
         $container->set(FormFactoryInterface::class, DefaultFormFactory::runtime());
+        $container->set(RouterConfig::class, new RouterConfig());
 
         $routerModule = new RouterModule();
         $routerModule->register($container);
@@ -53,5 +55,30 @@ class RouterModuleTest extends TestCase
         $this->assertInstanceOf(UrlMatcherCompiler::class, $container->get(UrlMatcherCompilerInterface::class));
         $this->assertInstanceOf(RouteCollectionLoader::class, $container->get(RouteCollectionLoaderInterface::class));
         $this->assertEquals(new RequestContext(), $container->get(RequestContext::class));
+    }
+
+    #[Test]
+    public function registerWithConfig()
+    {
+        $app = new class(true) extends Application {
+            public function configDir(): string
+            {
+                return __DIR__.'/Fixtures/config';
+            }
+        };
+        $container = new ContainerBuilder();
+
+        $container->set(Application::class, $app);
+        $container->set(FormFactoryInterface::class, DefaultFormFactory::runtime());
+        $container->set(RouterConfig::class, $app->config()[RouterConfig::class]);
+
+        $routerModule = new RouterModule();
+        $routerModule->register($container);
+
+        $this->assertInstanceOf(Router::class, $container->get(RouterInterface::class));
+        $this->assertInstanceOf(UrlMatcherLoader::class, $container->get(UrlMatcherLoaderInterface::class));
+        $this->assertInstanceOf(UrlMatcherCompiler::class, $container->get(UrlMatcherCompilerInterface::class));
+        $this->assertInstanceOf(RouteCollectionLoader::class, $container->get(RouteCollectionLoaderInterface::class));
+        $this->assertEquals(RequestContext::fromUri('http://foo.example.com/bar'), $container->get(RequestContext::class));
     }
 }

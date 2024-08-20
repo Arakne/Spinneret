@@ -6,10 +6,8 @@ use Arakne\Tests\Spinneret\Application\Fixtures\TestApplication;
 
 class FunctionalApplicationDevModeTest extends FunctionalApplicationTest
 {
-    protected function setUp(): void
+    protected function createApplication(): TestApplication
     {
-        parent::setUp();
-
-        $this->app = new TestApplication(true);
+        return new TestApplication(true);
     }
 }

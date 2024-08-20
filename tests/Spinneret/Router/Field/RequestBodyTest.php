@@ -26,11 +26,36 @@ class RequestBodyTest extends TestCase
     }
 
     #[Test]
+    public function extractWithObject()
+    {
+        $psrRequest = new ServerRequest('GET', '/hello');
+        $psrRequest = $psrRequest->withParsedBody((object) ['name' => 'world', 'other' => 'foo']);
+
+        $field = new RequestBody();
+
+        $this->assertSame('world', $field->extract($psrRequest, 'name'));
+        $this->assertNull($field->extract($psrRequest, 'not_found'));
+    }
+
+    #[Test]
     public function extractAll()
     {
         $psrRequest = new ServerRequest('GET', '/hello');
         $psrRequest = $psrRequest->withQueryParams(['not_present' => 'bar']);
         $psrRequest = $psrRequest->withParsedBody(['name' => 'world', 'other' => 'foo']);
+
+        $field = new RequestBody();
+
+        $this->assertSame(['name' => 'world', 'other' => 'foo'], $field->extractAll($psrRequest));
+        $this->assertSame([], $field->extractAll($psrRequest->withParsedBody(null)));
+    }
+
+    #[Test]
+    public function extractAllWithObject()
+    {
+        $psrRequest = new ServerRequest('GET', '/hello');
+        $psrRequest = $psrRequest->withQueryParams(['not_present' => 'bar']);
+        $psrRequest = $psrRequest->withParsedBody((object) ['name' => 'world', 'other' => 'foo']);
 
         $field = new RequestBody();
 

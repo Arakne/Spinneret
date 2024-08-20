@@ -15,18 +15,8 @@ final class RegistrationModule extends AbstractModule
 
         $this->renderer(RegistrationSuccessResponse::class, RegistrationSuccessRenderer::class);
         $this->renderer(RegistrationErrorResponse::class, RegistrationErrorRenderer::class);
-    }
 
-    protected function configureContainer(ContainerBuilder $containerBuilder): void
-    {
-        $containerBuilder
-            ->autowire(UniqueNameValidator::class, UniqueNameValidator::class)
-            ->setPublic(true)
-        ;
-
-        $containerBuilder
-            ->autowire(UserRepository::class, UserRepository::class)
-            ->setPublic(true)
-        ;
+        $this->autowire(UniqueNameValidator::class, public: true);
+        $this->autowire(UserRepository::class, public: true);
     }
 }

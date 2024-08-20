@@ -4,11 +4,15 @@ namespace Arakne\Tests\Spinneret\Application;
 
 use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
+use Arakne\Spinneret\Util\Files;
+use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\ConfigurableModule;
+use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\TestConfig;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRequest;
 use Arakne\Tests\Spinneret\Application\Fixtures\TestApplication;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\TextUI\Configuration\File;
 
 class FunctionalApplicationTest extends TestCase
 {
@@ -16,7 +20,17 @@ class FunctionalApplicationTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->app = new TestApplication(false);
+        $this->app = $this->createApplication();
+    }
+
+    protected function createApplication(): TestApplication
+    {
+        return new TestApplication(false);
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        Files::rmdir(dirname(__DIR__, 3).'/var/cache');
     }
 
     #[Test]
@@ -32,6 +46,35 @@ class FunctionalApplicationTest extends TestCase
         $this->assertSame($this->app->modules(), $this->app->modules());
         $this->assertContainsOnlyInstancesOf(ModuleInterface::class, $this->app->modules());
         $this->assertIsList($this->app->modules());
+    }
+
+    #[Test]
+    public function modulesShouldSetConfiguration()
+    {
+        foreach ($this->app->modules() as $module) {
+            if ($module instanceof ConfigurableModule) {
+                break;
+            }
+        }
+
+        $this->assertNotNull($module);
+        $this->assertEquals(new TestConfig(
+            message: 'My configured message',
+            computed: 1655275095,
+        ), $module->configuration());
+    }
+
+    #[Test]
+    public function config()
+    {
+        $this->assertSame($this->app->config(), $this->app->config());
+
+        $this->assertEquals([
+            TestConfig::class => new TestConfig(
+                message: 'My configured message',
+                computed: 1655275095,
+            ),
+        ], $this->app->config());
     }
 
     #[Test]
@@ -194,5 +237,15 @@ HTML
 
         $this->assertSame(400, $response->getStatusCode());
         $this->assertStringContainsString('{"error":{"errors":{"name":"This value is required","email":"This value is not a valid.","password":"The password is too weak"}}}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function withConfiguration()
+    {
+        $request = new ServerRequest('GET', '/config');
+        $response = $this->app->handle($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertEquals('{"message":"My configured message","computed":1655275095}', (string) $response->getBody());
     }
 }

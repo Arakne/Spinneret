@@ -7,14 +7,23 @@ use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 class FieldsExtractorTest extends TestCase
 {
-    public function test_invoke_simple_request()
+    #[
+        TestWith(['GET']),
+        TestWith(['HEAD']),
+        TestWith(['OPTIONS']),
+        TestWith(['DELETE']),
+    ]
+    #[Test]
+    public function invokeSimpleRequest($method)
     {
         $extractor = new FieldsExtractor(HelloRequest::class);
-        $psrRequest = new ServerRequest('GET', '/hello');
+        $psrRequest = new ServerRequest($method, '/hello');
         $psrRequest = $psrRequest->withQueryParams(['name' => 'world', 'other' => 'foo']);
         $psrRequest = $psrRequest->withParsedBody(['not_present' => 'bar']);
 
@@ -24,7 +33,8 @@ class FieldsExtractorTest extends TestCase
         );
     }
 
-    public function test_compile_simple_request()
+    #[Test]
+    public function compileSimpleRequest()
     {
         $extractor = new FieldsExtractor(HelloRequest::class);
 
@@ -46,7 +56,8 @@ class FieldsExtractorTest extends TestCase
         );
     }
 
-    public function test_invoke_mixed_fields()
+    #[Test]
+    public function invokeMixedFields()
     {
         $extractor = new FieldsExtractor(MixedFieldsRequest::class);
         $psrRequest = new ServerRequest('GET', '/hello');
@@ -59,7 +70,8 @@ class FieldsExtractorTest extends TestCase
         );
     }
 
-    public function test_compile_mixed_fields()
+    #[Test]
+    public function compileMixedFields()
     {
         $extractor = new FieldsExtractor(MixedFieldsRequest::class);
 

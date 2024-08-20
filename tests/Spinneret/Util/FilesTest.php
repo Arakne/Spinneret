@@ -3,11 +3,9 @@
 namespace Arakne\Tests\Spinneret\Util;
 
 use Arakne\Spinneret\Util\Files;
-use FilesystemIterator;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 class FilesTest extends TestCase
 {
@@ -22,7 +20,7 @@ class FilesTest extends TestCase
         $this->assertFileExists($filename);
         $this->assertEquals('Hello, world!', file_get_contents($filename));
 
-        $this->rrmdir($dir);
+        Files::rmdir($dir);
     }
 
     #[Test]
@@ -43,26 +41,35 @@ class FilesTest extends TestCase
         $this->assertFileExists($dir.'/bar/test2.txt');
         $this->assertEquals('Hello, world again!', file_get_contents($dir.'/bar/test2.txt'));
 
-        $this->rrmdir($dir);
+        Files::rmdir($dir);
     }
 
-    // @todo Add utility method to Files
-    public function rrmdir(string $dir): void
+    #[Test]
+    public function rmdir()
     {
-        if (!is_dir($dir)) {
-            return;
-        }
+        Files::rmdir('/tmp/not-found');
 
-        $it = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
+        $dir = '/tmp/'.bin2hex(random_bytes(8));
 
-        foreach (new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST) as $file) {
-            if ($file->isDir()) {
-                @rmdir($file->getRealPath());
-            } else {
-                @unlink($file->getRealPath());
-            }
-        }
+        $files = [
+            'test1.txt' => 'Hello, world!',
+            'bar/test2.txt' => 'Hello, world again!',
+            'bar/test3.txt' => 'Hello, world again!',
+            'bar/baz/test4.txt' => 'Hello, world again!',
+        ];
 
-        rmdir($dir);
+        Files::writeAll($dir, $files);
+
+        Files::rmdir($dir);
+        $this->assertDirectoryDoesNotExist($dir);
+    }
+
+    #[Test]
+    public function rmdirNotADirectory()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The given path is not a directory');
+
+        Files::rmdir('/dev/null');
     }
 }

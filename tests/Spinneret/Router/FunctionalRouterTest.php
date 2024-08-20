@@ -2,7 +2,9 @@
 
 namespace Arakne\Tests\Spinneret\Router;
 
+use Arakne\Spinneret\Router\Field\FieldsExtractor;
 use Arakne\Spinneret\Router\Result\MethodNotAllowed;
+use Arakne\Spinneret\Router\Result\NotFound;
 use Arakne\Spinneret\Router\Router;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
@@ -13,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Route;
 
 class FunctionalRouterTest extends TestCase
 {
@@ -38,6 +41,63 @@ class FunctionalRouterTest extends TestCase
         $this->assertTrue($resolved->success);
         $this->assertInstanceOf(HelloRequest::class, $resolved->routedRequest);
         $this->assertEquals('world', $resolved->routedRequest->name);
+        $this->assertSame([], $resolved->psrRequest->getAttributes());
+    }
+
+    #[Test]
+    public function withPathAttribute()
+    {
+        $builder = new RouteCollectionBuilder();
+        $builder->get('/hello/{name}', HelloRequest::class);
+
+        $router = new Router(
+            new UrlMatcher($builder->routes, new RequestContext()),
+            DefaultFormFactory::runtime()
+        );
+
+        $psrRequest = new ServerRequest('GET', '/hello/world');
+        $resolved = $router->request($psrRequest);
+
+        $this->assertTrue($resolved->success);
+        $this->assertInstanceOf(HelloRequest::class, $resolved->routedRequest);
+        $this->assertEquals('world', $resolved->routedRequest->name);
+        $this->assertSame(['name' => 'world'], $resolved->psrRequest->getAttributes());
+    }
+
+    #[Test]
+    public function missingTargetAttribute()
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Route must have a _target attribute');
+
+        $builder = new RouteCollectionBuilder();
+        $builder->routes->add(HelloRequest::class, new Route('/test', defaults: ['_fields_extractor' => FieldsExtractor::class]));
+
+        $router = new Router(
+            new UrlMatcher($builder->routes, new RequestContext()),
+            DefaultFormFactory::runtime()
+        );
+
+        $psrRequest = new ServerRequest('GET', '/test');
+        $router->request($psrRequest);
+    }
+
+    #[Test]
+    public function missingFieldExtratorAttribute()
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Route must have a _fields_extractor attribute');
+
+        $builder = new RouteCollectionBuilder();
+        $builder->routes->add(HelloRequest::class, new Route('/test', defaults: ['_target' => HelloRequest::class]));
+
+        $router = new Router(
+            new UrlMatcher($builder->routes, new RequestContext()),
+            DefaultFormFactory::runtime()
+        );
+
+        $psrRequest = new ServerRequest('GET', '/test');
+        $router->request($psrRequest);
     }
 
     public function test_simple_with_parameters()
@@ -87,6 +147,19 @@ class FunctionalRouterTest extends TestCase
         $this->assertInstanceOf(MethodNotAllowed::class, $resolved->routedRequest);
         $this->assertEquals(['POST'], $resolved->routedRequest->allowedMethods);
         $this->assertEquals('GET', $resolved->routedRequest->currentMethod);
+    }
+
+    #[Test]
+    public function notFound()
+    {
+        $psrRequest = new ServerRequest('GET', '/not-found');
+        $psrRequest = $psrRequest->withQueryParams(['key' => '0123456789']);
+        $psrRequest = $psrRequest->withParsedBody(['login' => 'john.doe']);
+
+        $resolved = $this->router->request($psrRequest);
+
+        $this->assertFalse($resolved->success);
+        $this->assertInstanceOf(NotFound::class, $resolved->routedRequest);
     }
 
     public function test_with_form_error()
