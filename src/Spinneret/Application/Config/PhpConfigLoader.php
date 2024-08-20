@@ -168,16 +168,16 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
         }
 
         $content = <<<PHP
-        <?php
+            <?php
 
-        return static function (Arakne\Spinneret\Application\Application \$app): array {
-            \$configPath = \$app->configDir();
+            return static function (Arakne\Spinneret\Application\Application \$app): array {
+                \$configPath = \$app->configDir();
 
-            return [
-        $lines
-            ];
-        };
-        PHP;
+                return [
+            $lines
+                ];
+            };
+            PHP;
 
         Files::write($app->cacheDir().'/'.$this->cacheFile, $content);
     }
