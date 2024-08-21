@@ -5,3 +5,4 @@ vendor
 coverage
 composer.lock
 infection-log.html
+node_modules
