@@ -11,6 +11,7 @@ use Quatrevieux\Form\FormFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface as SfUrlGeneratorInterface;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
 
@@ -80,6 +81,19 @@ final readonly class RouterModule implements ConfigurableModuleInterface
             ])
         ;
         $containerBuilder->setAlias(UrlMatcherLoaderInterface::class, UrlMatcherLoader::class);
+
+        $containerBuilder->register(UrlGeneratorInterface::class, UrlGeneratorInterface::class)
+            ->setFactory([new Reference(UrlGeneratorLoader::class), 'load'])
+            ->setArguments([
+                new Reference(Application::class),
+            ])
+        ;
+        $containerBuilder->register(UrlGeneratorLoader::class, UrlGeneratorLoader::class)
+            ->setArguments([
+                new Reference(RouteCollectionLoaderInterface::class),
+                new Reference(RequestContext::class),
+            ])
+        ;
 
         $containerBuilder->register(UrlMatcherCompiler::class, UrlMatcherCompiler::class); // @todo configure file name ?
         $containerBuilder->setAlias(UrlMatcherCompilerInterface::class, UrlMatcherCompiler::class);

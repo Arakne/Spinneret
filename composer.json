@@ -20,7 +20,8 @@
     "symfony/routing": "~7.1",
     "symfony/dependency-injection": "~7.1",
     "vincent4vx/form": "^0.1.0",
-    "psr/log": "^3.0"
+    "psr/log": "^3.0",
+    "league/commonmark": "^2.5.3"
   },
   "require-dev": {
     "phpunit/phpunit": "~10.5",
