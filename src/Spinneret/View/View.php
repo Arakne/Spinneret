@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\View;
 
+use Psr\Http\Message\ServerRequestInterface;
+
 /**
  * Store the context for the view rendering
  */
@@ -26,6 +28,7 @@ final class View
          * The rendering response object
          */
         public readonly object $data,
+        public readonly ServerRequestInterface $psrRequest,
     ) {
     }
 }

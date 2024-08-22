@@ -6,6 +6,7 @@ use Override;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use RuntimeException;
 
@@ -32,9 +33,9 @@ final readonly class Engine implements ViewEngineInterface
     }
 
     #[Override]
-    public function response(object $data): ResponseInterface
+    public function response(ServerRequestInterface $psrRequest, object $data): ResponseInterface
     {
-        $view = new View($data);
+        $view = new View($data, $psrRequest);
         $renderer = $this->renderer($data);
 
         $content = $renderer->render($view, $data);

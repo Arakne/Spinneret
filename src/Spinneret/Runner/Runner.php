@@ -81,7 +81,7 @@ final readonly class Runner implements RunnerInterface
         }
 
         try {
-            return $this->view->response($responseDto);
+            return $this->view->response($routedRequest->psrRequest, $responseDto);
         } catch (Throwable $e) {
             if (!$catch) {
                 throw $e;
