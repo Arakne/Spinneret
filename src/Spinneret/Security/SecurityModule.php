@@ -64,6 +64,13 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
                 new Reference(SecurityConfig::class),
             ])
         ;
+
+        $containerBuilder->register(AuthenticationCookieHelper::class, AuthenticationCookieHelper::class)
+            ->setArguments([
+                new Reference(SecurityConfig::class),
+                new Reference(CookieSerializerInterface::class),
+            ])
+        ;
     }
 
     #[Override]
@@ -86,7 +93,7 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
 
     public static function createUserMiddleware(CookieSerializerInterface $serializer, SecurityConfig $config): LoadUserMiddleware
     {
-        return new LoadUserMiddleware($serializer, $config->cookieName, LoadUserMiddleware::ATTRIBUTE_NAME); // @todo make attribute name configurable
+        return new LoadUserMiddleware($serializer, $config->cookie->name, LoadUserMiddleware::ATTRIBUTE_NAME); // @todo make attribute name configurable
     }
 
     public static function createHmacCookieSerializer(UserHandlerInterface $userHandler, ?Randomizer $randomizer, ?ClockInterface $clock, SecurityConfig $config): HmacCookieSerializer

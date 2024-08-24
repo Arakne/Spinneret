@@ -35,7 +35,7 @@ final readonly class Engine implements ViewEngineInterface
     #[Override]
     public function response(ServerRequestInterface $psrRequest, object $data): ResponseInterface
     {
-        $view = new View($data, $psrRequest);
+        $view = new View($this, $data, $psrRequest);
         $renderer = $this->renderer($data);
 
         $content = $renderer->render($view, $data);
@@ -59,9 +59,15 @@ final readonly class Engine implements ViewEngineInterface
     #[Override]
     public function render(object $data, ?View $view = null): string
     {
-        $view ??= new View($data);
+        $view ??= new View($this, $data, null); // @todo psr request ?
 
         return $this->renderer($data)->render($view, $data);
+    }
+
+    #[Override]
+    public function display(View $view, object $data): void
+    {
+        $this->renderer($data)->display($view, $data);
     }
 
     /**

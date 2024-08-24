@@ -88,7 +88,9 @@ final readonly class Router implements RouterInterface
         }
 
         $submitted = $form->submit($fieldsExtractor($request));
+        $requestDto = $submitted->value();
+        $request = $request->withAttribute('request', $requestDto); // @todo constant ?
 
-        return new RoutedRequest($request, $submitted->value(), $submitted->valid(), $submitted);
+        return new RoutedRequest($request, $requestDto, $submitted->valid(), $submitted);
     }
 }

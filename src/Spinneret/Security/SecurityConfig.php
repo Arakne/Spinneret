@@ -9,7 +9,7 @@ final readonly class SecurityConfig
 {
     public function __construct(
         public bool $enabled = true,
-        public string $cookieName = 'auth',
+        public CookieOptions $cookie = new CookieOptions(),
         public ?string $secret = null,
         /**
          * @var class-string<UserHandlerInterface>

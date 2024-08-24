@@ -29,4 +29,14 @@ interface ViewEngineInterface
      * @return string
      */
     public function render(object $data, ?View $view = null): string;
+
+    /**
+     * Display a component view
+     *
+     * The content should be directly written to the output
+     *
+     * @param View $view The view context.
+     * @param object $data The component data
+     */
+    public function display(View $view, object $data): void;
 }

@@ -24,11 +24,18 @@ final class View
     public ?string $content = null;
 
     public function __construct(
+        private readonly ViewEngineInterface $engine,
+
         /**
          * The rendering response object
          */
         public readonly object $data,
         public readonly ServerRequestInterface $psrRequest,
     ) {
+    }
+
+    public function display(object $data): void
+    {
+        $this->engine->display($this, $data);
     }
 }
