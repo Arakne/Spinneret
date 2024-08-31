@@ -4,17 +4,12 @@ namespace Arakne\Spinneret\Security\Serializer;
 
 use Arakne\Spinneret\Security\UserHandlerInterface;
 use Arakne\Spinneret\Util\SystemClock;
-use Closure;
 use Override;
-
 use Psr\Clock\ClockInterface;
 
-use Random\Engine\Secure;
-use Random\Randomizer;
-
+use function array_key_exists;
 use function base64_decode;
 use function base64_encode;
-use function bin2hex;
 use function count;
 use function explode;
 use function gzdeflate;
@@ -29,7 +24,6 @@ use function json_encode;
 final readonly class HmacCookieSerializer implements CookieSerializerInterface
 {
     private ClockInterface $clock;
-    private Randomizer $random;
 
     public function __construct(
         private UserHandlerInterface $userHandler,
@@ -37,16 +31,13 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
         private int $version = 1,
         private string $algorithm = 'sha512',
         private bool $compress = true,
-        private int $ttl = 3600,
-        ?Randomizer $random = null,
         ?ClockInterface $clock = null,
     ) {
-        $this->random = $random ?? new Randomizer(new Secure());
         $this->clock = $clock ?? SystemClock::instance();
     }
 
     #[Override]
-    public function fromCookie(string $cookie): ?ParsedCookie
+    public function fromString(string $cookie): ?ParsedCookie
     {
         $parts = explode('.', $cookie);
 
@@ -79,13 +70,14 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
 
         if (
             !is_array($data)
-            || !isset($data['t'], $data['c'], $data['e'], $data['v'], $data['d'])
+            || !isset($data['t'], $data['c'], $data['e'], $data['v'])
+            || !array_key_exists('d', $data)
             || !is_string($data['t'])
             || !is_int($data['c'])
             || !is_int($data['e'])
             || !is_int($data['v'])
             || $data['v'] !== $this->version
-            || !is_array($data['d'])
+            || ($data['d'] !== null && !is_array($data['d']))
         ) {
             return null;
         }
@@ -96,11 +88,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
             return null;
         }
 
-        $user = $this->userHandler->fromArray($data['d']);
-
-        if ($user === null) {
-            return null;
-        }
+        $user = $data['d'] ? $this->userHandler->fromArray($data['d']) : null;
 
         return new ParsedCookie(
             $data['t'],
@@ -112,19 +100,16 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
     }
 
     #[Override]
-    public function toCookie(object $user): string
+    public function toString(ParsedCookie $cookie): string
     {
-        $arrUser = $this->userHandler->toArray($user);
-        $now = $this->clock->now()->getTimestamp();
-        $token = bin2hex($this->random->getBytes(16));
-        $expiration = $now + $this->ttl;
+        $arrPayload = $cookie->data ? $this->userHandler->toArray($cookie->data) : null;
 
         $data = json_encode([
-            't' => $token,
-            'c' => $now,
-            'e' => $expiration,
-            'v' => $this->version,
-            'd' => $arrUser,
+            't' => $cookie->token,
+            'c' => $cookie->creation,
+            'e' => $cookie->expiration,
+            'v' => $cookie->version,
+            'd' => $arrPayload,
         ]);
 
         if ($this->compress) {

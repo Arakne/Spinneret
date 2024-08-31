@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Database\Compiler;
 
+use Arakne\Spinneret\Database\DatabaseConnection;
 use Arakne\Spinneret\Database\DatabaseConnectionManager;
 use Override;
 use ReflectionClass;
@@ -33,10 +34,10 @@ final readonly class SetConnectionCompilerPass implements CompilerPassInterface
                     continue;
                 }
 
-                if ($type->getName() === \PDO::class) {
+                if ($type->getName() === DatabaseConnection::class) {
                     $definition->setArgument(
                         $pos,
-                        (new Definition(\PDO::class))
+                        (new Definition(DatabaseConnection::class))
                             ->setFactory([new Reference(DatabaseConnectionManager::class), 'get'])
                             ->setArgument(0, $connectionName)
                     );

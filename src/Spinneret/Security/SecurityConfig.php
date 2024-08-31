@@ -11,6 +11,8 @@ final readonly class SecurityConfig
         public bool $enabled = true,
         public CookieOptions $cookie = new CookieOptions(),
         public ?string $secret = null,
+        public int $version = 1,
+        public int $ttl = 3600,
         /**
          * @var class-string<UserHandlerInterface>
          */

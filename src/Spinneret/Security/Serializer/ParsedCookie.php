@@ -2,6 +2,9 @@
 
 namespace Arakne\Spinneret\Security\Serializer;
 
+use Psr\Clock\ClockInterface;
+use Random\Randomizer;
+
 final readonly class ParsedCookie
 {
     public function __construct(
@@ -9,7 +12,7 @@ final readonly class ParsedCookie
         public int $creation,
         public int $expiration,
         public int $version,
-        public object $data,
+        public ?object $data,
     ) {
     }
 }

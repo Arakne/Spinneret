@@ -8,6 +8,7 @@ use TypeError;
 
 /**
  * @implements ValueObjectInterface<string>
+ * @psalm-immutable
  */
 abstract readonly class StringValueObject implements ValueObjectInterface, JsonSerializable
 {

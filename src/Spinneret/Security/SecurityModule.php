@@ -50,6 +50,7 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
             ->setFactory([self::class, 'createUserMiddleware'])
             ->setArguments([
                 new Reference(CookieSerializerInterface::class),
+                new Reference(AuthenticationCookieHelper::class),
                 new Reference(SecurityConfig::class),
             ])
             ->addTag(MiddlewareInterface::class)
@@ -59,7 +60,6 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
             ->setFactory([self::class, 'createHmacCookieSerializer'])
             ->setArguments([
                 new Reference(UserHandlerInterface::class),
-                new Reference(Randomizer::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 new Reference(ClockInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 new Reference(SecurityConfig::class),
             ])
@@ -91,14 +91,14 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
         return [];
     }
 
-    public static function createUserMiddleware(CookieSerializerInterface $serializer, SecurityConfig $config): LoadUserMiddleware
+    public static function createUserMiddleware(CookieSerializerInterface $serializer, AuthenticationCookieHelper $cookieHelper, SecurityConfig $config): LoadUserMiddleware
     {
-        return new LoadUserMiddleware($serializer, $config->cookie->name, LoadUserMiddleware::ATTRIBUTE_NAME); // @todo make attribute name configurable
+        return new LoadUserMiddleware($serializer, $cookieHelper, $config->cookie->name, LoadUserMiddleware::ATTRIBUTE_NAME); // @todo make attribute name configurable
     }
 
-    public static function createHmacCookieSerializer(UserHandlerInterface $userHandler, ?Randomizer $randomizer, ?ClockInterface $clock, SecurityConfig $config): HmacCookieSerializer
+    public static function createHmacCookieSerializer(UserHandlerInterface $userHandler, ?ClockInterface $clock, SecurityConfig $config): HmacCookieSerializer
     {
         // @todo secret not empty
-        return new HmacCookieSerializer($userHandler, $config->secret ?? '', 1, 'sha512', true, 3600, $randomizer, $clock);
+        return new HmacCookieSerializer($userHandler, $config->secret ?? '', $config->version, 'sha512', true, $clock);
     }
 }

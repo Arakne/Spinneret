@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\Form;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Form\Csrf\CsrfHelper;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
 use Quatrevieux\Form\ContainerRegistry;
@@ -34,6 +35,10 @@ final class FormModule implements ModuleInterface
             ->setArguments([
                 new Reference('service_container'),
             ])
+        ;
+
+        $containerBuilder->register(CsrfHelper::class, CsrfHelper::class)
+            ->setArguments([new Reference(FormFactoryInterface::class)])
         ;
 
         $containerBuilder->setAlias(RegistryInterface::class, ContainerRegistry::class);

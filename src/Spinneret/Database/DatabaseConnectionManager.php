@@ -4,7 +4,6 @@ namespace Arakne\Spinneret\Database;
 
 // @todo interface
 use InvalidArgumentException;
-use PDO;
 use UnitEnum;
 
 use function is_string;
@@ -13,7 +12,7 @@ use function is_string;
 final class DatabaseConnectionManager
 {
     /**
-     * @var array<string, PDO>
+     * @var array<string, DatabaseConnection>
      */
     private array $connections = [];
 
@@ -22,7 +21,7 @@ final class DatabaseConnectionManager
     ) {
     }
 
-    public function get(string|UnitEnum $name): PDO
+    public function get(string|UnitEnum $name): DatabaseConnection
     {
         $name = is_string($name) ? $name : $name->name;
         $connection = $this->connections[$name] ?? null;
@@ -33,8 +32,6 @@ final class DatabaseConnectionManager
 
         $config = $this->config->connections[$name] ?? throw new InvalidArgumentException("Unknown connection: $name");
 
-        return $this->connections[$name] = new PDO($config->dsn, $config->username, $config->password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        ]);
+        return $this->connections[$name] = new DatabaseConnection($config);
     }
 }
