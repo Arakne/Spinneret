@@ -148,7 +148,7 @@ class QueryStatementTest extends TestCase
     #[Test]
     public function executeUpdate()
     {
-        $stmt = $this->connection->prepare('UPDATE test SET name = concat(name, ?) WHERE name LIKE ?');
+        $stmt = $this->connection->prepare('UPDATE test SET name = name || ? WHERE name LIKE ?');
 
         $this->assertSame($stmt, $stmt
             ->pushString('-edit')

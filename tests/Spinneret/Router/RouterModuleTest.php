@@ -3,6 +3,8 @@
 namespace Arakne\Tests\Spinneret\Router;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompiler;
+use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompilerInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
@@ -12,6 +14,8 @@ use Arakne\Spinneret\Router\Router;
 use Arakne\Spinneret\Router\RouterConfig;
 use Arakne\Spinneret\Router\RouterInterface;
 use Arakne\Spinneret\Router\RouterModule;
+use Arakne\Spinneret\Router\UrlGeneratorLoader;
+use Arakne\Spinneret\Router\UrlGeneratorLoaderInterface;
 use Arakne\Spinneret\Router\UrlMatcherLoader;
 use Arakne\Spinneret\Router\UrlMatcherLoaderInterface;
 use PHPUnit\Framework\Attributes\Test;
@@ -53,6 +57,9 @@ class RouterModuleTest extends TestCase
         $this->assertInstanceOf(Router::class, $container->get(RouterInterface::class));
         $this->assertInstanceOf(UrlMatcherLoader::class, $container->get(UrlMatcherLoaderInterface::class));
         $this->assertInstanceOf(UrlMatcherCompiler::class, $container->get(UrlMatcherCompilerInterface::class));
+        $this->assertInstanceOf(UrlGeneratorLoader::class, $container->get(UrlGeneratorLoader::class));
+        $this->assertInstanceOf(UrlGeneratorLoader::class, $container->get(UrlGeneratorLoaderInterface::class));
+        $this->assertInstanceOf(UrlGeneratorCompiler::class, $container->get(UrlGeneratorCompilerInterface::class));
         $this->assertInstanceOf(RouteCollectionLoader::class, $container->get(RouteCollectionLoaderInterface::class));
         $this->assertEquals(new RequestContext(), $container->get(RequestContext::class));
     }

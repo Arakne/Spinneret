@@ -4,6 +4,8 @@ namespace Arakne\Spinneret\Router;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
+use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompiler;
+use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompilerInterface;
 use Override;
@@ -27,6 +29,9 @@ use Symfony\Component\Routing\RequestContext;
  * - {@see UrlMatcherInterface}
  * - {@see UrlMatcherLoaderInterface} - alias to {@see UrlMatcherLoader}
  * - {@see UrlMatcherCompilerInterface} - alias to {@see UrlMatcherCompiler}
+ * - {@see UrlGeneratorInterface}
+ * - {@see UrlGeneratorCompilerInterface} - alias to {@see UrlGeneratorCompiler}
+ * - {@see UrlGeneratorLoaderInterface} - alias to {@see UrlGeneratorLoader}
  * - {@see RouteCollectionLoaderInterface} - alias to {@see RouteCollectionLoader}
  * - {@see RequestContext}
  *
@@ -82,7 +87,7 @@ final readonly class RouterModule implements ConfigurableModuleInterface
         $containerBuilder->setAlias(UrlMatcherLoaderInterface::class, UrlMatcherLoader::class);
 
         $containerBuilder->register(UrlGeneratorInterface::class, UrlGeneratorInterface::class)
-            ->setFactory([new Reference(UrlGeneratorLoader::class), 'load'])
+            ->setFactory([new Reference(UrlGeneratorLoaderInterface::class), 'load'])
             ->setArguments([
                 new Reference(Application::class),
             ])
@@ -91,11 +96,16 @@ final readonly class RouterModule implements ConfigurableModuleInterface
             ->setArguments([
                 new Reference(RouteCollectionLoaderInterface::class),
                 new Reference(RequestContext::class),
+                new Reference(UrlGeneratorCompilerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
         ;
+        $containerBuilder->setAlias(UrlGeneratorLoaderInterface::class, UrlGeneratorLoader::class);
 
         $containerBuilder->register(UrlMatcherCompiler::class, UrlMatcherCompiler::class); // @todo configure file name ?
         $containerBuilder->setAlias(UrlMatcherCompilerInterface::class, UrlMatcherCompiler::class);
+
+        $containerBuilder->register(UrlGeneratorCompiler::class, UrlGeneratorCompiler::class); // @todo configure file name ?
+        $containerBuilder->setAlias(UrlGeneratorCompilerInterface::class, UrlGeneratorCompiler::class);
 
         $containerBuilder->register(RouteCollectionLoader::class, RouteCollectionLoader::class);
         $containerBuilder->setAlias(RouteCollectionLoaderInterface::class, RouteCollectionLoader::class);
