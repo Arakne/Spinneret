@@ -5,6 +5,9 @@ namespace Arakne\Spinneret\Router;
 use Override;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface as SfUrlGeneratorInterface;
 
+/**
+ * Base url generator implementation using Symfony's UrlGeneratorInterface.
+ */
 final readonly class UrlGenerator implements UrlGeneratorInterface
 {
     public function __construct(

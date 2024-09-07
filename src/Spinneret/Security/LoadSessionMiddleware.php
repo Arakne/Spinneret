@@ -13,22 +13,36 @@ use Psr\Http\Server\RequestHandlerInterface;
 use function is_string;
 use function str_starts_with;
 
-// @todo rename : un cookie sera toujours chargé, mais pas forcément un utilisateur
-final readonly class LoadUserMiddleware implements MiddlewareInterface
+/**
+ * Middleware that loads the session from a cookie.
+ *
+ * If the cookie is found, it tries to parse it and set the user attribute on the request.
+ * If the cookie is invalid or not found, a new session is created with its cookie and set on the request.
+ */
+final readonly class LoadSessionMiddleware implements MiddlewareInterface
 {
-    public const string ATTRIBUTE_NAME = 'user';
-
     public function __construct(
         private CookieSerializerInterface $serializer,
         private AuthenticationCookieHelper $cookieHelper,
+
+        /**
+         * The name of the cookie that will be used to store the session.
+         *
+         * @see CookieOptions::$name
+         */
         private string $cookieName = 'auth',
-        private string $attributeName = self::ATTRIBUTE_NAME,
+
+        /**
+         * The request attribute name where the user data will be stored.
+         */
+        private string $attributeName = 'user',
     ) {
     }
 
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        /** @var mixed $cookie */
         $cookie = $request->getCookieParams()[$this->cookieName] ?? null;
         $parsedCookie = null;
         $hasCookie = false;

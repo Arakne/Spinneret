@@ -18,7 +18,7 @@ class WithParentRenderer implements ViewRendererInterface
 
     #[Override] public function render(View $view, object $data): string
     {
-        $view->parent = new Layout('My page');
+        $view->extends(new Layout('My page'));
 
         return "<p>{$data->content}</p>";
     }

@@ -2,8 +2,11 @@
 
 namespace Arakne\Spinneret\ValueObject;
 
-// @todo add "simpleMessage" method
-interface ValueObjectException extends \Throwable
-{
+use Throwable;
 
+/**
+ * Base exception type for value objects.
+ */
+interface ValueObjectException extends Throwable
+{
 }

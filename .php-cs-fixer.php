@@ -9,6 +9,6 @@ return (new Config())
         '@PHP83Migration' => true,
     ])
     ->setFinder(
-        PhpCsFixer\Finder::create()->in(__DIR__.'/src')
+        PhpCsFixer\Finder::create()->in(__DIR__.'/src/Spinneret')
     )
 ;

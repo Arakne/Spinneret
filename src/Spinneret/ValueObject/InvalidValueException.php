@@ -6,6 +6,9 @@ use InvalidArgumentException;
 
 use function sprintf;
 
+/**
+ * Exception thrown when a value is invalid for a value object.
+ */
 class InvalidValueException extends InvalidArgumentException implements ValueObjectException
 {
     public function __construct(string $valueObjectClass, string $reason)

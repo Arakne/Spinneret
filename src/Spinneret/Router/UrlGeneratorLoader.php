@@ -6,6 +6,7 @@ use Arakne\Spinneret\Application\Application;
 use Symfony\Component\Routing\Generator\UrlGenerator as SfUrlGenerator;
 use Symfony\Component\Routing\RequestContext;
 
+// @todo interface + tests
 class UrlGeneratorLoader
 {
     public function __construct(

@@ -6,15 +6,19 @@ use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Router\Field\FieldsExtractor;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Application\Fixtures\Bar;
+use Arakne\Tests\Spinneret\Application\Fixtures\Baz;
 use Arakne\Tests\Spinneret\Application\Fixtures\Foo;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloPresenter;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRenderer;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRequest;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloResponse;
+use Arakne\Tests\Spinneret\Util\Fixtures\A\B;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+
+use function Arakne\Spinneret\Application\service;
 
 class AbstractModuleTest extends TestCase
 {
@@ -95,6 +99,7 @@ class AbstractModuleTest extends TestCase
             {
                 $this->service(Foo::class, ['Hello']);
                 $this->service(Bar::class, autowire: true, public: true);
+                $this->service(Baz::class, tags: ['test', 'other' => ['key' => 'value']]);
             }
         };
 
@@ -106,6 +111,11 @@ class AbstractModuleTest extends TestCase
         $this->assertFalse($container->getDefinition(Foo::class)->isPublic());
         $this->assertFalse($container->getDefinition(Foo::class)->isAutowired());
         $this->assertSame('Hello', $container->get(Foo::class)->bar);
+
+        $this->assertSame([
+            'test' => [[]],
+            'other' => [['key' => 'value']],
+        ], $container->getDefinition(Baz::class)->getTags());
 
         $container->compile();
 
@@ -123,6 +133,7 @@ class AbstractModuleTest extends TestCase
             {
                 $this->service(Foo::class, ['Hello']);
                 $this->autowire(Bar::class);
+                $this->autowire(Baz::class, tags: ['test', 'other' => ['key' => 'value']]);
             }
         };
 
@@ -131,5 +142,27 @@ class AbstractModuleTest extends TestCase
         $module->register($container);
         $this->assertFalse($container->getDefinition(Bar::class)->isPublic());
         $this->assertTrue($container->getDefinition(Bar::class)->isAutowired());
+        $this->assertSame([
+            'test' => [[]],
+            'other' => [['key' => 'value']],
+        ], $container->getDefinition(Baz::class)->getTags());
+    }
+
+    #[Test]
+    public function serviceManualArguments()
+    {
+        $module = new class extends AbstractModule {
+            #[Override]
+            protected function configure(): void
+            {
+                $this->service(Foo::class, ['Hello']);
+                $this->service(Bar::class, [service(Foo::class)]);
+            }
+        };
+
+        $container = new ContainerBuilder();
+
+        $module->register($container);
+        $this->assertSame($container->get(Foo::class), $container->get(Bar::class)->foo);
     }
 }

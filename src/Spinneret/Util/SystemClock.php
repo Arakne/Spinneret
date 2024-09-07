@@ -17,8 +17,12 @@ final readonly class SystemClock implements ClockInterface
         return new DateTimeImmutable();
     }
 
+    /**
+     * Get the current instance of the system clock.
+     */
     public static function instance(): SystemClock
     {
+        /** @var SystemClock $instance */
         static $instance = new self();
 
         return $instance;

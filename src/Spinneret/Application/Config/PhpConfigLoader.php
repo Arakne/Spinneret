@@ -90,6 +90,7 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
 
     private function callConfigurationClosure(string $file, array $previousConfig, Closure $config): mixed
     {
+        // @todo Permettre de passer l'application en 2e paramètre, donnant accès aux dossier de l'application
         $reflectionFunction = new ReflectionFunction($config);
         $parameters = $reflectionFunction->getParameters();
 

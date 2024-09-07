@@ -4,6 +4,9 @@ namespace Arakne\Spinneret\Database;
 
 use function is_string;
 
+/**
+ * Configuration for the database modules
+ */
 final readonly class DatabaseConfig
 {
     /**
@@ -14,8 +17,6 @@ final readonly class DatabaseConfig
     /**
      * @param ConnectionConfig ...$connections
      * @no-named-arguments
-     *
-     * @todo add global options ?
      */
     public function __construct(ConnectionConfig ...$connections)
     {

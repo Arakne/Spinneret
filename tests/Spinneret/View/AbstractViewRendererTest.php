@@ -5,6 +5,7 @@ namespace Arakne\Tests\Spinneret\View;
 use Arakne\Spinneret\View\AbstractViewRenderer;
 use Arakne\Spinneret\View\D;
 use Arakne\Spinneret\View\View;
+use Arakne\Spinneret\View\ViewEngineInterface;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloResponse;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +15,7 @@ class AbstractViewRendererTest extends TestCase
     #[Test]
     public function test()
     {
+        $engine = $this->createMock(ViewEngineInterface::class);
         $renderer = new class extends AbstractViewRenderer {
             public function __invoke(View $view, HelloResponse $data): void
             {
@@ -31,10 +33,10 @@ class AbstractViewRendererTest extends TestCase
 <p>Hello, John!</p>
 
 HTML
-, $renderer->render(new View($response), $response));
+, $renderer->render(new View($engine, $response), $response));
 
         ob_start();
-        $renderer->display(new View($response), $response);
+        $renderer->display(new View($engine, $response), $response);
         $this->assertSame(<<<'HTML'
 <h1>Hello></h1>
 <p>Hello, John!</p>

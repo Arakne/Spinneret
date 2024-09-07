@@ -114,10 +114,13 @@ class RunnerTest extends TestCase
         $psrRequest = new ServerRequest('GET', '/foo?bar=error');
         $response = $runner->handle($psrRequest);
 
+        $parsedRequest = new FooRequest();
+        $parsedRequest->bar = 'error';
+
         $this->assertEquals('{"error":"Exception : runtime error","step":"Presenter","request":{"bar":"error"}}', (string) $response->getBody());
         $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
         $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
-        $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
+        $this->assertEquals($psrRequest->withAttribute('request', $parsedRequest), InternalServerErrorPresenter::$lastRequest->psrRequest);
     }
 
     #[Test]
@@ -150,10 +153,13 @@ class RunnerTest extends TestCase
         $psrRequest = new ServerRequest('GET', '/foo?bar=view-error');
         $response = $runner->handle($psrRequest);
 
+        $parsedRequest = new FooRequest();
+        $parsedRequest->bar = 'view-error';
+
         $this->assertEquals('{"error":"Exception : view error","step":"View","request":{"bar":"view-error"}}', (string) $response->getBody());
         $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
         $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
-        $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
+        $this->assertEquals($psrRequest->withAttribute('request', $parsedRequest), InternalServerErrorPresenter::$lastRequest->psrRequest);
     }
 
     #[Test]

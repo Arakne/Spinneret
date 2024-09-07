@@ -2,11 +2,13 @@
 
 namespace Arakne\Tests\Spinneret\Application;
 
+use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\ConfigurableModule;
 use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\TestConfig;
+use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloPresenter;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRequest;
 use Arakne\Tests\Spinneret\Application\Fixtures\TestApplication;
 use Nyholm\Psr7\ServerRequest;
@@ -47,6 +49,18 @@ class FunctionalApplicationTest extends TestCase
         $this->assertContainsOnlyInstancesOf(ModuleInterface::class, $this->app->modules());
         $this->assertIsList($this->app->modules());
     }
+
+    #[Test]
+    public function containerMethods()
+    {
+        $this->assertTrue($this->app->has(Application::class));
+        $this->assertTrue($this->app->has(HelloPresenter::class));
+        $this->assertFalse($this->app->has(HelloRequest::class));
+
+        $this->assertSame($this->app, $this->app->get(Application::class));
+        $this->assertInstanceOf(HelloPresenter::class, $this->app->get(HelloPresenter::class));
+    }
+
 
     #[Test]
     public function modulesShouldSetConfiguration()

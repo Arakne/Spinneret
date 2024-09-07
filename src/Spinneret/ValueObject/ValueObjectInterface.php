@@ -26,10 +26,21 @@ interface ValueObjectInterface
     public function __toString(): string;
 
     /**
+     * Check if the value object is equal to another value object
+     * Two value objects are equals if they have the class and the same value
+     *
+     * A basic implementation can be: `return $this->value() === $other->value() && $other instanceof static;`
+     *
+     * @param ValueObjectInterface $other
+     * @return bool
+     */
+    public function equals(self $other): bool;
+
+    /**
      * Convert the primitive value to a value object
      * If the value is not valid, an exception must be thrown
      *
-     * @param T $value
+     * @param mixed $value
      * @return static
      *
      * @throws InvalidPrimitiveTypeError if the type $value is not valid

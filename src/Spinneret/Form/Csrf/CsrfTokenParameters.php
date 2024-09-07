@@ -2,12 +2,12 @@
 
 namespace Arakne\Spinneret\Form\Csrf;
 
-use SensitiveParameter;
-
 use function hash_equals;
 use function hash_hmac;
 
-// @todo doc
+/**
+ * Parameters for CSRF token generation and validation
+ */
 final readonly class CsrfTokenParameters
 {
     public function __construct(
@@ -29,7 +29,8 @@ final readonly class CsrfTokenParameters
     public function validate(): bool
     {
         $token = $this->token();
+        $input = $this->input;
 
-        return $token !== null && hash_equals($this->token(), $this->input);
+        return $token !== null && $input !== null && hash_equals($token, $input);
     }
 }

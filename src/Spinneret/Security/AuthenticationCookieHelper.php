@@ -12,6 +12,9 @@ use Random\Randomizer;
 
 use function bin2hex;
 
+/**
+ * Utility class to help with authentication cookies.
+ */
 final readonly class AuthenticationCookieHelper
 {
     private ClockInterface $clock;
@@ -27,6 +30,13 @@ final readonly class AuthenticationCookieHelper
         $this->clock = $clock ?? SystemClock::instance();
     }
 
+    /**
+     * Create the cookie with the given data.
+     *
+     * @param object|null $data The data to store in the cookie.
+     *
+     * @return ParsedCookie
+     */
     public function createCookie(?object $data = null): ParsedCookie
     {
         $now = $this->clock->now()->getTimestamp();
@@ -40,6 +50,13 @@ final readonly class AuthenticationCookieHelper
         );
     }
 
+    /**
+     * Serialize the cookie and return it as Set-Cookie header value.
+     *
+     * @param object|ParsedCookie|null $data The data to store in the cookie. Can be a ParsedCookie instance.
+     *
+     * @return string
+     */
     public function getCookieString(?object $data): string
     {
         if (!$data instanceof ParsedCookie) {
@@ -49,11 +66,26 @@ final readonly class AuthenticationCookieHelper
         return $this->config->cookie->format($this->cookieSerializer->toString($data));
     }
 
-    public function writeResponse(ResponseInterface $response, ?object $account): ResponseInterface
+    /**
+     * Write the Set-Cookie header to the response with the given payload.
+     *
+     * @param ResponseInterface $response The response to modify.
+     * @param object|null $data The data to store in the cookie. Can be a ParsedCookie instance.
+     *
+     * @return ResponseInterface The modified response.
+     */
+    public function writeResponse(ResponseInterface $response, ?object $data): ResponseInterface
     {
-        return $response->withAddedHeader('Set-Cookie', $this->getCookieString($account));
+        return $response->withAddedHeader('Set-Cookie', $this->getCookieString($data));
     }
 
+    /**
+     * Modify the response to remove the authentication cookie.
+     *
+     * @param ResponseInterface $response
+     *
+     * @return ResponseInterface The modified response.
+     */
     public function removeCookie(ResponseInterface $response): ResponseInterface
     {
         return $response->withAddedHeader('Set-Cookie', $this->config->cookie->name.'=; Expires=Thu, 01 Jan 1970 00:00:00 GMT');

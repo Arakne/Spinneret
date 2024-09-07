@@ -23,10 +23,21 @@ use function var_export;
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS)]
 final readonly class RequestAttribute implements RequestFieldInterface
 {
+    public function __construct(
+        /**
+         * The name of the attribute to extract
+         *
+         * If null, the name of the property will be used.
+         * Defining this value when using the attribute on the class will have no effect.
+         */
+        private ?string $name = null,
+    ) {
+    }
+
     #[Override]
     public function extract(ServerRequestInterface $request, string $name): mixed
     {
-        return $request->getAttribute($name);
+        return $request->getAttribute($this->name ?? $name);
     }
 
     #[Override]
@@ -40,7 +51,7 @@ final readonly class RequestAttribute implements RequestFieldInterface
     #[Override]
     public function compileExtract(string $requestVarName, string $name): string
     {
-        return sprintf('%s->getAttribute(%s)', $requestVarName, var_export($name, true));
+        return sprintf('%s->getAttribute(%s)', $requestVarName, var_export($this->name ?? $name, true));
     }
 
     #[Override]

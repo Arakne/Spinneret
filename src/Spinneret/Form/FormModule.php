@@ -13,6 +13,16 @@ use Quatrevieux\Form\RegistryInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
+/**
+ * Module for provide "vincent4vx/form" services
+ *
+ * @todo i18n
+ *
+ * Provided services:
+ * - {@see FormFactoryInterface} - The factory for create forms
+ * - {@see RegistryInterface} - Alias to {@see ContainerRegistry}
+ * - {@see CsrfHelper} - Helper for initialize CSRF tokens
+ */
 final class FormModule implements ModuleInterface
 {
     #[Override]
@@ -47,7 +57,7 @@ final class FormModule implements ModuleInterface
     #[Override]
     public function configureRoutes(RouteCollectionBuilder $builder): void
     {
-
+        // No-op
     }
 
     #[Override]

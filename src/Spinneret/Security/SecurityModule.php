@@ -6,6 +6,8 @@ use Arakne\Spinneret\Application\ConfigurableModuleInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Security\Serializer\CookieSerializerInterface;
 use Arakne\Spinneret\Security\Serializer\HmacCookieSerializer;
+use Arakne\Spinneret\Security\User\ObjectUserHandler;
+use Arakne\Spinneret\Security\User\UserHandlerInterface;
 use Override;
 use Psr\Clock\ClockInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -15,6 +17,18 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
+ * Module for enable simple session system and user storage.
+ *
+ * Provided services:
+ * - {@see UserHandlerInterface} - Alias to the configured user handler. By default, {@see ObjectUserHandler} is used.
+ * - {@see CookieSerializerInterface} - Alias to the configured cookie serializer. By default, {@see HmacCookieSerializer} is used.
+ * - {@see AuthenticationCookieHelper} - Helper for working with authentication cookies.
+ * - {@see LoadSessionMiddleware} - Middleware that loads the session from a cookie. Will be used by the runner.
+ *
+ * Optional dependencies:
+ * - {@see ClockInterface} - Used for generate token timestamps and validate them. If not provided, will use the system clock.
+ * - {@see Randomizer} - Used for generate random tokens. If not provided, will use a secure random generator.
+ *
  * @implements ConfigurableModuleInterface<SecurityConfig>
  */
 final readonly class SecurityModule implements ConfigurableModuleInterface
@@ -43,10 +57,12 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
             return;
         }
 
+        $containerBuilder->register(ObjectUserHandler::class, ObjectUserHandler::class);
+
         $containerBuilder->setAlias(UserHandlerInterface::class, $this->configuration->userHandler);
         $containerBuilder->setAlias(CookieSerializerInterface::class, $this->configuration->serializer);
 
-        $containerBuilder->register(LoadUserMiddleware::class, LoadUserMiddleware::class)
+        $containerBuilder->register(LoadSessionMiddleware::class, LoadSessionMiddleware::class)
             ->setFactory([self::class, 'createUserMiddleware'])
             ->setArguments([
                 new Reference(CookieSerializerInterface::class),
@@ -69,6 +85,8 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
             ->setArguments([
                 new Reference(SecurityConfig::class),
                 new Reference(CookieSerializerInterface::class),
+                new Reference(Randomizer::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference(ClockInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
         ;
     }
@@ -91,9 +109,9 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
         return [];
     }
 
-    public static function createUserMiddleware(CookieSerializerInterface $serializer, AuthenticationCookieHelper $cookieHelper, SecurityConfig $config): LoadUserMiddleware
+    public static function createUserMiddleware(CookieSerializerInterface $serializer, AuthenticationCookieHelper $cookieHelper, SecurityConfig $config): LoadSessionMiddleware
     {
-        return new LoadUserMiddleware($serializer, $cookieHelper, $config->cookie->name, LoadUserMiddleware::ATTRIBUTE_NAME); // @todo make attribute name configurable
+        return new LoadSessionMiddleware($serializer, $cookieHelper, $config->cookie->name, $config->userAttribute);
     }
 
     public static function createHmacCookieSerializer(UserHandlerInterface $userHandler, ?ClockInterface $clock, SecurityConfig $config): HmacCookieSerializer

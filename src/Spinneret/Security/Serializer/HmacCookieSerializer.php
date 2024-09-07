@@ -2,7 +2,8 @@
 
 namespace Arakne\Spinneret\Security\Serializer;
 
-use Arakne\Spinneret\Security\UserHandlerInterface;
+use Arakne\Spinneret\Security\SecurityConfig;
+use Arakne\Spinneret\Security\User\UserHandlerInterface;
 use Arakne\Spinneret\Util\SystemClock;
 use Override;
 use Psr\Clock\ClockInterface;
@@ -21,16 +22,50 @@ use function is_string;
 use function json_decode;
 use function json_encode;
 
+/**
+ * Cookie serializer that uses HMAC to sign and verify the cookie.
+ */
 final readonly class HmacCookieSerializer implements CookieSerializerInterface
 {
     private ClockInterface $clock;
 
     public function __construct(
         private UserHandlerInterface $userHandler,
+
+        /**
+         * The secret key used to sign the cookie.
+         *
+         * Should be kept secret and never shared.
+         * It's recommended to use a long random string of 512 characters or more.
+         */
         private string $secret,
+
+        /**
+         * The current version of the cookie.
+         *
+         * This value will be compared with the version of the parsed cookie.
+         * If versions does not match, the cookie will be considered invalid.
+         *
+         * @see SecurityConfig::$version
+         * @see ParsedCookie::$version
+         */
         private int $version = 1,
+
+        /**
+         * The hash algorithm used to sign the cookie.
+         * The algorithm must be cryptographically secure.
+         */
         private string $algorithm = 'sha512',
+
+        /**
+         * Whether to compress the cookie payload before signing it.
+         */
         private bool $compress = true,
+
+        /**
+         * Clock used to get the current time.
+         * By default, will use {@see SystemClock}.
+         */
         ?ClockInterface $clock = null,
     ) {
         $this->clock = $clock ?? SystemClock::instance();
@@ -39,7 +74,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
     #[Override]
     public function fromString(string $cookie): ?ParsedCookie
     {
-        $parts = explode('.', $cookie);
+        $parts = explode('.', $cookie, 2);
 
         if (count($parts) !== 2) {
             return null;
@@ -47,8 +82,8 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
 
         [$data, $signature] = $parts;
 
-        $data = @base64_decode($data);
-        $signature = @base64_decode($signature);
+        $data = @base64_decode($data, true);
+        $signature = @base64_decode($signature, true);
 
         if ($data === false || $signature === false) {
             return null;
@@ -66,6 +101,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
             }
         }
 
+        /** @var mixed $data */
         $data = @json_decode($data, true);
 
         if (
@@ -88,7 +124,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
             return null;
         }
 
-        $user = $data['d'] ? $this->userHandler->fromArray($data['d']) : null;
+        $user = $data['d'] !== null ? $this->userHandler->fromArray($data['d']) : null;
 
         return new ParsedCookie(
             $data['t'],

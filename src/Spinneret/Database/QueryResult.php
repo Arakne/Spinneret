@@ -2,50 +2,55 @@
 
 namespace Arakne\Spinneret\Database;
 
+use Override;
 use PDO;
 use PDOStatement;
 
-final readonly class QueryResult
+/**
+ * Implementation of QueryResultInterface using PDOStatement.
+ */
+final readonly class QueryResult implements QueryResultInterface
 {
     public function __construct(
         private PDOStatement $statement
     ) {
     }
 
+    #[Override]
     public function asAssociativeArray(): array
     {
+        /** @var array<array<string, mixed>> */
         return $this->statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    #[Override]
     public function asColumns(int $colum): array
     {
         return $this->statement->fetchAll(PDO::FETCH_COLUMN, $colum);
     }
 
-    /**
-     * @param callable(array<string, mixed>):R $transformer
-     * @return list<R>
-     * @template R
-     */
+    #[Override]
     public function mapAssociativeArray(callable $transformer): array
     {
         $ret = [];
 
-        while ($row = $this->statement->fetch(PDO::FETCH_ASSOC)) {
+        /** @psalm-suppress MixedAssignment */
+        while (($row = $this->statement->fetch(PDO::FETCH_ASSOC)) !== false) {
+            /** @var array<string, mixed> $row */
             $ret[] = $transformer($row);
         }
 
         return $ret;
     }
 
-    /**
-     * @return array<string, mixed>|false
-     */
+    #[Override]
     public function fetchAssociativeArray(): array|false
     {
+        /** @var array<string, mixed>|false */
         return $this->statement->fetch(PDO::FETCH_ASSOC);
     }
 
+    #[Override]
     public function fetchColumn(int $colum): mixed
     {
         return $this->statement->fetchColumn($colum);

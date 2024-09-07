@@ -7,6 +7,12 @@ use Quatrevieux\Form\DefaultFormFactory;
 use Quatrevieux\Form\FormFactoryInterface;
 use Quatrevieux\Form\RegistryInterface;
 
+/**
+ * Load the form factory
+ *
+ * Use runtime form factory in dev mode
+ * Use generated form factory in prod mode
+ */
 final readonly class FormFactoryLoader
 {
     public function __construct(

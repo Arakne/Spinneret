@@ -4,12 +4,15 @@ namespace Arakne\Spinneret\Database;
 
 // @todo interface
 use InvalidArgumentException;
+use Override;
 use UnitEnum;
 
 use function is_string;
 
-// @todo interface + wrapper
-final class DatabaseConnectionManager
+/**
+ * Base implementation for managing database connections
+ */
+final class DatabaseConnectionManager implements DatabaseConnectionManagerInterface
 {
     /**
      * @var array<string, DatabaseConnection>
@@ -21,6 +24,7 @@ final class DatabaseConnectionManager
     ) {
     }
 
+    #[Override]
     public function get(string|UnitEnum $name): DatabaseConnection
     {
         $name = is_string($name) ? $name : $name->name;

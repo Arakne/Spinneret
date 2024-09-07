@@ -10,6 +10,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\DependencyInjection\Reference;
 
+use function is_array;
+
 /**
  * Simple module implementation
  *
@@ -67,6 +69,7 @@ abstract class AbstractModule implements ModuleInterface
      *     params: list<mixed>,
      *     autowire: bool,
      *     public: bool,
+     *     tags: array<array-key, string|array<string, scalar>>,
      * }>
      */
     private array $services = [];
@@ -106,11 +109,19 @@ abstract class AbstractModule implements ModuleInterface
         }
 
         foreach ($this->services as $class => $arguments) {
-            $containerBuilder->register($class, $class)
+            $definition = $containerBuilder->register($class, $class)
                 ->setArguments($arguments['params'])
                 ->setPublic($arguments['public'])
                 ->setAutowired($arguments['autowire'])
             ;
+
+            foreach ($arguments['tags'] as $name => $attributes) {
+                if (is_array($attributes)) {
+                    $definition->addTag((string) $name, $attributes);
+                } else {
+                    $definition->addTag($attributes);
+                }
+            }
         }
 
         $this->configureContainer($containerBuilder);
@@ -227,17 +238,19 @@ abstract class AbstractModule implements ModuleInterface
      * @param list<mixed> $parameters The service arguments
      * @param bool $autowire Whether the service should be autowired
      * @param bool $public Whether the service should be public
+     * @param array<array-key, string|array<string, scalar>> $tags The service tags
      *
      * @return void
      *
      * @see ContainerBuilder::register()
      */
-    final protected function service(string $class, array $parameters = [], bool $autowire = false, bool $public = false): void
+    final protected function service(string $class, array $parameters = [], bool $autowire = false, bool $public = false, array $tags = []): void
     {
         $this->services[$class] = [
             'params' => $parameters,
             'autowire' => $autowire,
             'public' => $public,
+            'tags' => $tags,
         ];
     }
 
@@ -249,14 +262,15 @@ abstract class AbstractModule implements ModuleInterface
      *
      * @param class-string $class The service class name
      * @param bool $public Whether the service should be public
+     * @param array<array-key, string|array<string, scalar>> $tags The service tags
      *
      * @return void
      *
      * @see ContainerBuilder::register()
      */
-    final protected function autowire(string $class, bool $public = false): void
+    final protected function autowire(string $class, bool $public = false, array $tags = []): void
     {
-        $this->service($class, autowire: true, public: $public);
+        $this->service($class, autowire: true, public: $public, tags: $tags);
     }
 
     private function callConfigure(): void

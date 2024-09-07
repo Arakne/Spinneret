@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\View;
 
+use LogicException;
 use Override;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -9,6 +10,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use RuntimeException;
+
+use function sprintf;
 
 /**
  * Default view engine implementation
@@ -26,28 +29,35 @@ final readonly class Engine implements ViewEngineInterface
         private StreamFactoryInterface $streamFactory,
 
         /**
-         * @var array<class-string, class-string<ViewRendererInterface>>
+         * Renderers map
+         *
+         * The key is the response DTO class name, the value is the renderer class name.
+         * The renderer class must implement interface {@see ViewRendererInterface} or {@see ResponseConfiguratorInterface} (or both).
+         *
+         * @var array<class-string, class-string<ViewRendererInterface|ResponseConfiguratorInterface>>
          */
         private array $renderers,
     ) {
     }
 
     #[Override]
-    public function response(ServerRequestInterface $psrRequest, object $data): ResponseInterface
+    public function response(object $data, ?ServerRequestInterface $psrRequest = null, ?object $routedRequest = null): ResponseInterface
     {
-        $view = new View($this, $data, $psrRequest);
+        $view = new View($this, $data, $psrRequest, $routedRequest);
         $renderer = $this->renderer($data);
 
-        $content = $renderer->render($view, $data);
-        $view->content = $content;
-
-        if ($view->parent) {
-            $content = $this->render($view->parent, $view);
-        }
-
-        // @todo allow null render ? or allow ViewRendererInterface|ResponseConfiguratorInterface union type instead
         $response = $this->responseFactory->createResponse();
-        $response = $response->withBody($this->streamFactory->createStream($content));
+
+        if ($renderer instanceof ViewRendererInterface) {
+            $content = $renderer->render($view, $data);
+            $view->content = $content;
+
+            if ($parent = $view->parent()) {
+                $content = $this->render($parent, $view);
+            }
+
+            $response = $response->withBody($this->streamFactory->createStream($content));
+        }
 
         if ($renderer instanceof ResponseConfiguratorInterface) {
             $response = $renderer->configureResponse($view, $data, $response);
@@ -59,26 +69,38 @@ final readonly class Engine implements ViewEngineInterface
     #[Override]
     public function render(object $data, ?View $view = null): string
     {
-        $view ??= new View($this, $data, null); // @todo psr request ?
+        $view ??= new View($this, $data);
+        $renderer = $this->renderer($data);
 
-        return $this->renderer($data)->render($view, $data);
+        if (!($renderer instanceof ViewRendererInterface)) {
+            throw new LogicException(sprintf('View %s cannot be rendered', $data::class));
+        }
+
+        return $renderer->render($view, $data);
     }
 
     #[Override]
-    public function display(View $view, object $data): void
+    public function display(object $data, ?View $view = null): void
     {
-        $this->renderer($data)->display($view, $data);
+        $view ??= new View($this, $data);
+        $renderer = $this->renderer($data);
+
+        if (!($renderer instanceof ViewRendererInterface)) {
+            throw new LogicException(sprintf('View %s cannot be rendered', $data::class));
+        }
+
+        $renderer->display($view, $data);
     }
 
     /**
      * Resolve the renderer object for the given data object
      *
      * @param D $data
-     * @return ViewRendererInterface<D>
+     * @return ViewRendererInterface<D>|ResponseConfiguratorInterface<D>
      *
      * @template D as object
      */
-    private function renderer(object $data): ViewRendererInterface
+    private function renderer(object $data): ViewRendererInterface|ResponseConfiguratorInterface
     {
         $rendererClassName = $this->renderers[$data::class] ?? null;
 
@@ -86,7 +108,7 @@ final readonly class Engine implements ViewEngineInterface
             throw new RuntimeException('No renderer found for ' . $data::class);
         }
 
-        /** @var ViewRendererInterface<D> */
+        /** @var ViewRendererInterface<D>|ResponseConfiguratorInterface<D> */
         return $this->container->get($rendererClassName);
     }
 }

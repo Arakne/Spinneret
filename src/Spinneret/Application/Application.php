@@ -15,7 +15,9 @@ use Arakne\Spinneret\Runner\RunnerInterface;
 use Arakne\Spinneret\Util\Project;
 use Arakne\Spinneret\View\ViewModule;
 use Override;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -27,7 +29,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainer
  *
  * @api
  */
-class Application implements RunnerInterface
+class Application implements RunnerInterface, ContainerInterface
 {
     private readonly ContainerInterface $container;
     private readonly RunnerInterface $runner;
@@ -67,6 +69,25 @@ class Application implements RunnerInterface
         $this->container = $this->loadContainer();
         /** @psalm-suppress MixedAssignment : The service RunnerInterface may be overridden, but it will raise an error anyway */
         $this->runner = $this->container->get(RunnerInterface::class);
+    }
+
+    /**
+     * @param class-string<T> $id
+     * @return T
+     * @template T as object
+     * @psalm-suppress MoreSpecificImplementedParamType
+     */
+    #[Override]
+    public function get(string $id): object
+    {
+        /** @var T */
+        return $this->container->get($id);
+    }
+
+    #[Override]
+    public function has(string $id): bool
+    {
+        return $this->container->has($id);
     }
 
     #[Override]

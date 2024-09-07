@@ -13,12 +13,13 @@ interface ViewEngineInterface
     /**
      * Render the response object from presenter to a PSR-7 response
      *
-     * @param ServerRequestInterface $psrRequest The PSR-7 request
      * @param object $data The response data
+     * @param ServerRequestInterface|null $psrRequest The PSR-7 request
+     * @param object|null $routedRequest The request object parsed by the router
      *
      * @return ResponseInterface The PSR-7 response
      */
-    public function response(ServerRequestInterface $psrRequest, object $data): ResponseInterface;
+    public function response(object $data, ServerRequestInterface $psrRequest = null, ?object $routedRequest = null): ResponseInterface;
 
     /**
      * Render the response object from presenter to a string
@@ -27,16 +28,20 @@ interface ViewEngineInterface
      * @param View|null $view The view context. If null a new context is created
      *
      * @return string
+     *
+     * @see ViewEngineInterface::display() To display directly to the output
      */
     public function render(object $data, ?View $view = null): string;
 
     /**
      * Display a component view
      *
-     * The content should be directly written to the output
+     * The content will be directly written to the output
      *
-     * @param View $view The view context.
      * @param object $data The component data
+     * @param View|null $view The view context. If null a new context is created
+     *
+     * @see ViewEngineInterface::render() To render as string instead of display
      */
-    public function display(View $view, object $data): void;
+    public function display(object $data, ?View $view = null): void;
 }

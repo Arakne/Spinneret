@@ -14,6 +14,10 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use function class_exists;
 use function count;
 
+/**
+ * Register handlers tagged with the "spinneret.bus.handler" tag.
+ * If the "message" attribute is not provided, the message class is resolved from the handler parameter type.
+ */
 final readonly class RegisterHandlersCompilerPass implements CompilerPassInterface
 {
     public const string TAG = 'spinneret.bus.handler';
@@ -24,6 +28,7 @@ final readonly class RegisterHandlersCompilerPass implements CompilerPassInterfa
         $handlers = [];
 
         foreach ($container->findTaggedServiceIds(self::TAG) as $id => $tags) {
+            /** @var class-string $messageClass */
             $messageClass = $tags[0]['message'] ?? $this->resolveMessageClass($container, $id);
             $handlers[$messageClass] = $id;
             $container->getDefinition($id)->setPublic(true);
@@ -34,14 +39,20 @@ final readonly class RegisterHandlersCompilerPass implements CompilerPassInterfa
 
     /**
      * @param ContainerBuilder $container
-     * @param class-string $id
+     * @param string $id
      * @return class-string
      *
      * @throws ReflectionException
      */
     public function resolveMessageClass(ContainerBuilder $container, string $id): string
     {
+        /** @var class-string $handlerClass */
         $handlerClass = $container->getDefinition($id)->getClass() ?? $id;
+
+        if (!method_exists($handlerClass, '__invoke')) {
+            throw new LogicException("Handler $handlerClass must have an __invoke method");
+        }
+
         $reflection = new ReflectionMethod($handlerClass, '__invoke');
         $parameters = $reflection->getParameters();
 
@@ -52,7 +63,7 @@ final readonly class RegisterHandlersCompilerPass implements CompilerPassInterfa
         $type = $parameters[0]->getType();
 
         if (!$type instanceof ReflectionNamedType) {
-            throw new LogicException("Handler $handlerClass must have a typed parameter");
+            throw new LogicException("Handler $handlerClass must have a typed parameter, or use the message attribute to explicitly define the message class");
         }
 
         $type = $type->getName();

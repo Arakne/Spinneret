@@ -1,13 +1,15 @@
 <?php
 
-namespace Arakne\Spinneret\Security;
+namespace Arakne\Spinneret\Security\User;
 
 use Override;
 
 /**
+ * Simple user handler that handles user as stdClass.
+ *
  * @implements UserHandlerInterface<object>
  */
-final class ObjectUserHandler implements UserHandlerInterface
+final readonly class ObjectUserHandler implements UserHandlerInterface
 {
     #[Override]
     public function fromArray(array $data): ?object

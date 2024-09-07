@@ -41,7 +41,7 @@ class FunctionalRouterTest extends TestCase
         $this->assertTrue($resolved->success);
         $this->assertInstanceOf(HelloRequest::class, $resolved->routedRequest);
         $this->assertEquals('world', $resolved->routedRequest->name);
-        $this->assertSame([], $resolved->psrRequest->getAttributes());
+        $this->assertSame(['request' => $resolved->routedRequest], $resolved->psrRequest->getAttributes());
     }
 
     #[Test]
@@ -61,7 +61,7 @@ class FunctionalRouterTest extends TestCase
         $this->assertTrue($resolved->success);
         $this->assertInstanceOf(HelloRequest::class, $resolved->routedRequest);
         $this->assertEquals('world', $resolved->routedRequest->name);
-        $this->assertSame(['name' => 'world'], $resolved->psrRequest->getAttributes());
+        $this->assertSame(['name' => 'world', 'request' => $resolved->routedRequest], $resolved->psrRequest->getAttributes());
     }
 
     #[Test]

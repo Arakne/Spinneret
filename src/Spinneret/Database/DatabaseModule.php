@@ -10,12 +10,20 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
+ * Module to manage SQL databases
+ *
+ * Provided services:
+ * - {@see DatabaseConnectionManagerInterface} - Alias to {@see DatabaseConnectionManager}
+ *
+ * To allow injection of the database connection in repositories, the repositories must be tagged with the tag `spinneret.db.repository`
+ * with the attribute `connection` set to the connection name.
+ *
  * @implements ConfigurableModuleInterface<DatabaseConfig>
  */
-final class DatabaseModule implements ConfigurableModuleInterface
+final readonly class DatabaseModule implements ConfigurableModuleInterface
 {
     public function __construct(
-        private readonly DatabaseConfig $config = new DatabaseConfig(),
+        private DatabaseConfig $config = new DatabaseConfig(),
     ) {
     }
 
@@ -39,6 +47,8 @@ final class DatabaseModule implements ConfigurableModuleInterface
         $containerBuilder->register(DatabaseConnectionManager::class, DatabaseConnectionManager::class)
             ->setArguments([new Reference(DatabaseConfig::class)])
         ;
+
+        $containerBuilder->setAlias(DatabaseConnectionManagerInterface::class, DatabaseConnectionManager::class);
     }
 
     #[Override]
