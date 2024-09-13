@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Database;
 
+use UnitEnum;
+
 /**
  * Base type for interacting with a database
  *
@@ -9,6 +11,11 @@ namespace Arakne\Spinneret\Database;
  */
 interface DatabaseConnectionInterface
 {
+    /**
+     * Get the connection name
+     */
+    public function name(): string|UnitEnum;
+
     /**
      * Execute a read query and return the result
      *

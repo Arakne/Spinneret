@@ -4,6 +4,8 @@ namespace Arakne\Tests\Spinneret\Database;
 
 use Arakne\Spinneret\Database\ConnectionConfig;
 use Arakne\Spinneret\Database\DatabaseConnection;
+use Arakne\Spinneret\Database\Exception\QueryExecutionException;
+use Arakne\Spinneret\Database\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -39,6 +41,37 @@ class DatabaseConnectionTest extends TestCase
             ['id' => 2, 'name' => 'bar'],
             ['id' => 3, 'name' => 'baz'],
         ], $this->connection->query('SELECT * FROM test ORDER BY id')->asAssociativeArray());
+    }
+
+    #[Test]
+    public function querySyntaxError()
+    {
+        try {
+            $this->connection->query('SELECT FROM test');
+            $this->fail('Expected exception');
+        } catch (QueryExecutionException $e) {
+            $this->assertSame('test', $e->connection());
+            $this->assertSame('SELECT FROM test', $e->query);
+            $this->assertStringContainsString('near "FROM": syntax error', $e->getMessage());
+            $this->assertSame([], $e->parameters);
+            $this->assertSame(['HY000', 1, 'near "FROM": syntax error'], $e->errorInfo);
+        }
+    }
+
+    #[Test]
+    public function queryUniqueConstraintFail()
+    {
+        try {
+            $this->connection->query('INSERT INTO test (id, name) VALUES (1, "foo")');
+            $this->fail('Expected exception');
+        } catch (UniqueConstraintViolationException $e) {
+            $this->assertSame('test', $e->connection());
+            $this->assertSame('INSERT INTO test (id, name) VALUES (1, "foo")', $e->query);
+            $this->assertSame([], $e->parameters);
+            $this->assertSame(['23000', 19, 'UNIQUE constraint failed: test.id'], $e->errorInfo);
+            $this->assertStringContainsString('UNIQUE constraint failed: test.id', $e->getMessage());
+            $this->assertSame('id', $e->key);
+        }
     }
 
     #[Test]

@@ -2,8 +2,11 @@
 
 namespace Arakne\Spinneret\Database;
 
+use Arakne\Spinneret\Database\Exception\DatabaseExceptionFactory;
 use Override;
 use PDO;
+use PDOException;
+use UnitEnum;
 
 /**
  * Simple implementation of a database connection
@@ -22,17 +25,29 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     }
 
     #[Override]
+    public function name(): string|UnitEnum
+    {
+        return $this->config->name;
+    }
+
+    #[Override]
     public function query(string $query): QueryResult
     {
-        // @todo handle return false
-        return new QueryResult($this->internalConnection()->query($query));
+        try {
+            return new QueryResult($this->internalConnection()->query($query));
+        } catch (PDOException $e) {
+            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
+        }
     }
 
     #[Override]
     public function exec(string $query): int
     {
-        // @todo handle return false
-        return $this->internalConnection()->exec($query);
+        try {
+            return $this->internalConnection()->exec($query);
+        } catch (PDOException $e) {
+            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
+        }
     }
 
     #[Override]
@@ -44,8 +59,12 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     #[Override]
     public function internalConnection(): PDO
     {
-        return $this->connection ??= new PDO($this->config->dsn, $this->config->username, $this->config->password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        ]);
+        try {
+            return $this->connection ??= new PDO($this->config->dsn, $this->config->username, $this->config->password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+        } catch (PDOException $e) {
+            throw $e; // @todo handle exception
+        }
     }
 }

@@ -2,9 +2,11 @@
 
 namespace Arakne\Spinneret\Database;
 
+use Arakne\Spinneret\Database\Exception\DatabaseExceptionFactory;
 use LogicException;
 use Override;
 use PDO;
+use PDOException;
 use PDOStatement;
 
 use function count;
@@ -12,9 +14,6 @@ use function is_array;
 use function preg_replace_callback;
 use function str_repeat;
 use function strpos;
-
-// @todo "allow expression" flag
-// @todo has array flag
 
 /**
  * Implementation of QueryStatementInterface for PDOStatement
@@ -24,7 +23,6 @@ use function strpos;
 final class QueryStatement implements QueryStatementInterface
 {
     private ?PDOStatement $statement = null;
-    private bool $built = false;
 
     /**
      * @var list<array{0: mixed, 1: PDO::PARAM_*}>
@@ -36,9 +34,30 @@ final class QueryStatement implements QueryStatementInterface
      */
     private array $expressions = [];
 
+    /**
+     * Check if the query contains an array parameter
+     */
+    private bool $hasArray = false;
+
     public function __construct(
         private readonly DatabaseConnection $connection,
+
+        /**
+         * The SQL query
+         * Should not be user provided
+         *
+         * The query may contain placeholders `?` for parameters, array spread `...?` for array parameters, and expressions `{placeholder}`.
+         */
         private readonly string $query,
+
+        /**
+         * Does the query contain dynamic expressions ?
+         *
+         * If true, expression will be evaluated at each execution.
+         * If false, expressions will not be evaluated.
+         * If null, the query will be scanned for expressions.
+         */
+        private ?bool $dynamic = null,
     ) {
     }
 
@@ -78,6 +97,7 @@ final class QueryStatement implements QueryStatementInterface
     public function pushArrayOfInt(array $values): static
     {
         $this->parameters[] = [$values, PDO::PARAM_INT];
+        $this->hasArray = true;
 
         return $this;
     }
@@ -86,6 +106,7 @@ final class QueryStatement implements QueryStatementInterface
     public function pushArrayOfString(array $values): static
     {
         $this->parameters[] = [$values, PDO::PARAM_STR];
+        $this->hasArray = true;
 
         return $this;
     }
@@ -144,49 +165,10 @@ final class QueryStatement implements QueryStatementInterface
 
     private function buildStatement(PDO $connection): PDOStatement
     {
-        // @todo refactor
-        // @todo Execute expressions are enabled
-        $query = preg_replace_callback(
-            '/\{([a-z0-9_.-]+)}/iu',
-            fn ($matches) => $this->expressions[$matches[1]] ?? '',
-            $this->query
-        );
+        $query = $this->applyExpressions($this->query);
+        [$query, $parameters] = $this->spreadArrayParameters($query, $this->parameters);
 
-        $parameters = [];
-        $parameterNumber = 0;
-        $spreadPos = 0;
-
-        // @todo Execute only if an array expression is found
-        /** @var mixed $value */
-        foreach ($this->parameters as [$value, $type]) {
-            if (is_array($value)) {
-                // @todo handle empty array. Should we inject null ?
-                // @todo handle spread not found
-                $spreadPos = strpos($query, '...?', $spreadPos);
-
-                if ($spreadPos === false) {
-                    throw new LogicException('The spread placeholder `...?` must be present in the query when using an array parameter.');
-                }
-
-                $placeholders = '?';
-
-                if (count($value) > 1) {
-                    $placeholders .= str_repeat(', ?', count($value) - 1);
-                }
-
-                $query = substr_replace($query, $placeholders, $spreadPos, 4);
-
-                /** @var mixed $v */
-                foreach ($value as $v) {
-                    $parameters[++$parameterNumber] = [$v, $type];
-                }
-
-                continue;
-            }
-
-            $parameters[++$parameterNumber] = [$value, $type];
-        }
-
+        // @todo handle exceptions
         $this->statement = $stmt = $connection->prepare($query);
 
         /**
@@ -195,12 +177,100 @@ final class QueryStatement implements QueryStatementInterface
          * @var PDO::PARAM_* $type
          */
         foreach ($parameters as $position => [$value, $type]) {
-            $stmt->bindValue($position, $value, $type);
+            $stmt->bindValue($position + 1, $value, $type);
         }
 
-        // @todo handle return false
-        $stmt->execute();
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->connection->name(), $query, $parameters);
+        }
 
         return $stmt;
+    }
+
+    /**
+     * Replace expressions placeholders by their values
+     */
+    private function applyExpressions(string $query): string
+    {
+        if (($this->dynamic ??= $this->hasExpression($query)) === false) {
+            return $query;
+        }
+
+        return preg_replace_callback(
+            '/\{([a-z0-9_.-]+)}/iu',
+            fn ($matches) => $this->expressions[$matches[1]] ?? '',
+            $query
+        );
+    }
+
+    /**
+     * Resolve spread array parameters and return the new query and flattened parameters
+     *
+     * @param string $query
+     * @param list<array{0: mixed, 1: PDO::PARAM_*}> $parameters
+     *
+     * @return list{string, list<array{0: mixed, 1: PDO::PARAM_*}>}
+     */
+    public function spreadArrayParameters(string $query, array $parameters): array
+    {
+        if (!$this->hasArray) {
+            return [$query, $parameters];
+        }
+
+        $parameters = [];
+        $spreadPos = 0;
+
+        /** @var mixed $value */
+        foreach ($this->parameters as [$value, $type]) {
+            if (is_array($value)) {
+                $spreadPos = strpos($query, '...?', $spreadPos);
+
+                if ($spreadPos === false) {
+                    throw new LogicException('The spread placeholder `...?` must be present in the query when using an array parameter.');
+                }
+
+                $placeholders = '?';
+
+                if (($c = count($value)) > 1) {
+                    $placeholders .= str_repeat(', ?', $c - 1);
+                }
+
+                $query = substr_replace($query, $placeholders, $spreadPos, 4);
+
+                if (empty($value)) {
+                    // if the array is empty, we inject a null value
+                    $parameters[] = [null, PDO::PARAM_NULL];
+                } else {
+                    /** @var mixed $v */
+                    foreach ($value as $v) {
+                        $parameters[] = [$v, $type];
+                    }
+                }
+
+                continue;
+            }
+
+            $parameters[] = [$value, $type];
+        }
+
+        return [$query, $parameters];
+    }
+
+    /**
+     * Check if the current query has expressions
+     */
+    private function hasExpression(string $query): bool
+    {
+        if ($this->expressions) {
+            return true;
+        }
+
+        if (($open = strpos($query, '{')) === false) {
+            return false;
+        }
+
+        return strpos($query, '}', $open) !== false;
     }
 }
