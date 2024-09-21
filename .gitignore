@@ -8,3 +8,7 @@ infection-log.html
 node_modules
 lang
 botofu
+Transpiler
+items.php
+lang.json
+test2.php

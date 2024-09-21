@@ -35,7 +35,7 @@ class HmacCookieSerializerTest extends TestCase
 
         $str = $this->serializer->toString($cookie);
 
-        $this->assertEquals('Ncw9DoAgDAbQu3wzg1Bbfm5TKawkxrgQ7q4Ojm95ExcKepasm3n1qbNS4LabmHCNjYh7gkNF8TEwpeAlO7SfHD/eLx0MZaKP8Y6HnljrAQ==.C4BHNEcki7a5iWbSdizOBSGNRArbPRWDmqYiX1uWtks5PQhQUztInLGRV50HUoTHrmIaylwiA6NmCakuzRrPHw==', $str);
+        $this->assertEquals('Ncw9DoAgDAbQu3wzg1Bbfm5TKawkxrgQ7q4Ojm95ExcKepasm3n1qbNS4LabmHCNjYh7gkNF8TEwpeAlO7SfHD_eLx0MZaKP8Y6HnljrAQ.C4BHNEcki7a5iWbSdizOBSGNRArbPRWDmqYiX1uWtks5PQhQUztInLGRV50HUoTHrmIaylwiA6NmCakuzRrPHw', $str);
         $this->assertEquals($cookie, $this->serializer->fromString($str));
     }
 
@@ -58,7 +58,7 @@ class HmacCookieSerializerTest extends TestCase
 
         $str = $serializer->toString($cookie);
 
-        $this->assertEquals('eyJ0IjoiZjk2OWEwZDFhMThmNWEzMjVlNGQ2ZDY1YzdlMzM1ZjgiLCJjIjoxNzI1MzgyMTY5LCJlIjoxNzI1Mzg1NzY5LCJ2IjoxLCJkIjp7ImZvbyI6ImJhciJ9fQ==.dhu1JlegWsPRu+wiuo6f8Ju2yCvsi0iKWwmRM5eFfzMgzunu91F4RzQ+JwzFQ1vcrG3I+0NbGv5Yl1wOBlyMdg==', $str);
+        $this->assertEquals('eyJ0IjoiZjk2OWEwZDFhMThmNWEzMjVlNGQ2ZDY1YzdlMzM1ZjgiLCJjIjoxNzI1MzgyMTY5LCJlIjoxNzI1Mzg1NzY5LCJ2IjoxLCJkIjp7ImZvbyI6ImJhciJ9fQ.dhu1JlegWsPRu-wiuo6f8Ju2yCvsi0iKWwmRM5eFfzMgzunu91F4RzQ-JwzFQ1vcrG3I-0NbGv5Yl1wOBlyMdg', $str);
         $this->assertEquals($cookie, $serializer->fromString($str));
 
         $this->assertTrue(strlen($str) > strlen($this->serializer->toString($cookie)));
@@ -83,7 +83,7 @@ class HmacCookieSerializerTest extends TestCase
 
         $str = $serializer->toString($cookie);
 
-        $this->assertEquals('Ncw9DoAgDAbQu3wzg1Bbfm5TKawkxrgQ7q4Ojm95ExcKepasm3n1qbNS4LabmHCNjYh7gkNF8TEwpeAlO7SfHD/eLx0MZaKP8Y6HnljrAQ==.ZPPWbEYWTnz3KaLv7TvhVNZ8UFBHP3zqBQVkmT2zJmo=', $str);
+        $this->assertEquals('Ncw9DoAgDAbQu3wzg1Bbfm5TKawkxrgQ7q4Ojm95ExcKepasm3n1qbNS4LabmHCNjYh7gkNF8TEwpeAlO7SfHD_eLx0MZaKP8Y6HnljrAQ.ZPPWbEYWTnz3KaLv7TvhVNZ8UFBHP3zqBQVkmT2zJmo', $str);
         $this->assertEquals($cookie, $serializer->fromString($str));
     }
 

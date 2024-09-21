@@ -21,7 +21,7 @@ final readonly class CookieOptions
          * If set, the cookie will be sent only to the given path prefix.
          * The path should start with a / character.
          */
-        public ?string $path = null,
+        public ?string $path = '/',
 
         /**
          * Define the host name which will receive the cookie.

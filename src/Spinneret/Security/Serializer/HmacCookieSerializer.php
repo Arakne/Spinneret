@@ -21,6 +21,8 @@ use function is_array;
 use function is_string;
 use function json_decode;
 use function json_encode;
+use function rtrim;
+use function strtr;
 
 /**
  * Cookie serializer that uses HMAC to sign and verify the cookie.
@@ -82,8 +84,8 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
 
         [$data, $signature] = $parts;
 
-        $data = @base64_decode($data, true);
-        $signature = @base64_decode($signature, true);
+        $data = self::base64UrlDecode($data);
+        $signature = self::base64UrlDecode($signature);
 
         if ($data === false || $signature === false) {
             return null;
@@ -154,6 +156,16 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
 
         $signature = hash_hmac($this->algorithm, $data, $this->secret, true);
 
-        return base64_encode($data) . '.' . base64_encode($signature);
+        return self::base64UrlEncode($data) . '.' . self::base64UrlEncode($signature);
+    }
+
+    private static function base64UrlEncode(string $value): string
+    {
+        return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
+    }
+
+    private static function base64UrlDecode(string $value): string|false
+    {
+        return @base64_decode(strtr($value, '-_', '+/'), true);
     }
 }

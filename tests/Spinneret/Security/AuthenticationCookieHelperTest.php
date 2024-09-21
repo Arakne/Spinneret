@@ -65,7 +65,7 @@ class AuthenticationCookieHelperTest extends TestCase
     public function getCookieString()
     {
         $str = $this->helper->getCookieString(null);
-        $this->assertSame('auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE+F9JX8+3AYa6HXPeDw==.G8Zlq9gJjrTXJ/wG0ih2fDmUXU3jUPVSih/FINNcG3Mjv/FxjSSlwxj0D2qXaq6l8TqY9d2Rll5CHO5cN1egOQ==; HttpOnly', $str);
+        $this->assertSame('auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE-F9JX8-3AYa6HXPeDw.G8Zlq9gJjrTXJ_wG0ih2fDmUXU3jUPVSih_FINNcG3Mjv_FxjSSlwxj0D2qXaq6l8TqY9d2Rll5CHO5cN1egOQ; Path=/; HttpOnly', $str);
 
         $parsedCookie = $this->serializer->fromString(substr(explode(';', $str)[0], 5));
         $this->assertSame('f969a0d1a18f5a325e4d6d65c7e335f8', $parsedCookie->token);
@@ -79,7 +79,7 @@ class AuthenticationCookieHelperTest extends TestCase
     public function getCookieStringWithData()
     {
         $str = $this->helper->getCookieString($d = (object) ['id' => 1]);
-        $this->assertSame('auth=Ncc9DoAgDAbQu3wzg6W2/NyG0JK4GxfC3cXB5SVv4kbFKFraYdQoD2kcxU9TU+nJmWVkBHRUSlE4R9IS4H8lfX12Awx14trSWi8=.ChtxCvBMdmXJ9FcFHLmDZPkyV0dr6STd5NoNtqaJ6HbrkWu1WNxduyeGlXBGRnVcS6p9pB7BQnGNHnjX2RYFQw==; HttpOnly', $str);
+        $this->assertSame('auth=Ncc9DoAgDAbQu3wzg6W2_NyG0JK4GxfC3cXB5SVv4kbFKFraYdQoD2kcxU9TU-nJmWVkBHRUSlE4R9IS4H8lfX12Awx14trSWi8.ChtxCvBMdmXJ9FcFHLmDZPkyV0dr6STd5NoNtqaJ6HbrkWu1WNxduyeGlXBGRnVcS6p9pB7BQnGNHnjX2RYFQw; Path=/; HttpOnly', $str);
 
         $parsedCookie = $this->serializer->fromString(substr(explode(';', $str)[0], 5));
         $this->assertSame('f969a0d1a18f5a325e4d6d65c7e335f8', $parsedCookie->token);
@@ -96,7 +96,7 @@ class AuthenticationCookieHelperTest extends TestCase
 
         $str = $this->helper->getCookieString($parsedCookie);
 
-        $this->assertSame('auth=Ncw9DoAgDAbQu3wzg1Bbfm5TKawkxrgQ7q4Ojm95ExcKepasm3n1qbNS4LabmHCNjYh7gkNF8TEwpeAlO7SfHD/eLx0MZaKP8Y6HnljrAQ==.C4BHNEcki7a5iWbSdizOBSGNRArbPRWDmqYiX1uWtks5PQhQUztInLGRV50HUoTHrmIaylwiA6NmCakuzRrPHw==; HttpOnly', $str);
+        $this->assertSame('auth=Ncw9DoAgDAbQu3wzg1Bbfm5TKawkxrgQ7q4Ojm95ExcKepasm3n1qbNS4LabmHCNjYh7gkNF8TEwpeAlO7SfHD_eLx0MZaKP8Y6HnljrAQ.C4BHNEcki7a5iWbSdizOBSGNRArbPRWDmqYiX1uWtks5PQhQUztInLGRV50HUoTHrmIaylwiA6NmCakuzRrPHw; Path=/; HttpOnly', $str);
         $this->assertEquals($parsedCookie, $this->serializer->fromString(substr(explode(';', $str)[0], 5)));
     }
 
@@ -104,7 +104,7 @@ class AuthenticationCookieHelperTest extends TestCase
     public function writeResponse()
     {
         $response = $this->helper->writeResponse(new Response(), (object) ['id' => 1]);
-        $this->assertSame('auth=Ncc9DoAgDAbQu3wzg6W2/NyG0JK4GxfC3cXB5SVv4kbFKFraYdQoD2kcxU9TU+nJmWVkBHRUSlE4R9IS4H8lfX12Awx14trSWi8=.ChtxCvBMdmXJ9FcFHLmDZPkyV0dr6STd5NoNtqaJ6HbrkWu1WNxduyeGlXBGRnVcS6p9pB7BQnGNHnjX2RYFQw==; HttpOnly', $response->getHeaderLine('Set-Cookie'));
+        $this->assertSame('auth=Ncc9DoAgDAbQu3wzg6W2_NyG0JK4GxfC3cXB5SVv4kbFKFraYdQoD2kcxU9TU-nJmWVkBHRUSlE4R9IS4H8lfX12Awx14trSWi8.ChtxCvBMdmXJ9FcFHLmDZPkyV0dr6STd5NoNtqaJ6HbrkWu1WNxduyeGlXBGRnVcS6p9pB7BQnGNHnjX2RYFQw; Path=/; HttpOnly', $response->getHeaderLine('Set-Cookie'));
     }
 
     #[Test]

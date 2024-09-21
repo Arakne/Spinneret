@@ -36,7 +36,7 @@ class LoadSessionMiddlewareTest extends TestCase
 
         $cookie = $response->getHeaderLine('Set-Cookie');
 
-        $this->assertEquals('auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE+F9JX8+3AYa6HXPeDw==.RPtAk4hAC43r13+TBot18jbtQ35MiLrtX8uR90XLUWbrNWTOLLKEdsfHheZP0K4XwLqdhtut163VXUovV7giLQ==; HttpOnly', $cookie);
+        $this->assertEquals('auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE-F9JX8-3AYa6HXPeDw.RPtAk4hAC43r13-TBot18jbtQ35MiLrtX8uR90XLUWbrNWTOLLKEdsfHheZP0K4XwLqdhtut163VXUovV7giLQ; Path=/; HttpOnly', $cookie);
     }
 
     #[Test]
@@ -94,7 +94,7 @@ class LoadSessionMiddlewareTest extends TestCase
         ], json_decode((string) $response->getBody(), true));
 
         $cookie = $response->getHeaderLine('Set-Cookie');
-        $this->assertEquals('auth=Ncs7DsIwFETRvUztwpkQ/zaDHs6zRJGAbBKEouwdU1Ae3ZkDLySwiCvM48XxJuK9dYG5iMRoGUgLg4w0eE5j4OCigf45+R/3ToMZ6cDWtK6y9AFkXu5r/z6ltfej9oxd6+faNG9VcZ5f.ysHu2CdjZqT7QUtfJ8d30uc7rn+5rSUA+SbevdBCw8Cm8CRDeRhBUJWm/DEjfmoe8R7IjKfp9wEr7ucuG8SifQ==; HttpOnly', $cookie);
+        $this->assertEquals('auth=Ncs7DsIwFETRvUztwpkQ_zaDHs6zRJGAbBKEouwdU1Ae3ZkDLySwiCvM48XxJuK9dYG5iMRoGUgLg4w0eE5j4OCigf45-R_3ToMZ6cDWtK6y9AFkXu5r_z6ltfej9oxd6-faNG9VcZ5f.ysHu2CdjZqT7QUtfJ8d30uc7rn-5rSUA-SbevdBCw8Cm8CRDeRhBUJWm_DEjfmoe8R7IjKfp9wEr7ucuG8SifQ; Path=/; HttpOnly', $cookie);
 
         $token = explode('=', explode(';', $cookie, 2)[0], 2)[1];
 
@@ -146,6 +146,6 @@ class LoadSessionMiddlewareTest extends TestCase
 
         $cookie = $response->getHeaderLine('Set-Cookie');
 
-        $this->assertEquals('auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE+F9JX8+3AYa6HXPeDw==.RPtAk4hAC43r13+TBot18jbtQ35MiLrtX8uR90XLUWbrNWTOLLKEdsfHheZP0K4XwLqdhtut163VXUovV7giLQ==; HttpOnly', $cookie);
+        $this->assertEquals('auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE-F9JX8-3AYa6HXPeDw.RPtAk4hAC43r13-TBot18jbtQ35MiLrtX8uR90XLUWbrNWTOLLKEdsfHheZP0K4XwLqdhtut163VXUovV7giLQ; Path=/; HttpOnly', $cookie);
     }
 }
