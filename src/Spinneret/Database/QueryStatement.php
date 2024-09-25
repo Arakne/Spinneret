@@ -47,7 +47,7 @@ final class QueryStatement implements QueryStatementInterface
         /**
          * Enable automatic reconnection if the connection is lost
          */
-        private readonly bool $autoReconnect = true,
+        private readonly bool $autoReconnect,
 
         /**
          * The SQL query

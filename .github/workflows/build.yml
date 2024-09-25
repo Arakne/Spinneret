@@ -6,6 +6,12 @@ on:
     pull_request:
         branches: [ master ]
 
+env:
+    MYSQL_TEST_HOST: '127.0.0.1'
+    MYSQL_TEST_DATABASE: 'test';
+    MYSQL_TEST_USER: 'test';
+    MYSQL_TEST_PASSWORD: 'test';
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -30,11 +36,14 @@ jobs:
                   ini-values: date.timezone=Europe/Paris
             - name: Check PHP Version
               run: php -v
-#
-#            - uses: mirromutth/mysql-action@v1.1
-#              with:
-#                  mysql version: '5.7'
-#                  mysql root password: 'root'
+
+            - uses: mirromutth/mysql-action@v1.1
+              with:
+                  mysql version: '5.7'
+                  mysql root password: 'root'
+                  mysql database: 'test'
+                  mysql user: 'test'
+                  mysql password: 'test'
 
             - name: Validate composer.json and composer.lock
               run: composer validate --strict
