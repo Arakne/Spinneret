@@ -45,6 +45,14 @@ jobs:
                   mysql user: 'test'
                   mysql password: 'test'
 
+            - name: Wait for MySQL
+              run: |
+                while :
+                do
+                  sleep 1
+                  mysql -h 127.0.0.1 -u root --password=root -e 'select version()' && break
+                done
+
             - name: Validate composer.json and composer.lock
               run: composer validate --strict
 
