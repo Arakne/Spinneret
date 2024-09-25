@@ -8,9 +8,9 @@ on:
 
 env:
     MYSQL_TEST_HOST: '127.0.0.1'
-    MYSQL_TEST_DATABASE: 'test';
-    MYSQL_TEST_USER: 'test';
-    MYSQL_TEST_PASSWORD: 'test';
+    MYSQL_TEST_DATABASE: 'test'
+    MYSQL_TEST_USER: 'test'
+    MYSQL_TEST_PASSWORD: 'test'
 
 jobs:
     build:
