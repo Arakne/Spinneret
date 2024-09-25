@@ -4,6 +4,9 @@ namespace Arakne\Tests\Spinneret\Database;
 
 use Arakne\Spinneret\Database\ConnectionConfig;
 use Arakne\Spinneret\Database\DatabaseConnection;
+use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
+use Arakne\Spinneret\Database\Exception\QueryBuildingException;
+use Arakne\Spinneret\Database\Exception\QueryExecutionException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +23,7 @@ class QueryStatementTest extends TestCase
             )
         );
 
-        $this->connection->exec('CREATE TABLE test (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)');
+        $this->connection->exec('CREATE TABLE test (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT) STRICT');
         $this->connection->exec('INSERT INTO test (name) VALUES ("foo")');
         $this->connection->exec('INSERT INTO test (name) VALUES ("bar")');
         $this->connection->exec('INSERT INTO test (name) VALUES ("baz")');
@@ -197,6 +200,23 @@ class QueryStatementTest extends TestCase
     }
 
     #[Test]
+    public function mixingArrayAndSimpleParameters()
+    {
+        $stmt = $this->connection->prepare('SELECT * FROM test WHERE id = ? OR name IN (...?)');
+
+        $this->assertSame($stmt, $stmt
+            ->pushInt(2)
+            ->pushArrayOfString(['foo', 'baz'])
+        );
+
+        $this->assertSame([
+            ['id' => 1, 'name' => 'foo'],
+            ['id' => 2, 'name' => 'bar'],
+            ['id' => 3, 'name' => 'baz'],
+        ], $stmt->execute()->asAssociativeArray());
+    }
+
+    #[Test]
     public function emptyArray()
     {
         $stmt = $this->connection->prepare('SELECT * FROM test WHERE id IN (...?)');
@@ -208,12 +228,145 @@ class QueryStatementTest extends TestCase
     #[Test]
     public function missingArrayPlaceholder()
     {
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('The spread placeholder `...?` must be present in the query when using an array parameter.');
+        try {
+            $stmt = $this->connection->prepare('SELECT * FROM test WHERE id IN (?)');
+            $this->assertSame($stmt, $stmt->pushArrayOfInt([1, 2]));
+            $stmt->execute();
 
-        $stmt = $this->connection->prepare('SELECT * FROM test WHERE id IN (?)');
-        $this->assertSame($stmt, $stmt->pushArrayOfInt([1, 2]));
+            $this->fail('Expected exception');
+        } catch (QueryBuildingException $e) {
+            $this->assertSame('test', $e->connection());
+            $this->assertSame('SELECT * FROM test WHERE id IN (?)', $e->query);
+            $this->assertSame('The spread placeholder `...?` must be present in the query when using an array parameter.', $e->getMessage());
+        }
+    }
 
+    #[Test]
+    public function executeSyntaxError()
+    {
+        try {
+            $stmt = $this->connection->prepare('SELECT FROM test WHERE ?');
+            $stmt->pushString('foo');
+            $stmt->execute();
+            $this->fail('Expected exception');
+        } catch (QueryExecutionException $e) {
+            $this->assertSame('test', $e->connection());
+            $this->assertSame('SELECT FROM test WHERE ?', $e->query);
+            $this->assertStringContainsString('near "FROM": syntax error', $e->getMessage());
+            $this->assertSame(['foo'], $e->parameters);
+            $this->assertSame(['HY000', 1, 'near "FROM": syntax error'], $e->errorInfo);
+        }
+    }
+
+    #[Test]
+    public function executeRuntimeError()
+    {
+        try {
+            $stmt = $this->connection->prepare('INSERT INTO test (id, name) VALUES (?, ?)');
+            $stmt->pushString('foo');
+            $stmt->pushNull();
+            $stmt->execute();
+            $this->fail('Expected exception');
+        } catch (QueryExecutionException $e) {
+            $this->assertSame('test', $e->connection());
+            $this->assertSame('INSERT INTO test (id, name) VALUES (?, ?)', $e->query);
+            $this->assertStringContainsString('General error: 20 datatype mismatch', $e->getMessage());
+            $this->assertSame(['foo', null], $e->parameters);
+            $this->assertSame(['HY000', 20, 'datatype mismatch'], $e->errorInfo);
+        }
+    }
+
+    #[Test]
+    public function executeConnectionLost()
+    {
+        $this->expectException(DatabaseConnectionLostException::class);
+
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+                autoReconnect: false,
+            )
+        );
+
+        $connection->exec('SET SESSION wait_timeout=1');
+        $connection->exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY AUTO_INCREMENT, name TEXT)');
+        $connection->exec('REPLACE INTO test (id, name) VALUES (1, "foo")');
+
+        sleep(2);
+        $stmt = $connection->prepare('SELECT * FROM test WHERE id = ?');
+        $stmt->pushInt(1);
         $stmt->execute();
+    }
+
+    #[Test]
+    public function executeConnectionLostAutoReconnect()
+    {
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+            )
+        );
+
+        $connection->exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY AUTO_INCREMENT, name TEXT)');
+        $connection->exec('REPLACE INTO test (id, name) VALUES (1, "foo")');
+        $connection->exec('SET SESSION wait_timeout=1');
+
+        sleep(2);
+        $stmt = $connection->prepare('SELECT * FROM test WHERE id = ?');
+        $stmt->pushInt(1);
+        $this->assertEquals([['id' => 1, 'name' => 'foo']], $stmt->execute()->asAssociativeArray());
+    }
+
+    #[Test]
+    public function executeUpdateConnectionLostAutoReconnect()
+    {
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+            )
+        );
+
+        $connection->exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY AUTO_INCREMENT, name TEXT)');
+        $connection->exec('TRUNCATE TABLE test');
+        $connection->exec('SET SESSION wait_timeout=1');
+
+        sleep(2);
+        $stmt = $connection->prepare('REPLACE INTO test (id, name) VALUES (?, ?)');
+        $stmt->pushInt(1);
+        $stmt->pushString(bin2hex(random_bytes(16)));
+
+        $this->assertSame(1, $stmt->executeUpdate());
+    }
+
+    #[Test]
+    public function executeWithGeneratedKeyConnectionLostAutoReconnect()
+    {
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+            )
+        );
+
+        $connection->exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY AUTO_INCREMENT, name TEXT)');
+        $connection->exec('TRUNCATE TABLE test');
+        $connection->exec('SET SESSION wait_timeout=1');
+
+        sleep(2);
+        $stmt = $connection->prepare('REPLACE INTO test (name) VALUES (?)');
+        $stmt->pushString(bin2hex(random_bytes(16)));
+
+        $this->assertSame('1', $stmt->executeWithGeneratedKey());
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Database;
 
+use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\DatabaseExceptionFactory;
 use Override;
 use PDO;
@@ -33,27 +34,49 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     #[Override]
     public function query(string $query): QueryResult
     {
-        try {
-            return new QueryResult($this->internalConnection()->query($query));
-        } catch (PDOException $e) {
-            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
+        $retry = $this->config->autoReconnect;
+
+        for (;;) {
+            try {
+                return new QueryResult($this->internalConnection()->query($query));
+            } catch (PDOException $e) {
+                $e = DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
+
+                if (!$retry || !$e instanceof DatabaseConnectionLostException) {
+                    throw $e;
+                }
+
+                $this->reconnect();
+                $retry = false;
+            }
         }
     }
 
     #[Override]
     public function exec(string $query): int
     {
-        try {
-            return $this->internalConnection()->exec($query);
-        } catch (PDOException $e) {
-            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
+        $retry = $this->config->autoReconnect;
+
+        for (;;) {
+            try {
+                return $this->internalConnection()->exec($query);
+            } catch (PDOException $e) {
+                $e = DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
+
+                if (!$retry || !$e instanceof DatabaseConnectionLostException) {
+                    throw $e;
+                }
+
+                $this->reconnect();
+                $retry = false;
+            }
         }
     }
 
     #[Override]
     public function prepare(string $query): QueryStatement
     {
-        return new QueryStatement($this, $query);
+        return new QueryStatement($this, $this->config->autoReconnect, $query);
     }
 
     #[Override]
@@ -64,7 +87,14 @@ final class DatabaseConnection implements DatabaseConnectionInterface
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
         } catch (PDOException $e) {
-            throw $e; // @todo handle exception
+            throw DatabaseExceptionFactory::fromDatabaseConnection($e, $this->name());
         }
+    }
+
+    #[Override]
+    public function reconnect(): void
+    {
+        $this->connection = null;
+        $this->internalConnection();
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Database;
 
+use Arakne\Spinneret\Database\Exception\DatabaseExceptionInterface;
+
 /**
  * Interface for parameterized query statements.
  */
@@ -175,6 +177,7 @@ interface QueryStatementInterface
      * Execute the query and fetch the result.
      *
      * @return QueryResultInterface
+     * @throws DatabaseExceptionInterface
      */
     public function execute(): QueryResultInterface;
 
@@ -182,6 +185,7 @@ interface QueryStatementInterface
      * Execute an update query and return the number of affected rows.
      *
      * @return non-negative-int The number of affected rows
+     * @throws DatabaseExceptionInterface
      */
     public function executeUpdate(): int;
 
@@ -191,6 +195,7 @@ interface QueryStatementInterface
      * Note: if the query does not generate a key, the behavior is undefined.
      *
      * @return string The generated key
+     * @throws DatabaseExceptionInterface
      */
     public function executeWithGeneratedKey(): string;
 }

@@ -32,6 +32,11 @@ final readonly class ConnectionConfig
          */
         #[SensitiveParameter]
         public string $password = '',
+
+        /**
+         * Whether to automatically reconnect to the database if the connection is lost
+         */
+        public bool $autoReconnect = true,
     ) {
     }
 }

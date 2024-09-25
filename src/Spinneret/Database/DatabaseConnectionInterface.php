@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Database;
 
+use Arakne\Spinneret\Database\Exception\DatabaseExceptionInterface;
 use UnitEnum;
 
 /**
@@ -25,6 +26,8 @@ interface DatabaseConnectionInterface
      *
      * @return QueryResult
      *
+     * @throws DatabaseExceptionInterface
+     *
      * @see DatabaseConnectionInterface::exec() For write queries
      * @see DatabaseConnectionInterface::prepare() For parameterized queries
      */
@@ -38,6 +41,7 @@ interface DatabaseConnectionInterface
      * @param string $query The SQL query to execute. This value must not be user-provided.
      *
      * @return int The number of affected rows
+     * @throws DatabaseExceptionInterface
      *
      * @see DatabaseConnectionInterface::query() For read queries
      * @see DatabaseConnectionInterface::prepare() For parameterized queries
@@ -50,6 +54,7 @@ interface DatabaseConnectionInterface
      * @param string $query The SQL query to prepare. This value must not be user-provided.
      *
      * @return QueryStatement
+     * @throws DatabaseExceptionInterface
      */
     public function prepare(string $query): QueryStatement;
 
@@ -60,7 +65,20 @@ interface DatabaseConnectionInterface
      * This method must not be called outside the database module
      *
      * @return C
+     * @throws DatabaseExceptionInterface
      * @internal
      */
     public function internalConnection(): mixed;
+
+    /**
+     * Reset the connection and create a new one
+     *
+     * The method is called automatically if {@see ConnectionConfig::$autoReconnect} is true and the connection is lost
+     * during a query execution.
+     *
+     * Do not call this method manually unless you know what you are doing.
+     *
+     * @throws DatabaseExceptionInterface
+     */
+    public function reconnect(): void;
 }

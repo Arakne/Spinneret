@@ -4,6 +4,8 @@ namespace Arakne\Tests\Spinneret\Database;
 
 use Arakne\Spinneret\Database\ConnectionConfig;
 use Arakne\Spinneret\Database\DatabaseConnection;
+use Arakne\Spinneret\Database\Exception\DatabaseConnectionException;
+use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\QueryExecutionException;
 use Arakne\Spinneret\Database\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\Attributes\Test;
@@ -94,5 +96,119 @@ class DatabaseConnectionTest extends TestCase
             ['id' => 2, 'name' => '???'],
             ['id' => 3, 'name' => '???'],
         ], $this->connection->query('SELECT * FROM test ORDER BY id')->asAssociativeArray());
+    }
+
+    #[Test]
+    public function execSyntaxError()
+    {
+        try {
+            $this->connection->exec('ALTER INDEX TABLE');
+            $this->fail('Expected exception');
+        } catch (QueryExecutionException $e) {
+            $this->assertSame('test', $e->connection());
+            $this->assertSame('ALTER INDEX TABLE', $e->query);
+            $this->assertStringContainsString('near "INDEX": syntax error', $e->getMessage());
+            $this->assertSame([], $e->parameters);
+            $this->assertSame(['HY000', 1, 'near "INDEX": syntax error'], $e->errorInfo);
+        }
+    }
+
+    #[Test]
+    public function connectionError()
+    {
+        try {
+            $connection = new DatabaseConnection(
+                new ConnectionConfig(
+                    'test',
+                    'sqlite:/dev'
+                )
+            );
+            $connection->query('CREATE TABLE test (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)');
+            $this->fail('Expected exception');
+        } catch (DatabaseConnectionException $e) {
+            $this->assertStringContainsString('unable to open database file', $e->getMessage());
+            $this->assertSame('test', $e->connection());
+            $this->assertSame(['HY000', 14, 'unable to open database file'], $e->errorInfo);
+        }
+    }
+
+    #[Test]
+    public function queryConnectionLost()
+    {
+        $this->expectException(DatabaseConnectionLostException::class);
+
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+                autoReconnect: false,
+            )
+        );
+
+        $this->assertEquals(1, $connection->query('SELECT 1')->fetchColumn(0));
+        $connection->exec('SET SESSION wait_timeout=1');
+
+        sleep(2);
+        $connection->query('SELECT 1');
+    }
+
+    #[Test]
+    public function queryConnectionLostWithAutoReconnect()
+    {
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+            )
+        );
+
+        $this->assertEquals(1, $connection->query('SELECT 1')->fetchColumn(0));
+        $connection->exec('SET SESSION wait_timeout=1');
+
+        sleep(2);
+        $this->assertEquals(1, $connection->query('SELECT 1')->fetchColumn(0));
+    }
+
+    #[Test]
+    public function execConnectionLost()
+    {
+        $this->expectException(DatabaseConnectionLostException::class);
+
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+                autoReconnect: false,
+            )
+        );
+
+        $connection->exec('SET SESSION wait_timeout=1');
+
+        sleep(2);
+        $connection->exec('SELECT 1');
+    }
+
+    #[Test]
+    public function execConnectionLostAutoReconnect()
+    {
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+            )
+        );
+
+        $connection->exec('SET SESSION wait_timeout=1');
+
+        sleep(2);
+        $this->assertSame(0, $connection->exec('SELECT 1'));
     }
 }

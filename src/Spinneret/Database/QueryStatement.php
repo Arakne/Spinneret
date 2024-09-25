@@ -2,13 +2,15 @@
 
 namespace Arakne\Spinneret\Database;
 
+use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\DatabaseExceptionFactory;
-use LogicException;
+use Arakne\Spinneret\Database\Exception\QueryBuildingException;
 use Override;
 use PDO;
 use PDOException;
 use PDOStatement;
 
+use function array_column;
 use function count;
 use function is_array;
 use function preg_replace_callback;
@@ -41,6 +43,11 @@ final class QueryStatement implements QueryStatementInterface
 
     public function __construct(
         private readonly DatabaseConnection $connection,
+
+        /**
+         * Enable automatic reconnection if the connection is lost
+         */
+        private readonly bool $autoReconnect = true,
 
         /**
          * The SQL query
@@ -138,29 +145,41 @@ final class QueryStatement implements QueryStatementInterface
     #[Override]
     public function execute(): QueryResult
     {
-        $conn = $this->connection->internalConnection();
-        $this->statement = $stmt = $this->buildStatement($conn);
-
-        return new QueryResult($stmt);
+        return new QueryResult($this->executeStatement());
     }
 
     #[Override]
     public function executeUpdate(): int
     {
-        $conn = $this->connection->internalConnection();
-        $this->statement = $this->buildStatement($conn);
-
         /** @var non-negative-int */
-        return $this->statement->rowCount();
+        return $this->executeStatement()->rowCount();
     }
 
     #[Override]
     public function executeWithGeneratedKey(): string
     {
-        $conn = $this->connection->internalConnection();
-        $this->statement = $this->buildStatement($conn);
+        $this->executeStatement();
 
-        return $conn->lastInsertId();
+        return $this->connection->internalConnection()->lastInsertId();
+    }
+
+    private function executeStatement(): PDOStatement
+    {
+        $retry = $this->autoReconnect;
+
+        for (;;) {
+            try {
+                $conn = $this->connection->internalConnection();
+                return $this->statement = $this->buildStatement($conn);
+            } catch (DatabaseConnectionLostException $e) {
+                if (!$retry) {
+                    throw $e;
+                }
+
+                $this->connection->reconnect();
+                $retry = false;
+            }
+        }
     }
 
     private function buildStatement(PDO $connection): PDOStatement
@@ -168,8 +187,11 @@ final class QueryStatement implements QueryStatementInterface
         $query = $this->applyExpressions($this->query);
         [$query, $parameters] = $this->spreadArrayParameters($query, $this->parameters);
 
-        // @todo handle exceptions
-        $this->statement = $stmt = $connection->prepare($query);
+        try {
+            $this->statement = $stmt = $connection->prepare($query);
+        } catch (PDOException $e) {
+            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->connection->name(), $query, array_column($parameters, 0));
+        }
 
         /**
          * @var int $position
@@ -183,7 +205,7 @@ final class QueryStatement implements QueryStatementInterface
         try {
             $stmt->execute();
         } catch (PDOException $e) {
-            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->connection->name(), $query, $parameters);
+            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->connection->name(), $query, array_column($parameters, 0));
         }
 
         return $stmt;
@@ -224,35 +246,38 @@ final class QueryStatement implements QueryStatementInterface
 
         /** @var mixed $value */
         foreach ($this->parameters as [$value, $type]) {
-            if (is_array($value)) {
-                $spreadPos = strpos($query, '...?', $spreadPos);
-
-                if ($spreadPos === false) {
-                    throw new LogicException('The spread placeholder `...?` must be present in the query when using an array parameter.');
-                }
-
-                $placeholders = '?';
-
-                if (($c = count($value)) > 1) {
-                    $placeholders .= str_repeat(', ?', $c - 1);
-                }
-
-                $query = substr_replace($query, $placeholders, $spreadPos, 4);
-
-                if (empty($value)) {
-                    // if the array is empty, we inject a null value
-                    $parameters[] = [null, PDO::PARAM_NULL];
-                } else {
-                    /** @var mixed $v */
-                    foreach ($value as $v) {
-                        $parameters[] = [$v, $type];
-                    }
-                }
-
+            if (!is_array($value)) {
+                $parameters[] = [$value, $type];
                 continue;
             }
 
-            $parameters[] = [$value, $type];
+            $spreadPos = strpos($query, '...?', $spreadPos);
+
+            if ($spreadPos === false) {
+                throw new QueryBuildingException(
+                    $this->connection->name(),
+                    $query,
+                    'The spread placeholder `...?` must be present in the query when using an array parameter.'
+                );
+            }
+
+            $placeholders = '?';
+
+            if (($c = count($value)) > 1) {
+                $placeholders .= str_repeat(', ?', $c - 1);
+            }
+
+            $query = substr_replace($query, $placeholders, $spreadPos, 4);
+
+            if (empty($value)) {
+                // if the array is empty, we inject a null value
+                $parameters[] = [null, PDO::PARAM_NULL];
+            } else {
+                /** @var mixed $v */
+                foreach ($value as $v) {
+                    $parameters[] = [$v, $type];
+                }
+            }
         }
 
         return [$query, $parameters];
