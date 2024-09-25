@@ -9,8 +9,8 @@ on:
 env:
     MYSQL_TEST_HOST: '127.0.0.1'
     MYSQL_TEST_DATABASE: 'test'
-    MYSQL_TEST_USER: 'test'
-    MYSQL_TEST_PASSWORD: 'test'
+    MYSQL_TEST_USER: 'root'
+    MYSQL_TEST_PASSWORD: 'root'
 
 jobs:
     build:
@@ -39,25 +39,24 @@ jobs:
 
             - uses: mirromutth/mysql-action@v1.1
               with:
-                  mysql version: '5.7'
                   mysql root password: 'root'
                   mysql database: 'test'
                   mysql user: 'test'
                   mysql password: 'test'
-
-            - name: Wait for MySQL
-              run: |
-                while :
-                do
-                  sleep 1
-                  mysql -h 127.0.0.1 -u root --password=root -e 'select version()' && break
-                done
 
             - name: Validate composer.json and composer.lock
               run: composer validate --strict
 
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress
+
+            - name: Wait for MySQL
+              run: |
+                  while :
+                  do
+                    sleep 1
+                    mysql -h 127.0.0.1 -u root --password=root -e 'select version()' && break
+                  done
 
             - name: Run test suite
               run: vendor/bin/phpunit
@@ -81,6 +80,13 @@ jobs:
                   extensions: json
                   ini-values: date.timezone=Europe/Paris
 
+            - uses: mirromutth/mysql-action@v1.1
+              with:
+                  mysql root password: 'root'
+                  mysql database: 'test'
+                  mysql user: 'test'
+                  mysql password: 'test'
+
             - name: Install Infection
               run: |
                 wget https://github.com/infection/infection/releases/download/0.28.1/infection.phar
@@ -99,6 +105,14 @@ jobs:
 
             - name: Run checkstyle
               run: ./vendor/bin/php-cs-fixer check --diff
+
+            - name: Wait for MySQL
+              run: |
+                  while :
+                  do
+                    sleep 1
+                    mysql -h 127.0.0.1 -u root --password=root -e 'select version()' && break
+                  done
 
             - name: Run Infection
               run: |
