@@ -188,7 +188,8 @@ final class QueryStatement implements QueryStatementInterface
         [$query, $parameters] = $this->spreadArrayParameters($query, $this->parameters);
 
         try {
-            $this->statement = $stmt = $connection->prepare($query);
+            // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"
+            $this->statement = $stmt = @$connection->prepare($query);
         } catch (PDOException $e) {
             throw DatabaseExceptionFactory::fromQueryExecution($e, $this->connection->name(), $query, array_column($parameters, 0));
         }
@@ -203,7 +204,8 @@ final class QueryStatement implements QueryStatementInterface
         }
 
         try {
-            $stmt->execute();
+            // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"
+            @$stmt->execute();
         } catch (PDOException $e) {
             throw DatabaseExceptionFactory::fromQueryExecution($e, $this->connection->name(), $query, array_column($parameters, 0));
         }

@@ -14,7 +14,6 @@ use UnitEnum;
  * Wrap an internal PDO connection
  *
  * @implements DatabaseConnectionInterface<PDO>
- * @todo handle reconnect + error handling
  */
 final class DatabaseConnection implements DatabaseConnectionInterface
 {
@@ -38,7 +37,8 @@ final class DatabaseConnection implements DatabaseConnectionInterface
 
         for (;;) {
             try {
-                return new QueryResult($this->internalConnection()->query($query));
+                // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"
+                return new QueryResult(@$this->internalConnection()->query($query));
             } catch (PDOException $e) {
                 $e = DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
 
@@ -59,7 +59,8 @@ final class DatabaseConnection implements DatabaseConnectionInterface
 
         for (;;) {
             try {
-                return $this->internalConnection()->exec($query);
+                // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"
+                return @$this->internalConnection()->exec($query);
             } catch (PDOException $e) {
                 $e = DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
 
