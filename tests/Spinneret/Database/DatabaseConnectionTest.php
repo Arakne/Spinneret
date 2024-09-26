@@ -8,6 +8,7 @@ use Arakne\Spinneret\Database\Exception\DatabaseConnectionException;
 use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\QueryExecutionException;
 use Arakne\Spinneret\Database\Exception\UniqueConstraintViolationException;
+use PDO;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -143,6 +144,9 @@ class DatabaseConnectionTest extends TestCase
                 'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
                 $_ENV['MYSQL_TEST_USER'],
                 $_ENV['MYSQL_TEST_PASSWORD'],
+                options: [
+                    PDO::ATTR_PERSISTENT => false,
+                ],
                 autoReconnect: false,
             )
         );
@@ -163,6 +167,9 @@ class DatabaseConnectionTest extends TestCase
                 'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
                 $_ENV['MYSQL_TEST_USER'],
                 $_ENV['MYSQL_TEST_PASSWORD'],
+                options: [
+                    PDO::ATTR_PERSISTENT => false,
+                ],
             )
         );
 
@@ -184,6 +191,9 @@ class DatabaseConnectionTest extends TestCase
                 'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
                 $_ENV['MYSQL_TEST_USER'],
                 $_ENV['MYSQL_TEST_PASSWORD'],
+                options: [
+                    PDO::ATTR_PERSISTENT => false,
+                ],
                 autoReconnect: false,
             )
         );
@@ -203,6 +213,9 @@ class DatabaseConnectionTest extends TestCase
                 'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
                 $_ENV['MYSQL_TEST_USER'],
                 $_ENV['MYSQL_TEST_PASSWORD'],
+                options: [
+                    PDO::ATTR_PERSISTENT => false,
+                ],
             )
         );
 

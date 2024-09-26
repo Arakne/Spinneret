@@ -83,7 +83,7 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     public function internalConnection(): PDO
     {
         try {
-            return $this->connection ??= new PDO($this->config->dsn, $this->config->username, $this->config->password, [
+            return $this->connection ??= new PDO($this->config->dsn, $this->config->username, $this->config->password, $this->config->options + [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
         } catch (PDOException $e) {

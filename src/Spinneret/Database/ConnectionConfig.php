@@ -34,6 +34,13 @@ final readonly class ConnectionConfig
         public string $password = '',
 
         /**
+         * PDO options
+         *
+         * @var array<int, mixed>
+         */
+        public array $options = [],
+
+        /**
          * Whether to automatically reconnect to the database if the connection is lost
          */
         public bool $autoReconnect = true,
