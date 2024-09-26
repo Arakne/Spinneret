@@ -5,7 +5,6 @@ namespace Arakne\Spinneret\Util;
 use FilesystemIterator;
 use InvalidArgumentException;
 use RecursiveDirectoryIterator;
-
 use RecursiveIteratorIterator;
 
 use function dirname;

@@ -3,7 +3,6 @@
 namespace Arakne\Spinneret\Util;
 
 use ReflectionClass;
-
 use RuntimeException;
 
 use function dirname;

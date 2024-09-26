@@ -11,13 +11,10 @@ use Psr\Http\Message\ServerRequestInterface;
 use Quatrevieux\Form\RegistryInterface;
 use Quatrevieux\Form\Validator\Constraint\ConstraintInterface;
 use Quatrevieux\Form\Validator\Constraint\ConstraintValidatorInterface;
-
 use Quatrevieux\Form\Validator\FieldError;
-
 use Quatrevieux\Form\View\FieldView;
 use Quatrevieux\Form\View\FormView;
 use Quatrevieux\Form\View\Provider\FieldViewProviderConfigurationInterface;
-
 use Quatrevieux\Form\View\Provider\FieldViewProviderInterface;
 
 use function is_string;
