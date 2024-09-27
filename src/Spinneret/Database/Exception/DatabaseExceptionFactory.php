@@ -70,7 +70,6 @@ final class DatabaseExceptionFactory
             return new UniqueConstraintViolationException($matches[2], $connection, $query, $parameters, $e->errorInfo, $e->getMessage(), $e);
         }
 
-        // @todo tester
         if (self::isConnectionLostError($message)) {
             return new DatabaseConnectionLostException($connection, $e->getMessage(), $e);
         }

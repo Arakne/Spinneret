@@ -7,6 +7,7 @@ use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\ConfigurableModule;
+use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\Parameters;
 use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\TestConfig;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloPresenter;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRequest;
@@ -40,6 +41,7 @@ class FunctionalApplicationTest extends TestCase
     {
         $this->assertEquals(dirname(__DIR__, 3), $this->app->projectDir());
         $this->assertEquals(dirname(__DIR__, 3).'/var/cache', $this->app->cacheDir());
+        $this->assertEquals(dirname(__DIR__, 3).'/var/log', $this->app->logDir());
     }
 
     #[Test]
@@ -60,7 +62,6 @@ class FunctionalApplicationTest extends TestCase
         $this->assertSame($this->app, $this->app->get(Application::class));
         $this->assertInstanceOf(HelloPresenter::class, $this->app->get(HelloPresenter::class));
     }
-
 
     #[Test]
     public function modulesShouldSetConfiguration()
@@ -261,5 +262,17 @@ HTML
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertEquals('{"message":"My configured message","computed":1655275095}', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function containerParameters()
+    {
+        $params = $this->app->get(Parameters::class);
+
+        $this->assertSame($this->app->isDev, $params->isDev);
+        $this->assertSame($this->app->projectDir(), $params->projectDir);
+        $this->assertSame($this->app->logDir(), $params->logDir);
+        $this->assertSame($this->app->cacheDir(), $params->cacheDir);
+        $this->assertSame($this->app->configDir(), $params->configDir);
     }
 }

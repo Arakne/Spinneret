@@ -53,6 +53,4 @@ class DatabaseExceptionFactoryTest extends TestCase
         $this->assertEquals('SQLSTATE[HY000]: General error: 2006 MySQL server has gone away', $exception->getMessage());
         $this->assertSame($e, $exception->getPrevious());
     }
-
-
 }

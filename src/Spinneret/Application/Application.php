@@ -198,13 +198,51 @@ class Application implements RunnerInterface, ContainerInterface
     /**
      * Get the directory where configurations files are stored
      *
-     * By default, the cache directory is config in the project root directory.
+     * By default, the directory is `config/` in the project root directory.
      *
      * @return string
      */
     public function configDir(): string
     {
         return $this->projectDir().'/config';
+    }
+
+    /**
+     * Get the directory where logs are stored
+     *
+     * By default, the directory is `var/log` in the project root directory.
+     *
+     * @return string
+     */
+    public function logDir(): string
+    {
+        return $this->projectDir().'/var/log';
+    }
+
+    /**
+     * Define container parameters
+     * Those parameters can be used in the container configuration
+     *
+     * By default, the following parameters are defined:
+     * - app.dev: whether the application is in development mode
+     * - app.project_dir: the project root directory
+     * - app.cache_dir: the cache directory
+     * - app.config_dir: the configuration directory
+     * - app.log_dir: the log directory
+     *
+     * To add or override parameters, override this method in the application class.
+     *
+     * @return array<string, mixed>
+     */
+    protected function containerParameters(): array
+    {
+        return [
+            'app.dev' => $this->isDev,
+            'app.project_dir' => $this->projectDir(),
+            'app.cache_dir' => $this->cacheDir(),
+            'app.config_dir' => $this->configDir(),
+            'app.log_dir' => $this->logDir(),
+        ];
     }
 
     /**
@@ -237,7 +275,7 @@ class Application implements RunnerInterface, ContainerInterface
      *
      * @return SymfonyContainer
      */
-    public function buildContainer(): SymfonyContainer
+    private function buildContainer(): SymfonyContainer
     {
         $containerBuilder = new ContainerBuilder();
 
@@ -258,6 +296,10 @@ class Application implements RunnerInterface, ContainerInterface
 
         $containerBuilder->setParameter(ViewModule::RENDERERS_PARAMETER, $renderers);
         $containerBuilder->setParameter(PresenterModule::PRESENTERS_PARAMETER, $presenters);
+
+        foreach ($this->containerParameters() as $name => $value) {
+            $containerBuilder->setParameter($name, $value);
+        }
 
         $containerBuilder->compile();
         $this->containerCompiler?->compile($this, $containerBuilder);

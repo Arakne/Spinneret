@@ -2,7 +2,6 @@
 
 namespace Arakne\Spinneret\Database;
 
-// @todo interface
 use InvalidArgumentException;
 use Override;
 use UnitEnum;
