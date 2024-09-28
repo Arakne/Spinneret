@@ -8,6 +8,6 @@ class FunctionalApplicationDevModeTest extends FunctionalApplicationTest
 {
     protected function createApplication(): TestApplication
     {
-        return new TestApplication(true);
+        return new TestApplication(true, env: 'test');
     }
 }

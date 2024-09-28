@@ -53,6 +53,12 @@ class Application implements RunnerInterface, ContainerInterface
         public readonly bool $isDev = false,
 
         /**
+         * The environment of the application
+         * Allows to have different configurations for different environments.
+         */
+        public readonly string $env = 'prod',
+
+        /**
          * Strategy to load or compile the container
          * If null, the container is not compiled
          */
@@ -198,7 +204,7 @@ class Application implements RunnerInterface, ContainerInterface
      */
     public function cacheDir(): string
     {
-        return $this->projectDir().'/var/cache';
+        return $this->projectDir() . '/var/cache/' . $this->env;
     }
 
     /**
@@ -210,7 +216,7 @@ class Application implements RunnerInterface, ContainerInterface
      */
     public function configDir(): string
     {
-        return $this->projectDir().'/config';
+        return $this->projectDir() . '/config';
     }
 
     /**
@@ -222,7 +228,7 @@ class Application implements RunnerInterface, ContainerInterface
      */
     public function logDir(): string
     {
-        return $this->projectDir().'/var/log';
+        return $this->projectDir() . '/var/log';
     }
 
     /**

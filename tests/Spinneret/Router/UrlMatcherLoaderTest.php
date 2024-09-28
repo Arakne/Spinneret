@@ -133,7 +133,7 @@ class UrlMatcherLoaderTest extends TestCase
                     private readonly string $cacheDir,
                     bool $isDev
                 ) {
-                    parent::__construct($isDev);
+                    parent::__construct($isDev, 'test');
                 }
 
                 public function cacheDir(): string

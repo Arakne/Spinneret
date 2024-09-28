@@ -20,7 +20,7 @@ class ErrorModuleTest extends TestCase
     #[Test]
     public function functionalProd()
     {
-        $app = new class(false) extends Application {
+        $app = new class(false, env: 'test') extends Application {
             protected function applicationModules(): array
             {
                 return [
@@ -61,7 +61,7 @@ HTML
     #[Test]
     public function functionalDev()
     {
-        $app = new class(true) extends Application {
+        $app = new class(true, env: 'test') extends Application {
             protected function applicationModules(): array
             {
                 return [
@@ -91,7 +91,7 @@ HTML
     #[Test]
     public function functionalShouldLogErrors()
     {
-        $app = new class(true) extends Application {
+        $app = new class(true, env: 'test') extends Application {
             protected function applicationModules(): array
             {
                 return [

@@ -11,6 +11,7 @@ use ReflectionFunction;
 use ReflectionNamedType;
 use Throwable;
 
+use function array_push;
 use function count;
 use function glob;
 use function is_file;
@@ -54,9 +55,8 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
         }
 
         $configByClassName = [];
-        $files = glob($app->configDir().'/*.php'); // @todo handle env
-        natsort($files);
         $filesByClassName = [];
+        $files = $this->configFiles($app);
 
         foreach ($files as $file) {
             /** @psalm-suppress UnresolvableInclude */
@@ -86,6 +86,23 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
         $this->createCache($app, $filesByClassName);
 
         return $configByClassName;
+    }
+
+    /**
+     * @param Application $app
+     * @return list<string>
+     */
+    private function configFiles(Application $app): array
+    {
+        $globalConfigFiles = glob($app->configDir().'/*.php');
+        natsort($globalConfigFiles);
+
+        $currentEnvConfigFiles = glob($app->configDir().'/'.$app->env.'/*.php');
+        natsort($currentEnvConfigFiles);
+
+        array_push($globalConfigFiles, ...$currentEnvConfigFiles);
+
+        return $globalConfigFiles;
     }
 
     private function callConfigurationClosure(string $file, array $previousConfig, Closure $config): mixed

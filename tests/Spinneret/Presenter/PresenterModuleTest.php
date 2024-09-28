@@ -33,7 +33,7 @@ class PresenterModuleTest extends TestCase
     #[Test]
     public function register()
     {
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);

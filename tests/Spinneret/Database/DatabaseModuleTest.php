@@ -51,7 +51,7 @@ class DatabaseModuleTest extends TestCase
     #[Test]
     public function functionalShouldInjectDatabaseConnection()
     {
-        $app = new class(isDev: true) extends Application {
+        $app = new class(isDev: true, env: 'test') extends Application {
            public function configDir(): string
            {
                return __DIR__ . '/Fixtures/config';

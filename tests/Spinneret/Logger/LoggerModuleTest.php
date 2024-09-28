@@ -34,7 +34,7 @@ class LoggerModuleTest extends TestCase
     #[Test]
     public function register()
     {
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -49,7 +49,7 @@ class LoggerModuleTest extends TestCase
     #[Test]
     public function registerWithConfig()
     {
-        $app = new class(true) extends Application {
+        $app = new class(true, env: 'test') extends Application {
             public function configDir(): string
             {
                 return __DIR__.'/Fixtures/config';

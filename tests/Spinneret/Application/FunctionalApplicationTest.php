@@ -28,19 +28,19 @@ class FunctionalApplicationTest extends TestCase
 
     protected function createApplication(): TestApplication
     {
-        return new TestApplication(false);
+        return new TestApplication(false, env: 'test');
     }
 
     public static function tearDownAfterClass(): void
     {
-        Files::rmdir(dirname(__DIR__, 3).'/var/cache');
+        Files::rmdir(dirname(__DIR__, 3).'/var/cache/test');
     }
 
     #[Test]
     public function directories()
     {
         $this->assertEquals(dirname(__DIR__, 3), $this->app->projectDir());
-        $this->assertEquals(dirname(__DIR__, 3).'/var/cache', $this->app->cacheDir());
+        $this->assertEquals(dirname(__DIR__, 3).'/var/cache/test', $this->app->cacheDir());
         $this->assertEquals(dirname(__DIR__, 3).'/var/log', $this->app->logDir());
     }
 

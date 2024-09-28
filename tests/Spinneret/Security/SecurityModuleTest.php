@@ -37,7 +37,7 @@ class SecurityModuleTest extends TestCase
     #[Test]
     public function register()
     {
-        $app = new Application(true);
+        $app = new Application(true, env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -55,7 +55,7 @@ class SecurityModuleTest extends TestCase
     #[Test]
     public function registerNotEnabledShouldDoNothing()
     {
-        $app = new Application(true);
+        $app = new Application(true, env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -73,7 +73,7 @@ class SecurityModuleTest extends TestCase
     #[Test]
     public function registerWithCustomUserHandler()
     {
-        $app = new Application(true);
+        $app = new Application(true, env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -92,7 +92,7 @@ class SecurityModuleTest extends TestCase
     #[Test]
     public function registerWithCustomSerializer()
     {
-        $app = new Application(true);
+        $app = new Application(true, env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);

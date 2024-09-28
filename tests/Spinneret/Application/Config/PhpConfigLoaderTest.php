@@ -182,13 +182,60 @@ PHP
         $loader->load($app);
     }
 
+    #[Test]
+    public function loadWithEnv()
+    {
+        $app = $this->createApp(__DIR__ . '/Fixtures/with-env');
+        $loader = new PhpConfigLoader();
+        $config = $loader->load($app);
+
+        $this->assertEquals([
+            FooConfig::class => new FooConfig(foo: 'BAZ'),
+            PersonsConfig::class => new PersonsConfig(
+                new PersonConfig(
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    age: 42,
+                ),
+                new PersonConfig(
+                    firstName: 'Robert',
+                    lastName: 'Smith',
+                ),
+                new PersonConfig(
+                    firstName: 'Anne',
+                    lastName: 'Parker',
+                ),
+            )
+        ], $config);
+
+        $this->assertFileExists(self::CACHE_DIR . '/config.php');
+        $this->assertEquals(<<<'PHP'
+<?php
+
+return static function (Arakne\Spinneret\Application\Application $app): array {
+    $configPath = $app->configDir();
+
+    return [
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\FooConfig' => (require $configPath . '/test/foo.php')(require $configPath . '/foo.php'),
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\PersonsConfig' => (require $configPath . '/test/persons.php')(require $configPath . '/persons.php'),
+
+    ];
+};
+PHP
+            , file_get_contents(self::CACHE_DIR . '/config.php')
+        );
+
+        $cachedConfig = $loader->load($app);
+        $this->assertEquals($config, $cachedConfig);
+    }
+
     private function createApp(string $configDir): Application
     {
         return new class($configDir) extends Application {
             public function __construct(
                 private readonly string $configDir,
             ) {
-                parent::__construct();
+                parent::__construct(env: 'test');
             }
 
             public function cacheDir(): string

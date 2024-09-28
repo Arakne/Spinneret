@@ -37,7 +37,7 @@ class FormModuleTest extends TestCase
     #[Test]
     public function registerNotDevShouldCreateGeneratedForm()
     {
-        $app = new Application(isDev: false);
+        $app = new Application(isDev: false, env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -59,7 +59,7 @@ class FormModuleTest extends TestCase
     #[Test]
     public function registerDevShouldCreateRuntimeForm()
     {
-        $app = new Application(isDev: true);
+        $app = new Application(isDev: true, env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);

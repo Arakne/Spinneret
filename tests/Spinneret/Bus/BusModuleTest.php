@@ -52,7 +52,7 @@ class BusModuleTest extends TestCase
     #[Test]
     public function register()
     {
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -69,7 +69,7 @@ class BusModuleTest extends TestCase
     #[Test]
     public function registerWithHandlers()
     {
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -99,7 +99,7 @@ class BusModuleTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Handler Arakne\Tests\Spinneret\Bus\Fixtures\FooCommand must have an __invoke method');
 
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -121,7 +121,7 @@ class BusModuleTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Handler Arakne\Tests\Spinneret\Bus\Fixtures\InvalidHandlerWithoutParameters must have exactly one parameter');
 
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -143,7 +143,7 @@ class BusModuleTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Handler Arakne\Tests\Spinneret\Bus\Fixtures\InvalidHandlerTooManyParameters must have exactly one parameter');
 
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -165,7 +165,7 @@ class BusModuleTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Handler Arakne\Tests\Spinneret\Bus\Fixtures\InvalidHandlerMissingType must have a typed parameter, or use the message attribute to explicitly define the message class');
 
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
@@ -187,7 +187,7 @@ class BusModuleTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('The type object is not a valid message class');
 
-        $app = new Application();
+        $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
