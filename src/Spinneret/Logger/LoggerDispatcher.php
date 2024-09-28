@@ -15,7 +15,7 @@ final readonly class LoggerDispatcher implements LoggerInterface
     use LoggerTrait;
 
     /**
-     * @var list<LoggerFilter>
+     * @var array<LoggerFilter>
      */
     private array $loggers;
 

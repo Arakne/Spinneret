@@ -69,6 +69,12 @@ class Application implements RunnerInterface, ContainerInterface
         $this->container = $this->loadContainer();
         /** @psalm-suppress MixedAssignment : The service RunnerInterface may be overridden, but it will raise an error anyway */
         $this->runner = $this->container->get(RunnerInterface::class);
+
+        foreach ($this->modules() as $module) {
+            if ($module instanceof BootableModuleInterface) {
+                $module->boot($this);
+            }
+        }
     }
 
     /**
@@ -232,7 +238,7 @@ class Application implements RunnerInterface, ContainerInterface
      *
      * To add or override parameters, override this method in the application class.
      *
-     * @return array<string, mixed>
+     * @return array<string, array|bool|string|int|float|\UnitEnum|null>
      */
     protected function containerParameters(): array
     {

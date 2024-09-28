@@ -97,17 +97,21 @@ class ContainerCompilerTest extends TestCase
         $compiler->compile($this->app, $container);
 
         foreach (scandir($this->cacheDir) as $file) {
-            if ($file === '.' || $file === '..') {
+            $filepath = $this->cacheDir . '/' . $file;
+
+            if (!\is_file($filepath)) {
                 continue;
             }
 
-            file_put_contents($this->cacheDir . '/' . $file, '<?php return "invalid";');
+            file_put_contents($filepath, '<?php return "invalid";');
         }
 
         $this->assertNull($compiler->load($this->app));
 
         foreach (scandir($this->cacheDir) as $file) {
-            if ($file === '.' || $file === '..') {
+            $filepath = $this->cacheDir . '/' . $file;
+
+            if (!\is_file($filepath)) {
                 continue;
             }
 

@@ -7,6 +7,7 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\View\ViewRendererInterface;
 use Override;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -291,4 +292,15 @@ abstract class AbstractModule implements ModuleInterface
 function service(string $id): Reference
 {
     return new Reference($id);
+}
+
+/**
+ * Helper function to create a new service reference, which can be null if the service is not found.
+ *
+ * @param string $id The service identifier
+ * @return Reference
+ */
+function service_nullable(string $id): Reference
+{
+    return new Reference($id, ContainerInterface::NULL_ON_INVALID_REFERENCE);
 }

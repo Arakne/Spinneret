@@ -3,10 +3,20 @@
 namespace Arakne\Spinneret\Logger;
 
 use Stringable;
+use UnitEnum;
 
+use function array_is_list;
+use function array_map;
 use function date;
+use function implode;
+use function is_array;
+use function is_bool;
+use function is_float;
+use function is_int;
 use function is_scalar;
+use function is_string;
 use function json_encode;
+use function str_contains;
 use function str_replace;
 use function strtoupper;
 use function var_export;
@@ -31,16 +41,50 @@ final readonly class Formatter
         $formatted = date('Y-m-d H:i:s', $timestamp) . ' ' . strtoupper((string) $level) . ' ';
         $message = (string) $message;
 
-        foreach ($context as $key => $value) {
-            if (!is_scalar($value) && !$value instanceof Stringable) {
-                $value = var_export($value, true);
-            }
+        if ($context && str_contains($message, '{{ ')) {
+            /**
+             * @var array-key $key
+             * @var mixed $value
+             */
+            foreach ($context as $key => $value) {
+                if (!is_string($key)) {
+                    continue;
+                }
 
-            $message = str_replace('{{ ' . $key . ' }}', (string) $value, $message);
+                $value = self::value($value);
+                $message = str_replace('{{ ' . $key . ' }}', $value, $message);
+            }
         }
 
         $contextString = $context ? ' ' . json_encode($context) : '';
 
         return $formatted . $message . $contextString;
+    }
+
+    /**
+     * Convert a value to a string representation
+     *
+     * @param mixed $value
+     * @return string
+     */
+    public static function value(mixed $value): string
+    {
+        if (is_string($value) || is_int($value) || is_float($value) || $value instanceof Stringable || $value === null) {
+            return (string) $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if ($value instanceof UnitEnum) {
+            return $value->name;
+        }
+
+        if (is_array($value) && array_is_list($value)) {
+            return '[' . implode(', ', array_map(self::value(...), $value)) . ']';
+        }
+
+        return var_export($value, true);
     }
 }

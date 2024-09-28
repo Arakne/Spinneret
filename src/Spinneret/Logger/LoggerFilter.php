@@ -60,7 +60,7 @@ final readonly class LoggerFilter
      *
      * @param int $level
      * @param Stringable|string $message
-     * @param array<string, mixed> $context
+     * @param array<array-key, mixed> $context
      *
      * @return bool
      */
