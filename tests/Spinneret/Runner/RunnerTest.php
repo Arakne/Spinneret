@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Runner;
 
+use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use Arakne\Spinneret\Presenter\PresenterDispatcher;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RoutedRequest;
@@ -78,13 +79,57 @@ class RunnerTest extends TestCase
         $runner = new Runner(
             $this->router,
             $this->presenterDispatcher,
-            $this->view
+            $this->view,
+            logger: $logger = new ArrayLogger()
         );
 
         $psrRequest = new ServerRequest('GET', '/foo?bar=42');
         $response = $runner->handle($psrRequest);
 
+        $expectedRequest = new FooRequest();
+        $expectedRequest->bar = '42';
+
         $this->assertEquals('{"foo":{"message":"success 42"}}', (string) $response->getBody());
+        $this->assertEquals([
+            [
+                'level' => 'info',
+                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'headers' => $psrRequest->getHeaders(),
+                    'client' => 'unknown',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'target' => FooRequest::class,
+                    'routedRequest' => $expectedRequest,
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {{ dto }} was generated',
+                'context' => [
+                    'dto' => FooSuccessResponse::class,
+                ],
+            ],
+            [
+                'level' => 'info',
+                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'code' => 200,
+                    'reason' => 'OK',
+                    'headers' => $response->getHeaders(),
+                ],
+            ],
+        ], $logger->logs);
     }
 
     #[Test]
@@ -93,13 +138,54 @@ class RunnerTest extends TestCase
         $runner = new Runner(
             $this->router,
             $this->presenterDispatcher,
-            $this->view
+            $this->view,
+            logger: $logger = new ArrayLogger(),
         );
 
         $psrRequest = new ServerRequest('GET', '/foo');
         $response = $runner->handle($psrRequest);
 
         $this->assertEquals('{"error":{"message":"error This value is required"}}', (string) $response->getBody());
+        $this->assertEquals([
+            [
+                'level' => 'info',
+                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'headers' => $psrRequest->getHeaders(),
+                    'client' => 'unknown',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'target' => FooRequest::class,
+                    'routedRequest' => new FooRequest(),
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {{ dto }} was generated',
+                'context' => [
+                    'dto' => FooErrorResponse::class,
+                ],
+            ],
+            [
+                'level' => 'info',
+                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'code' => 400,
+                    'reason' => 'Bad Request',
+                    'headers' => $response->getHeaders(),
+                ],
+            ],
+        ], $logger->logs);
     }
 
     #[Test]
@@ -108,7 +194,8 @@ class RunnerTest extends TestCase
         $runner = new Runner(
             $this->router,
             $this->presenterDispatcher,
-            $this->view
+            $this->view,
+            logger: $logger = new ArrayLogger(),
         );
 
         $psrRequest = new ServerRequest('GET', '/foo?bar=error');
@@ -121,6 +208,56 @@ class RunnerTest extends TestCase
         $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
         $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
         $this->assertEquals($psrRequest->withAttribute('request', $parsedRequest), InternalServerErrorPresenter::$lastRequest->psrRequest);
+
+        $this->assertEquals([
+            [
+                'level' => 'info',
+                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'headers' => $psrRequest->getHeaders(),
+                    'client' => 'unknown',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'target' => FooRequest::class,
+                    'routedRequest' => $parsedRequest,
+                ],
+            ],
+            [
+                'level' => 'error',
+                'message' => 'Error occurs on presenter step for request {{ method }} {{ uri }} : {{ exception }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'exception' => $logger->logs[2]['context']['exception'],
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {{ dto }} was generated',
+                'context' => [
+                    'dto' => InternalServerError::class,
+                ],
+            ],
+            [
+                'level' => 'info',
+                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'code' => 500,
+                    'reason' => 'Internal Server Error',
+                    'headers' => $response->getHeaders(),
+                ],
+            ],
+        ], $logger->logs);
     }
 
     #[Test]
@@ -129,7 +266,8 @@ class RunnerTest extends TestCase
         $runner = new Runner(
             $this->router,
             $this->presenterDispatcher,
-            $this->view
+            $this->view,
+            logger: $logger = new ArrayLogger(),
         );
 
         $psrRequest = new ServerRequest('GET', '/invalid');
@@ -139,6 +277,46 @@ class RunnerTest extends TestCase
         $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
         $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
         $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
+
+        $this->assertEquals([
+            [
+                'level' => 'info',
+                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'headers' => $psrRequest->getHeaders(),
+                    'client' => 'unknown',
+                ],
+            ],
+            [
+                'level' => 'error',
+                'message' => 'Error occurs on router step for request {{ method }} {{ uri }} : {{ exception }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'exception' => $logger->logs[1]['context']['exception'],
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {{ dto }} was generated',
+                'context' => [
+                    'dto' => InternalServerError::class,
+                ],
+            ],
+            [
+                'level' => 'info',
+                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'code' => 500,
+                    'reason' => 'Internal Server Error',
+                    'headers' => $response->getHeaders(),
+                ],
+            ],
+        ], $logger->logs);
     }
 
     #[Test]
@@ -147,7 +325,8 @@ class RunnerTest extends TestCase
         $runner = new Runner(
             $this->router,
             $this->presenterDispatcher,
-            $this->view
+            $this->view,
+            logger: $logger = new ArrayLogger(),
         );
 
         $psrRequest = new ServerRequest('GET', '/foo?bar=view-error');
@@ -160,6 +339,63 @@ class RunnerTest extends TestCase
         $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
         $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
         $this->assertEquals($psrRequest->withAttribute('request', $parsedRequest), InternalServerErrorPresenter::$lastRequest->psrRequest);
+
+        $this->assertEquals([
+            [
+                'level' => 'info',
+                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'headers' => $psrRequest->getHeaders(),
+                    'client' => 'unknown',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'target' => FooRequest::class,
+                    'routedRequest' => $parsedRequest,
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {{ dto }} was generated',
+                'context' => [
+                    'dto' => FooSuccessResponse::class,
+                ],
+            ],
+            [
+                'level' => 'error',
+                'message' => 'Error occurs on view step for request {{ method }} {{ uri }} : {{ exception }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'exception' => $logger->logs[3]['context']['exception'],
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {{ dto }} was generated',
+                'context' => [
+                    'dto' => InternalServerError::class,
+                ],
+            ],
+            [
+                'level' => 'info',
+                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'code' => 500,
+                    'reason' => 'Internal Server Error',
+                    'headers' => $response->getHeaders(),
+                ],
+            ],
+        ], $logger->logs);
     }
 
     #[Test]
@@ -172,14 +408,86 @@ class RunnerTest extends TestCase
             [
                 new ReverseMiddleware(),
                 new Base64ResponseMiddleware(),
-            ]
+            ],
+            logger: $logger = new ArrayLogger(),
         );
 
         $psrRequest = new ServerRequest('GET', '/foo?rab=hello');
         $response = $runner->handle($psrRequest);
 
+        $expectedRequest = new FooRequest();
+        $expectedRequest->bar = 'olleh';
+
         $this->assertEquals('fX0iaGVsbG8gc3NlY2N1cyI6ImVnYXNzZW0iezoib29mIns=', (string) $response->getBody());
         $this->assertEquals('}}"hello sseccus":"egassem"{:"oof"{', base64_decode((string) $response->getBody()));
+        $this->assertEquals([
+            [
+                'level' => 'info',
+                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'headers' => $psrRequest->getHeaders(),
+                    'client' => 'unknown',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Start Middleware {{ middleware }}',
+                'context' => [
+                    'middleware' => Base64ResponseMiddleware::class,
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Start Middleware {{ middleware }}',
+                'context' => [
+                    'middleware' => ReverseMiddleware::class,
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'target' => FooRequest::class,
+                    'routedRequest' => $expectedRequest,
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {{ dto }} was generated',
+                'context' => [
+                    'dto' => FooSuccessResponse::class,
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'End Middleware {{ middleware }}',
+                'context' => [
+                    'middleware' => ReverseMiddleware::class,
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'End Middleware {{ middleware }}',
+                'context' => [
+                    'middleware' => Base64ResponseMiddleware::class,
+                ],
+            ],
+            [
+                'level' => 'info',
+                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'code' => 200,
+                    'reason' => 'OK',
+                    'headers' => $response->getHeaders(),
+                ],
+            ],
+        ], $logger->logs);
     }
 
     #[Test]

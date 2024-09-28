@@ -13,8 +13,10 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Override;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
@@ -37,6 +39,7 @@ final readonly class ApplicationModule implements ModuleInterface
                 new Reference(PresenterDispatcherInterface::class),
                 new Reference(ViewEngineInterface::class),
                 new AbstractArgument('Should be defined by RegisterMiddlewareCompilerPass'),
+                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
         ;
 
