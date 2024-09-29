@@ -8,6 +8,7 @@ use Arakne\Spinneret\Database\Exception\DatabaseConnectionException;
 use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\QueryExecutionException;
 use Arakne\Spinneret\Database\Exception\UniqueConstraintViolationException;
+use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use PDO;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 class DatabaseConnectionTest extends TestCase
 {
     private DatabaseConnection $connection;
+    private ArrayLogger $logger;
 
     protected function setUp(): void
     {
@@ -22,13 +24,16 @@ class DatabaseConnectionTest extends TestCase
             new ConnectionConfig(
                 'test',
                 'sqlite::memory:'
-            )
+            ),
+            $this->logger = new ArrayLogger(),
         );
 
         $this->connection->exec('CREATE TABLE test (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)');
         $this->connection->exec('INSERT INTO test (name) VALUES ("foo")');
         $this->connection->exec('INSERT INTO test (name) VALUES ("bar")');
         $this->connection->exec('INSERT INTO test (name) VALUES ("baz")');
+
+        $this->logger->logs = [];
     }
 
     protected function tearDown(): void
@@ -44,6 +49,15 @@ class DatabaseConnectionTest extends TestCase
             ['id' => 2, 'name' => 'bar'],
             ['id' => 3, 'name' => 'baz'],
         ], $this->connection->query('SELECT * FROM test ORDER BY id')->asAssociativeArray());
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute read query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT * FROM test ORDER BY id',
+                ],
+            ]
+        ], $this->logger->logs);
     }
 
     #[Test]
@@ -86,12 +100,31 @@ class DatabaseConnectionTest extends TestCase
         $this->assertSame([
             ['id' => 1, 'name' => 'foo'],
         ], $stmt->execute()->asAssociativeArray());
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute prepared query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT * FROM test WHERE name = ?',
+                    'parameters' => [['foo', PDO::PARAM_STR]],
+                ],
+            ]
+        ], $this->logger->logs);
     }
 
     #[Test]
     public function exec()
     {
         $this->assertSame(2, $this->connection->exec('UPDATE test SET name = "???" WHERE name LIKE "b%"'));
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute write query "{{ query }}"',
+                'context' => [
+                    'query' => 'UPDATE test SET name = "???" WHERE name LIKE "b%"',
+                ],
+            ]
+        ], $this->logger->logs);
         $this->assertSame([
             ['id' => 1, 'name' => 'foo'],
             ['id' => 2, 'name' => '???'],
@@ -170,7 +203,8 @@ class DatabaseConnectionTest extends TestCase
                 options: [
                     PDO::ATTR_PERSISTENT => false,
                 ],
-            )
+            ),
+            $this->logger,
         );
 
         $this->assertEquals(1, $connection->query('SELECT 1')->fetchColumn(0));
@@ -178,6 +212,50 @@ class DatabaseConnectionTest extends TestCase
 
         sleep(2);
         $this->assertEquals(1, $connection->query('SELECT 1')->fetchColumn(0));
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute read query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT 1',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Connect to database {{ dsn }}',
+                'context' => [
+                    'dsn' => 'mysql:host=db;dbname=test',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Execute write query "{{ query }}"',
+                'context' => [
+                    'query' => 'SET SESSION wait_timeout=1',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Execute read query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT 1',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Reconnect to database {{ dsn }}',
+                'context' => [
+                    'dsn' => 'mysql:host=db;dbname=test',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Connect to database {{ dsn }}',
+                'context' => [
+                    'dsn' => 'mysql:host=db;dbname=test',
+                ],
+            ],
+        ], $this->logger->logs);
     }
 
     #[Test]

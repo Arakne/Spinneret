@@ -90,7 +90,7 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
 
     /**
      * @param Application $app
-     * @return list<string>
+     * @return array<string>
      */
     private function configFiles(Application $app): array
     {

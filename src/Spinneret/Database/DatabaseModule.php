@@ -6,7 +6,9 @@ use Arakne\Spinneret\Application\ConfigurableModuleInterface;
 use Arakne\Spinneret\Database\Compiler\SetConnectionCompilerPass;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
@@ -45,7 +47,10 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
         $containerBuilder->addCompilerPass(new SetConnectionCompilerPass());
 
         $containerBuilder->register(DatabaseConnectionManager::class, DatabaseConnectionManager::class)
-            ->setArguments([new Reference(DatabaseConfig::class)])
+            ->setArguments([
+                new Reference(DatabaseConfig::class),
+                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            ])
         ;
 
         $containerBuilder->setAlias(DatabaseConnectionManagerInterface::class, DatabaseConnectionManager::class);

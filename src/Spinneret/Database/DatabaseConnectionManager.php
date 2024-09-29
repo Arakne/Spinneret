@@ -2,8 +2,10 @@
 
 namespace Arakne\Spinneret\Database;
 
+use Arakne\Spinneret\Logger\ContextLogger;
 use InvalidArgumentException;
 use Override;
+use Psr\Log\LoggerInterface;
 use UnitEnum;
 
 use function is_string;
@@ -19,7 +21,8 @@ final class DatabaseConnectionManager implements DatabaseConnectionManagerInterf
     private array $connections = [];
 
     public function __construct(
-        private readonly DatabaseConfig $config
+        private readonly DatabaseConfig $config,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -34,7 +37,8 @@ final class DatabaseConnectionManager implements DatabaseConnectionManagerInterf
         }
 
         $config = $this->config->connections[$name] ?? throw new InvalidArgumentException("Unknown connection: $name");
+        $logger = $this->logger !== null ? new ContextLogger($this->logger, "[$name]", ['database' => $name]) : null;
 
-        return $this->connections[$name] = new DatabaseConnection($config);
+        return $this->connections[$name] = new DatabaseConnection($config, $logger);
     }
 }

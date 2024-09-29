@@ -9,6 +9,7 @@ use Override;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 use function array_column;
 use function count;
@@ -65,6 +66,7 @@ final class QueryStatement implements QueryStatementInterface
          * If null, the query will be scanned for expressions.
          */
         private ?bool $dynamic = null,
+        private ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -186,6 +188,8 @@ final class QueryStatement implements QueryStatementInterface
     {
         $query = $this->applyExpressions($this->query);
         [$query, $parameters] = $this->spreadArrayParameters($query, $this->parameters);
+
+        $this->logger?->debug('Execute prepared query "{{ query }}"', ['query' => $query, 'parameters' => $parameters]);
 
         try {
             // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"

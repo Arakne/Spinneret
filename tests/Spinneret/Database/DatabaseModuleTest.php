@@ -9,11 +9,13 @@ use Arakne\Spinneret\Database\DatabaseConnection;
 use Arakne\Spinneret\Database\DatabaseConnectionManager;
 use Arakne\Spinneret\Database\DatabaseConnectionManagerInterface;
 use Arakne\Spinneret\Database\DatabaseModule;
+use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Database\Fixtures\MyEntityModule;
 use Arakne\Tests\Spinneret\Database\Fixtures\MyEntityRepository;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RouteCollection;
 
@@ -46,6 +48,43 @@ class DatabaseModuleTest extends TestCase
 
         $this->assertInstanceOf(DatabaseConnectionManager::class, $container->get(DatabaseConnectionManagerInterface::class));
         $this->assertInstanceOf(DatabaseConnection::class, $container->get(DatabaseConnectionManager::class)->get('test'));
+    }
+
+    #[Test]
+    public function registerWithLogger()
+    {
+        $container = new ContainerBuilder();
+        $container->set(DatabaseConfig::class, new DatabaseConfig(
+            new ConnectionConfig('test', 'sqlite::memory:')
+        ));
+        $container->set(LoggerInterface::class, $logger = new ArrayLogger());
+
+        $routerModule = new DatabaseModule();
+        $routerModule->register($container);
+
+        $this->assertInstanceOf(DatabaseConnectionManager::class, $container->get(DatabaseConnectionManagerInterface::class));
+        $this->assertInstanceOf(DatabaseConnection::class, $container->get(DatabaseConnectionManager::class)->get('test'));
+
+        $container->get(DatabaseConnectionManager::class)->get('test')->query('SELECT 1');
+
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => '[test] Execute read query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT 1',
+                    'database' => 'test',
+                ]
+            ],
+            [
+                'level' => 'debug',
+                'message' => '[test] Connect to database {{ dsn }}',
+                'context' => [
+                    'dsn' => 'sqlite::memory:',
+                    'database' => 'test',
+                ]
+            ],
+        ], $logger->logs);
     }
 
     #[Test]
