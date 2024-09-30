@@ -114,6 +114,7 @@ abstract class AbstractModule implements ModuleInterface
                 ->setArguments($arguments['params'])
                 ->setPublic($arguments['public'])
                 ->setAutowired($arguments['autowire'])
+                ->setAutoconfigured(true)
             ;
 
             foreach ($arguments['tags'] as $name => $attributes) {
