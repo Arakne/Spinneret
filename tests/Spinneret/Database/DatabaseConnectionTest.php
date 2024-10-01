@@ -197,7 +197,7 @@ class DatabaseConnectionTest extends TestCase
         $connection = new DatabaseConnection(
             new ConnectionConfig(
                 'reconnect',
-                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $dsn = 'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
                 $_ENV['MYSQL_TEST_USER'],
                 $_ENV['MYSQL_TEST_PASSWORD'],
                 options: [
@@ -224,7 +224,7 @@ class DatabaseConnectionTest extends TestCase
                 'level' => 'debug',
                 'message' => 'Connect to database {{ dsn }}',
                 'context' => [
-                    'dsn' => 'mysql:host=db;dbname=test',
+                    'dsn' => $dsn,
                 ],
             ],
             [
@@ -245,14 +245,14 @@ class DatabaseConnectionTest extends TestCase
                 'level' => 'debug',
                 'message' => 'Reconnect to database {{ dsn }}',
                 'context' => [
-                    'dsn' => 'mysql:host=db;dbname=test',
+                    'dsn' => $dsn,
                 ],
             ],
             [
                 'level' => 'debug',
                 'message' => 'Connect to database {{ dsn }}',
                 'context' => [
-                    'dsn' => 'mysql:host=db;dbname=test',
+                    'dsn' => $dsn,
                 ],
             ],
         ], $this->logger->logs);
