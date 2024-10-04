@@ -10,6 +10,8 @@ use PDOException;
 use Psr\Log\LoggerInterface;
 use UnitEnum;
 
+use function strstr;
+
 /**
  * Simple implementation of a database connection
  * Wrap an internal PDO connection
@@ -19,6 +21,7 @@ use UnitEnum;
 final class DatabaseConnection implements DatabaseConnectionInterface
 {
     private ?PDO $connection = null;
+    private ?string $driver = null;
 
     public function __construct(
         private readonly ConnectionConfig $config,
@@ -30,6 +33,12 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     public function name(): string|UnitEnum
     {
         return $this->config->name;
+    }
+
+    #[Override]
+    public function driver(): string
+    {
+        return $this->driver ??= strstr($this->config->dsn, ':', true);
     }
 
     #[Override]

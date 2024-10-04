@@ -1,0 +1,11 @@
+
+ [INFO] Current version: None (No migration applied)                                                                    
+
+ ------------------------------ --------------------- --------- --------- 
+  Name                           Date                  Version   Applied  
+ ------------------------------ --------------------- --------- --------- 
+  CreateStructureMigration       2021-01-01 00:00:00   1.0.0     No       
+  AddEntitiesMigration           2021-01-02 00:00:00   1.0.1     No       
+  SeparateNameColumnsMigration   2021-02-12 00:00:00   1.2.0     No       
+ ------------------------------ --------------------- --------- --------- 
+

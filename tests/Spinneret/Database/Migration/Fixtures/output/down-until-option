@@ -1,0 +1,8 @@
+Rolling back migration SeparateNameColumnsMigration...
+Processing person 1
+Processing person 2
+Processing person 3
+Migration SeparateNameColumnsMigration rolled back in .*ms
+
+ [OK] Migrations rolled back                                                                                            
+

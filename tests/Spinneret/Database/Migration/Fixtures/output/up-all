@@ -1,0 +1,13 @@
+Applying migration CreateStructureMigration...
+Creating table `person`
+Migration CreateStructureMigration applied in .*ms
+Applying migration AddEntitiesMigration...
+Migration AddEntitiesMigration applied in .*ms
+Applying migration SeparateNameColumnsMigration...
+Processing person 1
+Processing person 2
+Processing person 3
+Migration SeparateNameColumnsMigration applied in .*ms
+
+ [OK] Migrations applied                                                                                                
+

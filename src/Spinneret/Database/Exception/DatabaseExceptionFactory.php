@@ -74,6 +74,13 @@ final class DatabaseExceptionFactory
             return new DatabaseConnectionLostException($connection, $e->getMessage(), $e);
         }
 
+        if (
+            ($code === '42S02' && preg_match('/Table \'(.*)\' doesn\'t exist/', $message, $matches)) // MySQL
+            || ($code === 'HY000' && preg_match('/no such table: (.*)/', $message, $matches)) // SQLite
+        ) {
+            return new TableNotFoundException($matches[1], $connection, $query, $parameters, $e->errorInfo, $e->getMessage(), $e);
+        }
+
         return new QueryExecutionException($connection, $query, $parameters, $e->errorInfo, $e->getMessage(), $e);
     }
 

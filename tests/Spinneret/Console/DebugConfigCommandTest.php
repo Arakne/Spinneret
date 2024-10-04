@@ -37,22 +37,24 @@ class DebugConfigCommandTest extends TestCase
             Arakne\Spinneret\Database\DatabaseConfig
             ----------------------------------------
 
-             ------------- ------------------------------------------------------- 
-              Key           Value                                                  
-             ------------- ------------------------------------------------------- 
-              connections   [                                                      
-                              foo => Arakne\Spinneret\Database\ConnectionConfig {  
-                              name = 'foo',                                        
-                              dsn = 'mysql:host=localhost;dbname=foo',             
-                              username = 'foo',                                    
-                              password = 'bar',                                    
-                              options = [                                          
-                              20 => false                                          
-                            ],                                                     
-                              autoReconnect = true                                 
-                            }                                                      
-                            ]                                                      
-             ------------- ------------------------------------------------------- 
+             --------------------- ------------------------------------------------------- 
+              Key                   Value                                                  
+             --------------------- ------------------------------------------------------- 
+              connections           [                                                      
+                                      foo => Arakne\Spinneret\Database\ConnectionConfig {  
+                                      name = 'foo',                                        
+                                      dsn = 'mysql:host=localhost;dbname=foo',             
+                                      username = 'foo',                                    
+                                      password = 'bar',                                    
+                                      options = [                                          
+                                      20 => false                                          
+                                    ],                                                     
+                                      autoReconnect = true                                 
+                                    }                                                      
+                                    ]                                                      
+              useMigration          true                                                   
+              migrationConnection   NULL                                                   
+             --------------------- ------------------------------------------------------- 
 
             Arakne\Spinneret\Router\RouterConfig
             ------------------------------------
@@ -76,22 +78,24 @@ class DebugConfigCommandTest extends TestCase
             Arakne\Spinneret\Database\DatabaseConfig
             ----------------------------------------
 
-             ------------- ------------------------------------------------------- 
-              Key           Value                                                  
-             ------------- ------------------------------------------------------- 
-              connections   [                                                      
-                              foo => Arakne\Spinneret\Database\ConnectionConfig {  
-                              name = 'foo',                                        
-                              dsn = 'mysql:host=localhost;dbname=foo',             
-                              username = 'foo',                                    
-                              password = 'bar',                                    
-                              options = [                                          
-                              20 => false                                          
-                            ],                                                     
-                              autoReconnect = true                                 
-                            }                                                      
-                            ]                                                      
-             ------------- ------------------------------------------------------- 
+             --------------------- ------------------------------------------------------- 
+              Key                   Value                                                  
+             --------------------- ------------------------------------------------------- 
+              connections           [                                                      
+                                      foo => Arakne\Spinneret\Database\ConnectionConfig {  
+                                      name = 'foo',                                        
+                                      dsn = 'mysql:host=localhost;dbname=foo',             
+                                      username = 'foo',                                    
+                                      password = 'bar',                                    
+                                      options = [                                          
+                                      20 => false                                          
+                                    ],                                                     
+                                      autoReconnect = true                                 
+                                    }                                                      
+                                    ]                                                      
+              useMigration          true                                                   
+              migrationConnection   NULL                                                   
+             --------------------- ------------------------------------------------------- 
             
 
             OUT

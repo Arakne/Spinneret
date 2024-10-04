@@ -4,6 +4,7 @@ namespace Arakne\Tests\Spinneret\Database\Exception;
 
 use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\DatabaseExceptionFactory;
+use Arakne\Spinneret\Database\Exception\TableNotFoundException;
 use Arakne\Spinneret\Database\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +25,7 @@ class DatabaseExceptionFactoryTest extends TestCase
         $this->assertSame('name', $exception->key);
         $this->assertSame('INSERT INTO test (name) VALUES ("foo")', $exception->query);
     }
+
     #[Test]
     public function uniqueConstraintErrorMysql()
     {
@@ -51,6 +53,34 @@ class DatabaseExceptionFactoryTest extends TestCase
         $this->assertSame('test', $exception->connection());
         $this->assertSame('test', $exception->connection);
         $this->assertEquals('SQLSTATE[HY000]: General error: 2006 MySQL server has gone away', $exception->getMessage());
+        $this->assertSame($e, $exception->getPrevious());
+    }
+
+    #[Test]
+    public function tableNotFound()
+    {
+        $e = new \PDOException('SQLSTATE[42S02]: Base table or view not found: 1146 Table \'test.foo\' doesn\'t exist');
+        $e->errorInfo = ['42S02', 1146, 'Table \'test.foo\' doesn\'t exist'];
+
+        $exception = DatabaseExceptionFactory::fromQueryExecution($e, 'test', 'SELECT * FROM foo');
+
+        $this->assertInstanceOf(TableNotFoundException::class, $exception);
+        $this->assertSame('test', $exception->connection());
+        $this->assertSame('test', $exception->connection);
+        $this->assertSame('test.foo', $exception->table);
+        $this->assertSame('SELECT * FROM foo', $exception->query);
+        $this->assertSame($e, $exception->getPrevious());
+
+        $e = new \PDOException('SQLSTATE[HY000]: no such table: foo');
+        $e->errorInfo = ['HY000', 1, 'no such table: foo'];
+
+        $exception = DatabaseExceptionFactory::fromQueryExecution($e, 'test', 'SELECT * FROM foo');
+
+        $this->assertInstanceOf(TableNotFoundException::class, $exception);
+        $this->assertSame('test', $exception->connection());
+        $this->assertSame('test', $exception->connection);
+        $this->assertSame('foo', $exception->table);
+        $this->assertSame('SELECT * FROM foo', $exception->query);
         $this->assertSame($e, $exception->getPrevious());
     }
 }

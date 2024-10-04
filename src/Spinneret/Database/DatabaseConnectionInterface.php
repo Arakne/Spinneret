@@ -18,6 +18,11 @@ interface DatabaseConnectionInterface
     public function name(): string|UnitEnum;
 
     /**
+     * The database driver name (e.g. "mysql", "sqlite", ...)
+     */
+    public function driver(): string;
+
+    /**
      * Execute a read query and return the result
      *
      * Note: this method must not be used for parameterized queries

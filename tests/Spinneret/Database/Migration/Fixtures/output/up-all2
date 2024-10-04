@@ -1,0 +1,13 @@
+Applying migration CreateStructureMigration...
+Creating table `person`
+Migration CreateStructureMigration applied in 0.37ms
+Applying migration AddEntitiesMigration...
+Migration AddEntitiesMigration applied in 0.2ms
+Applying migration SeparateNameColumnsMigration...
+Processing person 1
+Processing person 2
+Processing person 3
+Migration SeparateNameColumnsMigration applied in 1.55ms
+
+ [OK] Migrations applied                                                                                                
+

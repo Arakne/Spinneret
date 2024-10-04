@@ -42,6 +42,15 @@ class DatabaseConnectionTest extends TestCase
     }
 
     #[Test]
+    public function getters()
+    {
+        $this->assertSame('test', $this->connection->name());
+        $this->assertSame('sqlite', $this->connection->driver());
+        $this->assertSame('sqlite', $this->connection->driver());
+    }
+
+
+    #[Test]
     public function query()
     {
         $this->assertSame([

@@ -16,10 +16,10 @@ class DatabaseConnectionManagerTest extends TestCase
     protected function setUp(): void
     {
         $this->manager = new DatabaseConnectionManager(
-            new DatabaseConfig(
+            new DatabaseConfig(connections: [
                 new ConnectionConfig(TestConnectionEnum::Test, 'sqlite::memory:'),
                 new ConnectionConfig(TestConnectionEnum::Other, 'sqlite::memory:'),
-            )
+            ])
         );
     }
 
