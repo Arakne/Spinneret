@@ -4,8 +4,6 @@ namespace Arakne\Tests\Spinneret\Database\Migration\Console;
 
 use Arakne\Spinneret\Database\DatabaseConnectionManagerInterface;
 use Arakne\Spinneret\Database\Migration\Console\MigrationDownCommand;
-use Arakne\Spinneret\Database\Migration\Console\MigrationStatusCommand;
-use Arakne\Spinneret\Database\Migration\Console\MigrationUpCommand;
 use Arakne\Spinneret\Database\Migration\MigrationManager;
 use Arakne\Tests\Spinneret\Database\Migration\Fixtures\TestMigrationApp;
 use PHPUnit\Framework\Attributes\Test;
