@@ -20,15 +20,13 @@ use function strpos;
 
 /**
  * Implementation of QueryStatementInterface for PDOStatement
- *
- * @todo method for reusing the same statement with different parameters
  */
 final class QueryStatement implements QueryStatementInterface
 {
     private ?PDOStatement $statement = null;
 
     /**
-     * @var list<array{0: mixed, 1: PDO::PARAM_*}>
+     * @var array<int, array{0: mixed, 1: PDO::PARAM_*}>
      */
     private array $parameters = [];
 
@@ -105,8 +103,7 @@ final class QueryStatement implements QueryStatementInterface
     #[Override]
     public function pushArrayOfInt(array $values): static
     {
-        $this->parameters[] = [$values, PDO::PARAM_INT];
-        $this->hasArray = true;
+        $this->pushArray($values, PDO::PARAM_INT);
 
         return $this;
     }
@@ -114,8 +111,54 @@ final class QueryStatement implements QueryStatementInterface
     #[Override]
     public function pushArrayOfString(array $values): static
     {
-        $this->parameters[] = [$values, PDO::PARAM_STR];
-        $this->hasArray = true;
+        $this->pushArray($values, PDO::PARAM_STR);
+
+        return $this;
+    }
+
+    #[Override]
+    public function setInt(int $index, int $value): static
+    {
+        $this->parameters[$index] = [$value, PDO::PARAM_INT];
+
+        return $this;
+    }
+
+    #[Override]
+    public function setString(int $index, string $value): static
+    {
+        $this->parameters[$index] = [$value, PDO::PARAM_STR];
+
+        return $this;
+    }
+
+    #[Override] public function setBool(int $index, bool $value): static
+    {
+        $this->parameters[$index] = [$value, PDO::PARAM_BOOL];
+
+        return $this;
+    }
+
+    #[Override]
+    public function setNull(int $index): static
+    {
+        $this->parameters[$index] = [null, PDO::PARAM_NULL];
+
+        return $this;
+    }
+
+    #[Override]
+    public function setArrayOfInt(int $index, array $values): static
+    {
+        $this->setArray($index, $values, PDO::PARAM_INT);
+
+        return $this;
+    }
+
+    #[Override]
+    public function setArrayOfString(int $index, array $values): static
+    {
+        $this->setArray($index, $values, PDO::PARAM_STR);
 
         return $this;
     }
@@ -124,6 +167,7 @@ final class QueryStatement implements QueryStatementInterface
     public function setExpression(string $placeholder, string $expression): static
     {
         $this->expressions[$placeholder] = $expression;
+        $this->statement = null; // Reset statement to force rebuild
 
         return $this;
     }
@@ -140,8 +184,21 @@ final class QueryStatement implements QueryStatementInterface
         $current .= $expression;
 
         $this->expressions[$placeholder] = $current;
+        $this->statement = null; // Reset statement to force rebuild
 
         return $this;
+    }
+
+    #[Override]
+    public function reset(): void
+    {
+        // The statement should be rebuilt in case of dynamic expressions
+        if ($this->hasArray || $this->expressions) {
+            $this->statement = null;
+        }
+
+        $this->parameters = [];
+        $this->expressions = [];
     }
 
     #[Override]
@@ -165,6 +222,33 @@ final class QueryStatement implements QueryStatementInterface
         return $this->connection->internalConnection()->lastInsertId();
     }
 
+    /**
+     * @param array $values
+     * @param PDO::PARAM_* $type
+     *
+     * @return void
+     */
+    private function pushArray(array $values, int $type): void
+    {
+        $this->parameters[] = [$values, $type];
+        $this->hasArray = true;
+        $this->statement = null; // Reset statement to force rebuild
+    }
+
+    /**
+     * @param int $index
+     * @param array $values
+     * @param PDO::PARAM_* $type
+     *
+     * @return void
+     */
+    private function setArray(int $index, array $values, int $type): void
+    {
+        $this->parameters[$index] = [$values, $type];
+        $this->hasArray = true;
+        $this->statement = null; // Reset statement to force rebuild
+    }
+
     private function executeStatement(): PDOStatement
     {
         $retry = $this->autoReconnect;
@@ -172,8 +256,16 @@ final class QueryStatement implements QueryStatementInterface
         for (;;) {
             try {
                 $conn = $this->connection->internalConnection();
-                return $this->statement = $this->buildStatement($conn);
+
+                if (($stmt = $this->statement) === null) {
+                    return $this->statement = $this->buildStatement($conn);
+                }
+
+                $this->executeWithNewParameters($stmt);
+                return $stmt;
             } catch (DatabaseConnectionLostException $e) {
+                $this->statement = null;
+
                 if (!$retry) {
                     throw $e;
                 }
@@ -181,6 +273,52 @@ final class QueryStatement implements QueryStatementInterface
                 $this->connection->reconnect();
                 $retry = false;
             }
+        }
+    }
+
+    private function executeWithNewParameters(PDOStatement $statement): void
+    {
+        if (!$this->hasArray) {
+            // Fast path for query with atomic parameters
+            $parameters = $this->parameters;
+        } else {
+            // Expand array parameters
+            $parameters = [];
+
+            /**
+             * @var int $position
+             * @var mixed $value
+             * @var PDO::PARAM_* $type
+             */
+            foreach ($this->parameters as [$value, $type]) {
+                if (!is_array($value)) {
+                    $parameters[] = [$value, $type];
+                    continue;
+                }
+
+                /** @var mixed $v */
+                foreach ($value as $v) {
+                    $parameters[] = [$v, $type];
+                }
+            }
+        }
+
+        $this->logger?->debug('Execute reused prepared query "{{ query }}"', ['query' => $statement->queryString, 'parameters' => $parameters]);
+
+        /**
+         * @var int $position
+         * @var mixed $value
+         * @var PDO::PARAM_* $type
+         */
+        foreach ($parameters as $position => [$value, $type]) {
+            $statement->bindValue($position + 1, $value, $type);
+        }
+
+        try {
+            // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"
+            @$statement->execute();
+        } catch (PDOException $e) {
+            throw DatabaseExceptionFactory::fromQueryExecution($e, $this->connection->name(), $statement->queryString, array_column($parameters, 0));
         }
     }
 

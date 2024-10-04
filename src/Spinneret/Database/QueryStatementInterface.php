@@ -22,8 +22,31 @@ interface QueryStatementInterface
      *
      * @param int $value The value to push
      * @return $this
+     *
+     * @see QueryStatementInterface::setInt() For setting a parameter at a specific index
      */
     public function pushInt(int $value): static;
+
+    /**
+     * Set or replace an integer parameter.
+     * The corresponding placeholder `?` in the query will be replaced by the value.
+     *
+     * Note: Unlike PDO, the index is 0-based, which means the first parameter has index 0 not 1.
+     *
+     * Usage:
+     * ```php
+     * $query = $connection->prepare('SELECT * FROM table WHERE id = ?');
+     * $query->setInt(0, 42);
+     * $result = $query->execute();
+     * ```
+     *
+     * @param int $index The index of the parameter. The first parameter has index 0.
+     * @param int $value The value to push
+     * @return $this
+     *
+     * @see QueryStatementInterface::pushInt() For appending a parameter at the end
+     */
+    public function setInt(int $index, int $value): static;
 
     /**
      * Push a new parameter as string.
@@ -38,8 +61,31 @@ interface QueryStatementInterface
      *
      * @param string $value The value to push
      * @return $this
+     *
+     * @see QueryStatementInterface::setString() For setting a parameter at a specific index
      */
     public function pushString(string $value): static;
+
+    /**
+     * Set or replace a string parameter.
+     * The corresponding placeholder `?` in the query will be replaced by the value.
+     *
+     * Note: Unlike PDO, the index is 0-based, which means the first parameter has index 0 not 1.
+     *
+     * Usage:
+     * ```php
+     * $query = $connection->prepare('SELECT * FROM table WHERE name = ?');
+     * $query->setString(0, 'John');
+     * $result = $query->execute();
+     * ```
+     *
+     * @param int $index The index of the parameter. The first parameter has index 0.
+     * @param string $value The value to push
+     * @return $this
+     *
+     * @see QueryStatementInterface::pushString() For appending a parameter at the end
+     */
+    public function setString(int $index, string $value): static;
 
     /**
      * Push a new parameter as boolean.
@@ -54,8 +100,31 @@ interface QueryStatementInterface
      *
      * @param bool $value The value to push
      * @return $this
+     *
+     * @see QueryStatementInterface::setBool() For setting a parameter at a specific index
      */
     public function pushBool(bool $value): static;
+
+    /**
+     * Set or replace a boolean parameter.
+     * The corresponding placeholder `?` in the query will be replaced by the value.
+     *
+     * Note: Unlike PDO, the index is 0-based, which means the first parameter has index 0 not 1.
+     *
+     * Usage:
+     * ```php
+     * $query = $connection->prepare('SELECT * FROM table WHERE active = ?');
+     * $query->setBool(0, true);
+     * $result = $query->execute();
+     * ```
+     *
+     * @param int $index The index of the parameter. The first parameter has index 0.
+     * @param bool $value The value to push
+     * @return $this
+     *
+     * @see QueryStatementInterface::pushBool() For appending a parameter at the end
+     */
+    public function setBool(int $index, bool $value): static;
 
     /**
      * Push a new parameter as null.
@@ -69,8 +138,31 @@ interface QueryStatementInterface
      * ```
      *
      * @return $this
+     *
+     * @see QueryStatementInterface::setNull() For setting a parameter at a specific index
      */
     public function pushNull(): static;
+
+    /**
+     * Set or replace a null parameter.
+     * The corresponding placeholder `?` in the query will be replaced by the value.
+     *
+     * Note: Unlike PDO, the index is 0-based, which means the first parameter has index 0 not 1.
+     *
+     * Usage:
+     * ```php
+     * $query = $connection->prepare('INSERT INTO table (id, name) VALUES (?, ?)');
+     * $query->setNull(0)->pushString('John');
+     * $id = $query->executeGenerateKey();
+     * ```
+     *
+     * @param int $index The index of the parameter. The first parameter has index 0.
+     *
+     * @return $this
+     *
+     * @see QueryStatementInterface::pushNull() For appending a parameter at the end
+     */
+    public function setNull(int $index): static;
 
     /**
      * Push a new argument as array of integers.
@@ -88,8 +180,34 @@ interface QueryStatementInterface
      * @param array<int> $values
      *
      * @return $this
+     *
+     * @see QueryStatementInterface::setArrayOfInt() For setting a parameter at a specific index
      */
     public function pushArrayOfInt(array $values): static;
+
+    /**
+     * Set or replace an argument as array of integers.
+     *
+     * The spread placeholder `...?` must be present in the query.
+     * Keys of the array are ignored.
+     *
+     * Note: Unlike PDO, the index is 0-based, which means the first parameter has index 0 not 1.
+     *
+     * Usage:
+     * ```php
+     * $query = $connection->prepare('SELECT * FROM table WHERE id IN (...?)');
+     * $query->setArrayOfInt(0, [1, 2, 3]);
+     * $result = $query->execute();
+     * ```
+     *
+     * @param int $index The index of the parameter. The first parameter has index 0.
+     * @param array<int> $values
+     *
+     * @return $this
+     *
+     * @see QueryStatementInterface::pushArrayOfInt() For appending a parameter at the end
+     */
+    public function setArrayOfInt(int $index, array $values): static;
 
     /**
      * Push a new argument as array of strings.
@@ -107,8 +225,34 @@ interface QueryStatementInterface
      * @param array<string> $values
      *
      * @return $this
+     *
+     * @see QueryStatementInterface::setArrayOfString() For setting a parameter at a specific index
      */
     public function pushArrayOfString(array $values): static;
+
+    /**
+     * Set or replace an argument as array of integers.
+     *
+     * The spread placeholder `...?` must be present in the query.
+     * Keys of the array are ignored.
+     *
+     * Note: Unlike PDO, the index is 0-based, which means the first parameter has index 0 not 1.
+     *
+     * Usage:
+     * ```php
+     * $query = $connection->prepare('SELECT * FROM table WHERE name IN (...?)');
+     * $query->setArrayOfString(0, ['John', 'Jane']);
+     * $result = $query->execute();
+     * ```
+     *
+     * @param int $index The index of the parameter. The first parameter has index 0.
+     * @param array<string> $values
+     *
+     * @return $this
+     *
+     * @see QueryStatementInterface::pushArrayOfString() For appending a parameter at the end
+     */
+    public function setArrayOfString(int $index, array $values): static;
 
     /**
      * Replace the expression placeholder with the given expression.
@@ -172,6 +316,41 @@ interface QueryStatementInterface
      * @see QueryStatementInterface::setExpression() For replacing expressions instead of appending them
      */
     public function pushExpression(string $placeholder, string $expression, string $separator = ' '): static;
+
+    /**
+     * Reset all the parameters and expressions.
+     *
+     * This allows to change the parameters by recalling the push methods, and re-execute the query.
+     * The internal statement may be reused after a reset if there is no expression nor array parameters.
+     *
+     * To only change some parameters, you can use `setXXX` methods.
+     *
+     * Usage:
+     * ```php
+     * $query = $connection->prepare('SELECT * FROM table WHERE name LIKE ? LIMIT ? OFFSET ?');
+     *
+     * $offset = 0;
+     *
+     * for (;;) {
+     *     $query->reset();
+     *     $query
+     *         ->pushString('Jo%')
+     *         ->pushInt(10)
+     *         ->pushInt($offset)
+     *     ;
+     *
+     *     $result = $query->execute()->asAssociativeArray();
+     *
+     *     if (!$result) {
+     *         break;
+     *     }
+     *
+     *     yield from $result;
+     *     $offset += count($result);
+     * }
+     * ```
+     */
+    public function reset(): void;
 
     /**
      * Execute the query and fetch the result.
