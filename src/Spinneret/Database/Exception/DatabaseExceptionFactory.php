@@ -66,8 +66,8 @@ final class DatabaseExceptionFactory
         }
 
         // MySQL unique constraint violation
-        if ($code === '23000' && preg_match('/Duplicate entry \'(.*)\' for key \'(.*)\'/', $message, $matches)) {
-            return new UniqueConstraintViolationException($matches[2], $connection, $query, $parameters, $e->errorInfo, $e->getMessage(), $e);
+        if ($code === '23000' && preg_match('/Duplicate entry \'(.*)\' for key \'(.*)\'/', $message, $duplicateEntryMatches)) {
+            return new UniqueConstraintViolationException($duplicateEntryMatches[2], $connection, $query, $parameters, $e->errorInfo, $e->getMessage(), $e);
         }
 
         if (self::isConnectionLostError($message)) {
@@ -75,10 +75,11 @@ final class DatabaseExceptionFactory
         }
 
         if (
-            ($code === '42S02' && preg_match('/Table \'(.*)\' doesn\'t exist/', $message, $matches)) // MySQL
-            || ($code === 'HY000' && preg_match('/no such table: (.*)/', $message, $matches)) // SQLite
+            ($code === '42S02' && preg_match('/Table \'(.*)\' doesn\'t exist/', $message, $noSuchTableMatches)) // MySQL
+            || ($code === 'HY000' && preg_match('/no such table: (.*)/', $message, $noSuchTableMatches)) // SQLite
         ) {
-            return new TableNotFoundException($matches[1], $connection, $query, $parameters, $e->errorInfo, $e->getMessage(), $e);
+            /** @var list{string, string} $noSuchTableMatches */
+            return new TableNotFoundException($noSuchTableMatches[1], $connection, $query, $parameters, $e->errorInfo, $e->getMessage(), $e);
         }
 
         return new QueryExecutionException($connection, $query, $parameters, $e->errorInfo, $e->getMessage(), $e);

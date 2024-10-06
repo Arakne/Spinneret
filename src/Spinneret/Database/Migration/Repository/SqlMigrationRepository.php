@@ -26,14 +26,15 @@ final readonly class SqlMigrationRepository implements MigrationRepositoryInterf
     #[Override]
     public function initialize(): void
     {
-        $this->db->exec(<<<'SQL'
-        CREATE TABLE IF NOT EXISTS MIGRATION_STATUS (
-            MIGRATION_NAME VARCHAR(255) PRIMARY KEY,
-            MIGRATION_DATE DATETIME NOT NULL,
-            VERSION VARCHAR(32) NOT NULL,
-            APPLIED_AT DATETIME NOT NULL
-        )
-        SQL
+        $this->db->exec(
+            <<<'SQL'
+                CREATE TABLE IF NOT EXISTS MIGRATION_STATUS (
+                    MIGRATION_NAME VARCHAR(255) PRIMARY KEY,
+                    MIGRATION_DATE DATETIME NOT NULL,
+                    VERSION VARCHAR(32) NOT NULL,
+                    APPLIED_AT DATETIME NOT NULL
+                )
+                SQL
         );
     }
 
@@ -85,7 +86,14 @@ final readonly class SqlMigrationRepository implements MigrationRepositoryInterf
     public function lastVersion(): ?string
     {
         try {
-            return $this->db->query('SELECT VERSION FROM MIGRATION_STATUS ORDER BY MIGRATION_DATE DESC LIMIT 1')->fetchColumn(0) ?: null;
+            /** @var mixed $version */
+            $version = $this->db->query('SELECT VERSION FROM MIGRATION_STATUS ORDER BY MIGRATION_DATE DESC LIMIT 1')->fetchColumn(0);
+
+            if ($version === false) {
+                return null;
+            }
+
+            return (string) $version;
         } catch (TableNotFoundException) {
             return null;
         }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Application\CompilerPass;
+namespace Arakne\Spinneret\Runner\CompilerPass;
 
 use Arakne\Spinneret\Runner\Runner;
 use Override;

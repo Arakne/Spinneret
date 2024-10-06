@@ -46,6 +46,7 @@ final readonly class RegisterConsoleCommandCompilerPass implements CompilerPassI
     private function resolveCommandNames(ContainerBuilder $container, string $serviceId): array|string|null
     {
         try {
+            /** @psalm-suppress ArgumentTypeCoercion */
             $reflection = new ReflectionClass($container->getDefinition($serviceId)->getClass() ?? $serviceId);
 
             foreach ($reflection->getAttributes(AsCommand::class) as $attribute) {

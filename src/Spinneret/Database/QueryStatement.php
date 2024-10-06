@@ -26,7 +26,7 @@ final class QueryStatement implements QueryStatementInterface
     private ?PDOStatement $statement = null;
 
     /**
-     * @var array<int, array{0: mixed, 1: PDO::PARAM_*}>
+     * @var list<array{0: mixed, 1: PDO::PARAM_*}>
      */
     private array $parameters = [];
 
@@ -119,6 +119,7 @@ final class QueryStatement implements QueryStatementInterface
     #[Override]
     public function setInt(int $index, int $value): static
     {
+        /** @psalm-suppress PropertyTypeCoercion */
         $this->parameters[$index] = [$value, PDO::PARAM_INT];
 
         return $this;
@@ -127,6 +128,7 @@ final class QueryStatement implements QueryStatementInterface
     #[Override]
     public function setString(int $index, string $value): static
     {
+        /** @psalm-suppress PropertyTypeCoercion */
         $this->parameters[$index] = [$value, PDO::PARAM_STR];
 
         return $this;
@@ -134,6 +136,7 @@ final class QueryStatement implements QueryStatementInterface
 
     #[Override] public function setBool(int $index, bool $value): static
     {
+        /** @psalm-suppress PropertyTypeCoercion */
         $this->parameters[$index] = [$value, PDO::PARAM_BOOL];
 
         return $this;
@@ -142,6 +145,7 @@ final class QueryStatement implements QueryStatementInterface
     #[Override]
     public function setNull(int $index): static
     {
+        /** @psalm-suppress PropertyTypeCoercion */
         $this->parameters[$index] = [null, PDO::PARAM_NULL];
 
         return $this;
@@ -150,6 +154,7 @@ final class QueryStatement implements QueryStatementInterface
     #[Override]
     public function setArrayOfInt(int $index, array $values): static
     {
+        /** @psalm-suppress PropertyTypeCoercion */
         $this->setArray($index, $values, PDO::PARAM_INT);
 
         return $this;
@@ -244,6 +249,7 @@ final class QueryStatement implements QueryStatementInterface
      */
     private function setArray(int $index, array $values, int $type): void
     {
+        /** @psalm-suppress PropertyTypeCoercion */
         $this->parameters[$index] = [$values, $type];
         $this->hasArray = true;
         $this->statement = null; // Reset statement to force rebuild

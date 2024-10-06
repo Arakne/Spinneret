@@ -28,7 +28,7 @@ final readonly class MigrationManager
          * Closure that return all migrations
          * The closure must return a new iterable on each call
          *
-         * @var Closure():iterable<MigrationInterface>
+         * @var Closure():iterable<array-key, MigrationInterface>
          */
         private Closure $migrationsResolver,
         private ?LoggerInterface $logger = null,
@@ -186,7 +186,10 @@ final readonly class MigrationManager
      */
     private function resolve(?string $version = null, array $names = [], bool $oldersBefore = true): array
     {
-        /** @var array<MigrationInterface> $migrations */
+        /**
+         * @var array<MigrationInterface> $migrations
+         * @psalm-suppress InvalidArgument
+         */
         $migrations = iterator_to_array(($this->migrationsResolver)());
         $names = array_flip($names);
 

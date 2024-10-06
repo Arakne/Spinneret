@@ -38,7 +38,9 @@ final class MigrationDownCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $out = fn (string $line, bool $newLine = true) => $output->write($line, $newLine);
+        $out = function (string $line, bool $newLine = true) use ($output): void {
+            $output->write($line, $newLine);
+        };
 
         /** @var string|null $version */
         $version = $input->getOption('until');

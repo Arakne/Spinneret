@@ -11,13 +11,12 @@ use Arakne\Spinneret\Form\FormModule;
 use Arakne\Spinneret\Presenter\PresenterModule;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Router\RouterModule;
+use Arakne\Spinneret\Runner\RunnerModule;
 use Arakne\Spinneret\Runner\RunnerInterface;
 use Arakne\Spinneret\Util\Project;
 use Arakne\Spinneret\View\ViewModule;
 use Override;
-use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -134,7 +133,7 @@ class Application implements RunnerInterface, ContainerInterface
             new ViewModule(),
             new FormModule(),
             new ErrorModule(),
-            new ApplicationModule(),
+            new RunnerModule(),
             ...$this->applicationModules(),
         ];
 
@@ -290,6 +289,7 @@ class Application implements RunnerInterface, ContainerInterface
     private function buildContainer(): SymfonyContainer
     {
         $containerBuilder = new ContainerBuilder();
+        $containerBuilder->register(Application::class)->setPublic(true)->setSynthetic(true);
 
         $renderers = [];
         $presenters = [];
