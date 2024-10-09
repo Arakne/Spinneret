@@ -8,6 +8,9 @@ use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RouterInterface;
 use Arakne\Spinneret\Runner\Backend\Httpd\HttpdBackend;
+use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanBackend;
+use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanConfig;
+use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanStartCommand;
 use Arakne\Spinneret\Runner\CompilerPass\RegisterMiddlewareCompilerPass;
 use Arakne\Spinneret\View\ViewEngineInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -20,9 +23,11 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
@@ -88,6 +93,10 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
         if ($this->config->httpd) {
             $this->registerHttpdBackend($containerBuilder);
         }
+
+        if ($this->config->workerman->enable) {
+            $this->registerWorkermanBackend($containerBuilder);
+        }
     }
 
     #[Override]
@@ -127,6 +136,28 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
                 new Reference(ServerRequestCreatorInterface::class),
             ])
             ->setPublic(true)
+        ;
+    }
+
+    private function registerWorkermanBackend(ContainerBuilder $containerBuilder): void
+    {
+        $containerBuilder->register(WorkermanConfig::class, WorkermanConfig::class)
+            ->setFactory([new Reference(RunnerConfig::class), 'workerman'])
+        ;
+
+        $containerBuilder->register(WorkermanBackend::class, WorkermanBackend::class)
+            ->setArguments([
+                new Reference(Application::class),
+                new Reference(WorkermanConfig::class),
+            ])
+            ->setPublic(true)
+        ;
+
+        $containerBuilder->register(WorkermanStartCommand::class, WorkermanStartCommand::class)
+            ->setArguments([
+                new Reference(WorkermanBackend::class),
+            ])
+            ->addTag(Command::class)
         ;
     }
 }

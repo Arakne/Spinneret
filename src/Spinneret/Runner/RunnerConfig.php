@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Runner;
 
+use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanConfig;
+
 final readonly class RunnerConfig
 {
     public function __construct(
@@ -12,6 +14,12 @@ final readonly class RunnerConfig
          * Note: this value is resolved at compile time, so you should not use an environment variable here
          */
         public bool $httpd = true,
+        public WorkermanConfig $workerman = new WorkermanConfig(),
     ) {
+    }
+
+    public function workerman(): WorkermanConfig
+    {
+        return $this->workerman;
     }
 }

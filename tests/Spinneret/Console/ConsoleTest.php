@@ -22,6 +22,11 @@ class ConsoleTest extends TestCase
     public function functionalDefaultCommands()
     {
         $app = new class(true, 'test') extends Application {
+            public function configDir(): string
+            {
+                return __DIR__.'/Fixtures/config';
+            }
+
             protected function applicationModules(): array
             {
                 return [
@@ -43,6 +48,11 @@ class ConsoleTest extends TestCase
     public function functionalCustomCommands()
     {
         $app = new class(true, 'test') extends Application {
+            public function configDir(): string
+            {
+                return __DIR__.'/Fixtures/config';
+            }
+
             protected function applicationModules(): array
             {
                 return [
@@ -65,6 +75,11 @@ class ConsoleTest extends TestCase
     public function functionalRun()
     {
         $app = new class(true, 'test') extends Application {
+            public function configDir(): string
+            {
+                return __DIR__.'/Fixtures/config';
+            }
+
             protected function applicationModules(): array
             {
                 return [

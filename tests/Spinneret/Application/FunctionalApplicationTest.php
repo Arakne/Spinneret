@@ -5,6 +5,8 @@ namespace Arakne\Tests\Spinneret\Application;
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
+use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanConfig;
+use Arakne\Spinneret\Runner\RunnerConfig;
 use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\ConfigurableModule;
 use Arakne\Tests\Spinneret\Application\Fixtures\Configurable\Parameters;
@@ -89,6 +91,9 @@ class FunctionalApplicationTest extends TestCase
                 message: 'My configured message',
                 computed: 1655275095,
             ),
+            RunnerConfig::class => new RunnerConfig(
+                workerman: new WorkermanConfig(enable: true),
+            )
         ], $this->app->config());
     }
 
