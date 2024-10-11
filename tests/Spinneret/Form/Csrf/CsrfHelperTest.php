@@ -6,10 +6,12 @@ use Arakne\Spinneret\Form\Csrf\CsrfHelper;
 use Arakne\Spinneret\Form\Csrf\CsrfTokenParameters;
 use Arakne\Spinneret\Security\Serializer\ParsedCookie;
 use Arakne\Tests\Spinneret\Form\Fixtures\BasicCsrfForm;
+use Arakne\Tests\Spinneret\Form\Fixtures\OtherCsrfForm;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
+use ReflectionProperty;
 
 class CsrfHelperTest extends TestCase
 {
@@ -24,6 +26,7 @@ class CsrfHelperTest extends TestCase
     public function setCsrf()
     {
         $r = new BasicCsrfForm();
+        $o = new OtherCsrfForm();
         $psr = new ServerRequest('POST', 'http://localhost/csrf');
         $psr = $psr->withAttribute(ParsedCookie::class, new ParsedCookie(
             token: 'a',
@@ -37,10 +40,19 @@ class CsrfHelperTest extends TestCase
         $this->assertInstanceOf(CsrfTokenParameters::class, $r->csrf);
         $this->assertSame('ce6ce7356ed5476e1c0a87a0e838fd5c129a664afebf079f88e6056677d751b3', $r->csrf->token());
 
+        $this->assertSame($o, $this->helper->setCsrf($o, $psr));
+        $this->assertInstanceOf(CsrfTokenParameters::class, $o->other);
+        $this->assertSame('9c83003eecf27743c467e704876d53b098178ab7c25f51765c11f7c1e685bffe', $o->other->token());
+        $this->assertInstanceOf(CsrfTokenParameters::class, $o->csrf);
+        $this->assertSame('6f9ab287c99556813f109ddab1985bed8761bb3b4fc2a57f91d1085927b44626', $o->csrf->token());
+
         $psr = $psr->withAttribute(ParsedCookie::class, '');
         $r = new BasicCsrfForm();
         $this->assertSame($r, $this->helper->setCsrf($r, $psr));
         $this->assertFalse(isset($r->csrf));
+
+        $cacheField = new ReflectionProperty(CsrfHelper::class, 'cache');
+        $this->assertSame([BasicCsrfForm::class, OtherCsrfForm::class], array_keys($cacheField->getValue($this->helper)));
     }
 
     #[Test]

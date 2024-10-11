@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function http_response_code;
+
 class HttpdBackendTest extends TestCase
 {
     #[Test, RunInSeparateProcess]
@@ -43,6 +45,43 @@ class HttpdBackendTest extends TestCase
             HTML,
             $output
         );
+
+        $this->assertSame(200, http_response_code());
+    }
+
+    #[Test, RunInSeparateProcess]
+    public function functionalNotFound()
+    {
+        $app = new TestApplication(true, 'test');
+        $psr17Factory = new Psr17Factory();
+        ErrorHandler::restore();
+        $backend = new HttpdBackend($app, new ServerRequestCreator($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory));
+
+        $_SERVER['REQUEST_URI'] = '/not-found';
+
+        ob_start();
+        $backend->run();
+        $output = ob_get_clean();
+
+        $this->assertSame(
+            <<<'HTML'
+            <!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Not found</title>
+                </head>
+                <body>
+                    <h1>Error 404</h1>
+                    <p>This page cannot be found</p>
+                </body>
+            </html>
+
+            HTML,
+            $output
+        );
+
+        $this->assertSame(404, http_response_code());
     }
 
     #[Test, RunInSeparateProcess]

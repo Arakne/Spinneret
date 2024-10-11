@@ -24,6 +24,25 @@ class DatabaseExceptionFactoryTest extends TestCase
         $this->assertSame('test', $exception->connection);
         $this->assertSame('name', $exception->key);
         $this->assertSame('INSERT INTO test (name) VALUES ("foo")', $exception->query);
+        $this->assertSame($e, $exception->getPrevious());
+        $this->assertSame(0, $exception->getCode());
+    }
+
+    #[Test]
+    public function uniqueConstraintErrorSqliteWithoutTable()
+    {
+        $e = new \PDOException('SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: name');
+        $e->errorInfo = ['23000', 19, 'UNIQUE constraint failed: name'];
+
+        $exception = DatabaseExceptionFactory::fromQueryExecution($e, 'test', 'INSERT INTO test (name) VALUES ("foo")');
+
+        $this->assertInstanceOf(UniqueConstraintViolationException::class, $exception);
+        $this->assertSame('test', $exception->connection());
+        $this->assertSame('test', $exception->connection);
+        $this->assertSame('name', $exception->key);
+        $this->assertSame('INSERT INTO test (name) VALUES ("foo")', $exception->query);
+        $this->assertSame($e, $exception->getPrevious());
+        $this->assertSame(0, $exception->getCode());
     }
 
     #[Test]
@@ -39,6 +58,8 @@ class DatabaseExceptionFactoryTest extends TestCase
         $this->assertSame('test', $exception->connection);
         $this->assertSame('name', $exception->key);
         $this->assertSame('INSERT INTO test (name) VALUES ("foo")', $exception->query);
+        $this->assertSame($e, $exception->getPrevious());
+        $this->assertSame(0, $exception->getCode());
     }
 
     #[Test]
@@ -54,6 +75,8 @@ class DatabaseExceptionFactoryTest extends TestCase
         $this->assertSame('test', $exception->connection);
         $this->assertEquals('SQLSTATE[HY000]: General error: 2006 MySQL server has gone away', $exception->getMessage());
         $this->assertSame($e, $exception->getPrevious());
+        $this->assertSame($e, $exception->getPrevious());
+        $this->assertSame(0, $exception->getCode());
     }
 
     #[Test]
@@ -70,6 +93,7 @@ class DatabaseExceptionFactoryTest extends TestCase
         $this->assertSame('test.foo', $exception->table);
         $this->assertSame('SELECT * FROM foo', $exception->query);
         $this->assertSame($e, $exception->getPrevious());
+        $this->assertSame(0, $exception->getCode());
 
         $e = new \PDOException('SQLSTATE[HY000]: no such table: foo');
         $e->errorInfo = ['HY000', 1, 'no such table: foo'];
@@ -82,5 +106,6 @@ class DatabaseExceptionFactoryTest extends TestCase
         $this->assertSame('foo', $exception->table);
         $this->assertSame('SELECT * FROM foo', $exception->query);
         $this->assertSame($e, $exception->getPrevious());
+        $this->assertSame(0, $exception->getCode());
     }
 }

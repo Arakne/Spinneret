@@ -38,7 +38,7 @@ class CreateStructureMigration extends AbstractMigration
             $output('Dropping table `person`');
         }
 
-        $db->exec('DROP TABLE `test`');
+        $db->exec('DROP TABLE `person`');
     }
 
     #[Override]

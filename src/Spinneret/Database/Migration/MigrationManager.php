@@ -104,7 +104,6 @@ final readonly class MigrationManager
     {
         $output ??= function (string $message, bool $newLine = false): void {};
         $count = 0;
-        $this->repository->initialize();
 
         $migrations = $this->resolve(version: $version, oldersBefore: false);
 
@@ -147,7 +146,6 @@ final readonly class MigrationManager
     {
         $output ??= function (string $message, bool $newLine = false): void {};
         $count = 0;
-        $this->repository->initialize();
 
         $migrationsInstances = $this->resolve(names: $migrations, oldersBefore: false);
 

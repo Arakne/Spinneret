@@ -8,6 +8,7 @@ use Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommand;
 use Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommandHandler;
 use Arakne\Tests\Spinneret\Bus\Fixtures\FooCommand;
 use Arakne\Tests\Spinneret\Bus\Fixtures\FooCommandHandler;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObjectInternal;
 use PHPUnit\Framework\TestCase;
@@ -63,6 +64,21 @@ class BusDispatcherTest extends TestCase
             $this->stringContains("Error while dispatching message Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommand to handler Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommandHandler : DomainException"),
             $this->callback(fn ($value) => is_array($value) && $value['message'] === $command && $value['exception'] instanceof \DomainException),
         );
+
+        $this->dispatcher->dispatch($command);
+    }
+
+    #[Test, DoesNotPerformAssertions]
+    public function dispatchHandlerErrorWithoutLogger()
+    {
+        $this->dispatcher = new BusDispatcher(
+            $this->container,
+            [
+                FooCommand::class => FooCommandHandler::class,
+                ErrorCommand::class => ErrorCommandHandler::class,
+            ],
+        );
+        $command = new ErrorCommand();
 
         $this->dispatcher->dispatch($command);
     }

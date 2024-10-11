@@ -56,7 +56,7 @@ final class DatabaseExceptionFactory
 
         // SQLite unique constraint violation
         if ($code === '23000' && str_starts_with($message, 'UNIQUE constraint failed:')) {
-            $key = trim(substr($message, 28));
+            $key = trim(substr($message, 25));
 
             if (($dot = strrpos($key, '.')) !== false) {
                 $key = substr($key, $dot + 1);

@@ -2,6 +2,9 @@
 
 namespace Arakne\Tests\Spinneret\Security;
 
+use Arakne\Spinneret\Security\AuthenticationCookieHelper;
+use Arakne\Spinneret\Security\LoadSessionMiddleware;
+use Arakne\Spinneret\Security\SecurityConfig;
 use Arakne\Spinneret\Security\Serializer\HmacCookieSerializer;
 use Arakne\Spinneret\Security\Serializer\ParsedCookie;
 use Arakne\Spinneret\Security\User\ObjectUserHandler;
@@ -9,9 +12,17 @@ use Arakne\Tests\Spinneret\Security\Fixtures\TestSecurityApplication;
 use Arakne\Tests\Spinneret\Security\Fixtures\TestUser;
 use Arakne\Tests\Spinneret\Security\Fixtures\TestUserHandler;
 use Arakne\Tests\Spinneret\Stub\FixedClock;
+use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Random\Engine\Xoshiro256StarStar;
+use Random\Randomizer;
+
+use function var_dump;
 
 class LoadSessionMiddlewareTest extends TestCase
 {
@@ -110,6 +121,83 @@ class LoadSessionMiddlewareTest extends TestCase
             ]
         ], json_decode((string) $response->getBody(), true));
         $this->assertEmpty($response->getHeaderLine('Set-Cookie'));
+    }
+
+    #[Test]
+    public function shouldCreateCookieIfNameDoesntMatchExactly()
+    {
+        $middleware = new LoadSessionMiddleware(
+            $serializer = new HmacCookieSerializer(
+                new TestUserHandler(),
+                secret: 'my_secret',
+                clock: FixedClock::instance(),
+            ),
+            new AuthenticationCookieHelper(
+                new SecurityConfig(),
+                $serializer,
+                new Randomizer(new Xoshiro256StarStar(123)),
+                FixedClock::instance(),
+            ),
+            cookieName: 'auth',
+            attributeName: 'user',
+        );
+
+        $req = new ServerRequest('POST', '/login');
+        $req = $req->withParsedBody([
+            'username' => 'admin',
+            'password' => 'very_secure',
+        ]);
+
+        $response = $middleware->process($req, new class implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                return (new Response())->withAddedHeader('Set-Cookie', 'auth2=foo');
+            }
+        });
+
+        $cookies = $response->getHeader('Set-Cookie');
+        $this->assertEquals([
+            'auth2=foo',
+            'auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE-F9JX8-3AYa6HXPeDw.RPtAk4hAC43r13-TBot18jbtQ35MiLrtX8uR90XLUWbrNWTOLLKEdsfHheZP0K4XwLqdhtut163VXUovV7giLQ; Path=/; HttpOnly',
+        ], $cookies);
+    }
+
+    #[Test]
+    public function shouldNotCreateCookieIfNameMatchExactly()
+    {
+        $middleware = new LoadSessionMiddleware(
+            $serializer = new HmacCookieSerializer(
+                new TestUserHandler(),
+                secret: 'my_secret',
+                clock: FixedClock::instance(),
+            ),
+            new AuthenticationCookieHelper(
+                new SecurityConfig(),
+                $serializer,
+                new Randomizer(new Xoshiro256StarStar(123)),
+                FixedClock::instance(),
+            ),
+            cookieName: 'auth',
+            attributeName: 'user',
+        );
+
+        $req = new ServerRequest('POST', '/login');
+        $req = $req->withParsedBody([
+            'username' => 'admin',
+            'password' => 'very_secure',
+        ]);
+
+        $response = $middleware->process($req, new class implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                return (new Response())->withAddedHeader('Set-Cookie', 'auth=foo');
+            }
+        });
+
+        $cookies = $response->getHeader('Set-Cookie');
+        $this->assertEquals([
+            'auth=foo',
+        ], $cookies);
     }
 
     #[Test]

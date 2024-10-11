@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\View;
 
 use Arakne\Spinneret\View\Engine;
+use Arakne\Spinneret\View\View;
 use Arakne\Tests\Spinneret\View\Fixtures\EmbeddedComponent;
 use Arakne\Tests\Spinneret\View\Fixtures\EmbeddedComponentRenderer;
 use Arakne\Tests\Spinneret\View\Fixtures\Layout;
@@ -100,6 +101,31 @@ class EngineTest extends TestCase
         ob_start();
         $this->engine->display(new SimpleResponse('Hello, world!'));
         $this->assertSame('<p>Hello, world!</p>', ob_get_clean());
+    }
+
+    #[Test]
+    public function displayWithViewParameter()
+    {
+        $view = new View($this->engine, new SimpleResponse('Hello, world!'));
+
+        ob_start();
+        $this->engine->display(new WithEmbedded(), $view);
+        $this->assertSame(<<<'HTML'
+                    <h1>With embedded</h1>
+                    <p>Some content</p>
+
+                            <div>
+                        <h2>Embedded component</h2>
+                        <p>a</p>
+                                    <div>
+                        <h2>Embedded component</h2>
+                        <p>b</p>
+                            
+            HTML
+            , ob_get_clean()
+        );
+
+        $this->assertEquals(new Layout('With embedded'), $view->parent());
     }
 
     #[Test]

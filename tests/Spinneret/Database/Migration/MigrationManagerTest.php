@@ -62,10 +62,11 @@ class MigrationManagerTest extends TestCase
     public function up()
     {
         $out = [];
-        $this->migrations->up(function ($line) use (&$out) {
+        $count = $this->migrations->up(function ($line) use (&$out) {
             $out[] = $line;
         });
 
+        $this->assertSame(3, $count);
         $this->assertCount(10, $out);
         $this->assertStringStartsWith('Applying migration CreateStructureMigration...', $out[0]);
         $this->assertStringStartsWith('Creating table `person`', $out[1]);
@@ -102,6 +103,42 @@ class MigrationManagerTest extends TestCase
         $this->assertSame('1.2.0', $this->migrations->currentVersion());
 
         $this->assertSame(0, $this->migrations->up());
+    }
+
+    #[Test]
+    public function upPartial()
+    {
+        $this->migrations->up();
+        $this->migrations->down(['CreateStructureMigration']);
+        $this->logger->logs = [];
+
+        $out = [];
+        $count = $this->migrations->up(function ($line) use (&$out) {
+            $out[] = $line;
+        });
+
+        $this->assertSame(1, $count);
+        $this->assertCount(3, $out);
+        $this->assertStringStartsWith('Applying migration CreateStructureMigration...', $out[0]);
+        $this->assertStringStartsWith('Creating table `person`', $out[1]);
+        $this->assertStringStartsWith('Migration CreateStructureMigration applied in ', $out[2]);
+
+        $this->assertCount(1, $this->logger->logs);
+        $this->assertEquals('info', $this->logger->logs[0]['level']);
+        $this->assertEquals('Migration {{ migration }} applied in {{ time }} ms', $this->logger->logs[0]['message']);
+        $this->assertEquals(['CreateStructureMigration'], array_map(fn ($log) => $log['context']['migration'], $this->logger->logs));
+        $this->assertEquals([CreateStructureMigration::class], array_map(fn ($log) => $log['context']['migration_class'], $this->logger->logs));
+
+        $list = $this->migrations->list();
+        $this->assertCount(3, $list);
+        $this->assertInstanceOf(CreateStructureMigration::class, $list[0]->migration);
+        $this->assertTrue($list[0]->applied);
+        $this->assertInstanceOf(AddEntitiesMigration::class, $list[1]->migration);
+        $this->assertTrue($list[1]->applied);
+        $this->assertInstanceOf(SeparateNameColumnsMigration::class, $list[2]->migration);
+        $this->assertTrue($list[2]->applied);
+
+        $this->assertSame('1.2.0', $this->migrations->currentVersion());
     }
 
     #[Test]

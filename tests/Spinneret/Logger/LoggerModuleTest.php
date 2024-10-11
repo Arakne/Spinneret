@@ -67,6 +67,8 @@ class LoggerModuleTest extends TestCase
         $module->register($container);
 
         $this->assertInstanceOf(LoggerDispatcher::class, $container->get(LoggerInterface::class));
+        $this->assertNull($module->configuration()->getFilter('not-exists'));
+        $this->assertIsCallable($module->configuration()->getFilter(3));
 
         /** @var LoggerFilter[] $loggers */
         $loggers = (new \ReflectionProperty(LoggerDispatcher::class, 'loggers'))->getValue($container->get(LoggerDispatcher::class));

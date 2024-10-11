@@ -21,6 +21,7 @@ use Arakne\Tests\Spinneret\Runner\Fixtures\FooSuccessResponse;
 use Arakne\Tests\Spinneret\Runner\Fixtures\InternalServerErrorPresenter;
 use Arakne\Tests\Spinneret\Runner\Fixtures\InternalServerErrorRenderer;
 use Arakne\Tests\Spinneret\Runner\Fixtures\ReverseMiddleware;
+use Exception;
 use LogicException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
@@ -320,6 +321,24 @@ class RunnerTest extends TestCase
     }
 
     #[Test]
+    public function handleRouterExceptionWithoutLogger()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view,
+        );
+
+        $psrRequest = new ServerRequest('GET', '/invalid');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('{"error":"ReflectionException : Class \"invalid\" does not exist","step":"Router","request":null}', (string) $response->getBody());
+        $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
+        $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
+        $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
+    }
+
+    #[Test]
     public function handleViewException()
     {
         $runner = new Runner(
@@ -509,6 +528,71 @@ class RunnerTest extends TestCase
         $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
         $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
         $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
+    }
+
+    #[Test]
+    public function handleMiddlewareExceptionWithLogger()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view,
+            [
+                new ErrorMiddleware(),
+            ],
+            $logger = new ArrayLogger(),
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=error');
+        $response = $runner->handle($psrRequest);
+
+        $this->assertEquals('{"error":"Exception : Error","step":"Middleware","request":null}', (string) $response->getBody());
+        $this->assertFalse(InternalServerErrorPresenter::$lastRequest->success);
+        $this->assertNull(InternalServerErrorPresenter::$lastRequest->form);
+        $this->assertSame($psrRequest, InternalServerErrorPresenter::$lastRequest->psrRequest);
+
+        $this->assertEquals([
+            [
+                'level' => 'info',
+                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'headers' => $psrRequest->getHeaders(),
+                    'client' => 'unknown',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Start Middleware {{ middleware }}',
+                'context' => [
+                    'middleware' => ErrorMiddleware::class,
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'End Middleware {{ middleware }}',
+                'context' => [
+                    'middleware' => ErrorMiddleware::class,
+                ],
+            ],
+            [
+                'level' => 'error',
+                'message' => 'Error occurs on middleware step for request {{ method }} {{ uri }} : {{ exception }}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'exception' => new Exception('Error'),
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {{ dto }} was generated',
+                'context' => [
+                    'dto' => InternalServerError::class,
+                ],
+            ],
+        ], $logger->logs);
     }
 
     #[Test]

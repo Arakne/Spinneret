@@ -10,6 +10,7 @@ use Arakne\Spinneret\Database\Exception\QueryExecutionException;
 use Arakne\Spinneret\Database\Exception\UniqueConstraintViolationException;
 use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use PDO;
+use PDOException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -172,6 +173,8 @@ class DatabaseConnectionTest extends TestCase
             $this->assertStringContainsString('unable to open database file', $e->getMessage());
             $this->assertSame('test', $e->connection());
             $this->assertSame(['HY000', 14, 'unable to open database file'], $e->errorInfo);
+            $this->assertInstanceOf(PDOException::class, $e->getPrevious());
+            $this->assertSame(0, $e->getCode());
         }
     }
 

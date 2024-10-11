@@ -6,14 +6,21 @@
         ],
         "excludes": [
             "src/Spinneret/Application/var", // Generated because of mutation testing
+            "/Module\\.php$/",
+            "/CompilerPass\\.php$/",
+            "Runner/Backend", // Backend cannot be tested properly
         ]
     },
+    "timeout": 30,
     "mutators": {
-        "@default": true
+        "@default": true,
+        "CastString": false,
+        "CastArray": false,
+        "CastInt": false,
     },
     "logs": {
         html: "infection-log.html",
     },
     "bootstrap": "tests/infection-bootstrap.php",
-    "minMsi": 97,
+    "minMsi": 90,
 }

@@ -53,6 +53,14 @@ class DatabaseConnectionManagerTest extends TestCase
         $this->assertSame($connection, $this->manager->get(TestConnectionEnum::Other));
         $this->assertNotSame($this->manager->get(TestConnectionEnum::Test), $this->manager->get(TestConnectionEnum::Other));
     }
+
+    #[Test]
+    public function getNotFound()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown connection: Unknown');
+        $this->manager->get('Unknown');
+    }
 }
 
 enum TestConnectionEnum

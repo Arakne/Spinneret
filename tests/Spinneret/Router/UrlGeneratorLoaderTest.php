@@ -69,6 +69,23 @@ class UrlGeneratorLoaderTest extends TestCase
     }
 
     #[Test]
+    public function loadWithoutCompiler()
+    {
+        $app = $this->createApp(true);
+        $loader = new UrlGeneratorLoader($this->routesLoader, new RequestContext(), null);
+
+        $generator = $loader->load($app);
+
+        $this->assertInstanceOf(UrlGenerator::class, $generator);
+
+        $this->assertEquals($generator, $loader->load($app));
+        $this->assertNotSame($generator, $loader->load($app));
+
+        $this->assertEquals('http://localhost/hello', $generator->url(HelloRequest::class));
+        $this->assertFileDoesNotExist($this->cacheDir . '/url_generator_routes.php');
+    }
+
+    #[Test]
     public function loadNotDevModeShouldNotLoadCompiledRoutesIfPresent()
     {
         $app = $this->createApp(false);

@@ -221,5 +221,19 @@ class CsrfTest extends TestCase
         $this->assertSame('147933218aaabc0b8b10a2b3a5c34684c8d94341bcf10a4736dc7270f7741851', $view->value);
         $this->assertSame('csrf', $view->name);
         $this->assertSame($e, $view->error);
+
+        $view = $csrf->view($csrf, 'csrf', 'invalid', null, []);
+        $this->assertInstanceOf(FieldView::class, $view);
+        $this->assertSame(['type' => 'hidden'], $view->attributes);
+        $this->assertSame(null, $view->value);
+        $this->assertSame('csrf', $view->name);
+        $this->assertNull($view->error);
+
+        $view = $csrf->view($csrf, 'csrf', new CsrfTokenParameters('foo', 'bar', null), [$e], []);
+        $this->assertInstanceOf(FieldView::class, $view);
+        $this->assertSame(['type' => 'hidden'], $view->attributes);
+        $this->assertSame('147933218aaabc0b8b10a2b3a5c34684c8d94341bcf10a4736dc7270f7741851', $view->value);
+        $this->assertSame('csrf', $view->name);
+        $this->assertNull($view->error);
     }
 }

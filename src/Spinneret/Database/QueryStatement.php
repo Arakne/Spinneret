@@ -385,7 +385,7 @@ final class QueryStatement implements QueryStatementInterface
      *
      * @return list{string, list<array{0: mixed, 1: PDO::PARAM_*}>}
      */
-    public function spreadArrayParameters(string $query, array $parameters): array
+    private function spreadArrayParameters(string $query, array $parameters): array
     {
         if (!$this->hasArray) {
             return [$query, $parameters];

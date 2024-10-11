@@ -7,6 +7,7 @@ use Arakne\Spinneret\Database\DatabaseConnection;
 use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\QueryBuildingException;
 use Arakne\Spinneret\Database\Exception\QueryExecutionException;
+use Arakne\Spinneret\Database\QueryStatement;
 use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use PDO;
 use PHPUnit\Framework\Attributes\Test;
@@ -32,6 +33,7 @@ class QueryStatementTest extends TestCase
         $this->connection->exec('INSERT INTO test (name) VALUES ("foo")');
         $this->connection->exec('INSERT INTO test (name) VALUES ("bar")');
         $this->connection->exec('INSERT INTO test (name) VALUES ("baz")');
+        $this->logger->logs = [];
     }
 
     protected function tearDown(): void
@@ -243,6 +245,7 @@ class QueryStatementTest extends TestCase
             $this->assertSame('test', $e->connection());
             $this->assertSame('SELECT * FROM test WHERE id IN (?)', $e->query);
             $this->assertSame('The spread placeholder `...?` must be present in the query when using an array parameter.', $e->getMessage());
+            $this->assertSame(0, $e->getCode());
         }
     }
 
@@ -569,6 +572,24 @@ class QueryStatementTest extends TestCase
     }
 
     #[Test]
+    public function reuseQueryWithoutLogger()
+    {
+        $stmt = new QueryStatement(
+            $this->connection,
+            true,
+            'SELECT * FROM test WHERE id = ?',
+        );
+        $this->assertSame($stmt, $stmt->pushInt(1));
+
+        $this->assertSame([['id' => 1, 'name' => 'foo']], $stmt->execute()->asAssociativeArray());
+
+        $stmt->reset();
+        $stmt->pushInt(2);
+
+        $this->assertSame([['id' => 2, 'name' => 'bar']], $stmt->execute()->asAssociativeArray());
+    }
+
+    #[Test]
     public function resetWithArrayShouldBeRebuild()
     {
         $stmt = $this->connection->prepare('SELECT name FROM test WHERE id IN (...?)');
@@ -596,22 +617,21 @@ class QueryStatementTest extends TestCase
     #[Test]
     public function resetWithExpressionShouldBeRebuild()
     {
-        $stmt = $this->connection->prepare('SELECT name FROM test WHERE {filter}');
-        $stmt->setExpression('filter', '1 = 1');
+        $stmt = $this->connection->prepare('SELECT name FROM test WHERE TRUE {filter}');
+        $stmt->setExpression('filter', 'AND id > 1');
 
-        $this->assertSame(['foo', 'bar', 'baz'], $stmt->execute()->asColumns(0));
+        $this->assertSame(['bar', 'baz'], $stmt->execute()->asColumns(0));
         $this->logger->logs = [];
 
         $stmt->reset();
-        $stmt->setExpression('filter', 'id > 1');
 
-        $this->assertSame(['bar', 'baz'], $stmt->execute()->asColumns(0));
+        $this->assertSame(['foo', 'bar', 'baz'], $stmt->execute()->asColumns(0));
         $this->assertSame([
             [
                 'level' => 'debug',
                 'message' => 'Execute prepared query "{{ query }}"',
                 'context' => [
-                    'query' => 'SELECT name FROM test WHERE id > 1',
+                    'query' => 'SELECT name FROM test WHERE TRUE ',
                     'parameters' => [],
                 ],
             ],
@@ -715,5 +735,146 @@ class QueryStatementTest extends TestCase
                 ->execute()
                 ->asAssociativeArray()
         );
+    }
+
+    #[Test]
+    public function reuseQueryWithMultipleSetParameters()
+    {
+        $stmt = $this->connection->prepare('SELECT * FROM test WHERE id = ? OR name IN (...?)');
+        $stmt
+            ->pushInt(1)
+            ->pushArrayOfString(['baz'])
+        ;
+
+        $this->assertSame([
+            ['id' => 1, 'name' => 'foo'],
+            ['id' => 3, 'name' => 'baz'],
+        ], $stmt->execute()->asAssociativeArray());
+        $this->logger->logs = [];
+
+        $stmt->setInt(0, 2);
+
+        $this->assertSame([
+            ['id' => 2, 'name' => 'bar'],
+            ['id' => 3, 'name' => 'baz'],
+        ], $stmt->execute()->asAssociativeArray());
+        $this->assertSame([
+            [
+                'level' => 'debug',
+                'message' => 'Execute reused prepared query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT * FROM test WHERE id = ? OR name IN (?)',
+                    'parameters' => [[2, 1], ['baz', 2]],
+                ],
+            ],
+        ], $this->logger->logs);
+    }
+
+    #[Test]
+    public function reuseQueryWithError()
+    {
+        $stmt = $this->connection->prepare('INSERT INTO test (id, name) VALUES (?, ?)');
+        $stmt
+            ->pushNull()
+            ->pushString('qux')
+            ->execute()
+        ;
+
+        try {
+            $stmt->setString(0, 'foo')->execute();
+            $this->fail('Expected exception');
+        } catch (QueryExecutionException $e) {
+            $this->assertSame('test', $e->connection());
+            $this->assertSame('INSERT INTO test (id, name) VALUES (?, ?)', $e->query);
+            $this->assertStringContainsString('datatype mismatch', $e->getMessage());
+            $this->assertSame(['foo', 'qux'], $e->parameters);
+        }
+    }
+
+    #[Test]
+    public function arrayParameterWithDifferentSizes()
+    {
+        $stmt = $this->connection->prepare('SELECT * FROM test WHERE id IN (...?)');
+
+        $stmt->pushArrayOfInt([]);
+        $this->assertEmpty($stmt->execute()->asAssociativeArray());
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute prepared query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT * FROM test WHERE id IN (?)',
+                    'parameters' => [[null, 0]],
+                ],
+            ],
+        ], $this->logger->logs);
+        $this->logger->logs = [];
+
+        $stmt->setArrayOfString(0, [2]);
+        $this->assertEquals([
+            ['id' => 2, 'name' => 'bar'],
+        ], $stmt->execute()->asAssociativeArray());
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute prepared query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT * FROM test WHERE id IN (?)',
+                    'parameters' => [[2, 2]],
+                ],
+            ],
+        ], $this->logger->logs);
+        $this->logger->logs = [];
+
+        $stmt->setArrayOfString(0, [2, 3]);
+        $this->assertEquals([
+            ['id' => 2, 'name' => 'bar'],
+            ['id' => 3, 'name' => 'baz'],
+        ], $stmt->execute()->asAssociativeArray());
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute prepared query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT * FROM test WHERE id IN (?, ?)',
+                    'parameters' => [[2, 2], [3, 2]],
+                ],
+            ],
+        ], $this->logger->logs);
+        $this->logger->logs = [];
+
+        $stmt->setArrayOfString(0, [2, 3, 4]);
+        $this->assertEquals([
+            ['id' => 2, 'name' => 'bar'],
+            ['id' => 3, 'name' => 'baz'],
+        ], $stmt->execute()->asAssociativeArray());
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute prepared query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT * FROM test WHERE id IN (?, ?, ?)',
+                    'parameters' => [[2, 2], [3, 2], [4, 2]],
+                ],
+            ],
+        ], $this->logger->logs);
+        $this->logger->logs = [];
+
+        $stmt->setArrayOfString(0, [2, 3, 4, 5, 6]);
+        $this->assertEquals([
+            ['id' => 2, 'name' => 'bar'],
+            ['id' => 3, 'name' => 'baz'],
+        ], $stmt->execute()->asAssociativeArray());
+        $this->assertEquals([
+            [
+                'level' => 'debug',
+                'message' => 'Execute prepared query "{{ query }}"',
+                'context' => [
+                    'query' => 'SELECT * FROM test WHERE id IN (?, ?, ?, ?, ?)',
+                    'parameters' => [[2, 2], [3, 2], [4, 2], [5, 2], [6, 2]],
+                ],
+            ],
+        ], $this->logger->logs);
+        $this->logger->logs = [];
     }
 }
