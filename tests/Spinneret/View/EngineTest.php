@@ -46,7 +46,9 @@ class EngineTest extends TestCase
             $container,
             new Psr17Factory(),
             new Psr17Factory(),
-            [
+            null,
+            null,
+            renderers: [
                 SimpleResponse::class => SimpleRenderer::class,
                 OtherResponse::class => RendererWithResponseConfigurator::class,
                 ResponseWithParent::class => WithParentRenderer::class,

@@ -66,6 +66,8 @@ class RunnerTest extends TestCase
             $container,
             new Psr17Factory(),
             new Psr17Factory(),
+            null,
+            null,
             [
                 FooSuccessResponse::class => FooSuccessRenderer::class,
                 FooErrorResponse::class => FooErrorRenderer::class,

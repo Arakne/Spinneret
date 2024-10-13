@@ -21,6 +21,7 @@
     "symfony/routing": "~7.1",
     "symfony/dependency-injection": "~7.1",
     "symfony/console": "~7.1",
+    "symfony/translation": "~7.1",
     "vincent4vx/form": "dev-master@dev",
     "psr/log": "^3.0",
     "league/commonmark": "^2.5.3",

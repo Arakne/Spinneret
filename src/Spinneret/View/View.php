@@ -4,12 +4,20 @@ namespace Arakne\Spinneret\View;
 
 use LogicException;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\Translation\IdentityTranslator;
+use Symfony\Contracts\Translation\TranslatableInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Store the context for the view rendering
  */
 final class View
 {
+    /**
+     * Translator to use when no translator is provided and {@see View::_()} is called
+     */
+    private static ?TranslatorInterface $fallbackTranslator = null;
+
     /**
      * Define the parent view (i.e. layout)
      * Should be set by the renderer
@@ -47,6 +55,9 @@ final class View
          * The request object parsed by the router
          */
         public readonly ?object $routedRequest = null,
+
+        public readonly ?TranslatorInterface $translator = null,
+        public readonly ?string $locale = null,
     ) {
     }
 
@@ -103,5 +114,31 @@ final class View
     public function render(object $data): string
     {
         return $this->engine->render($data, $this);
+    }
+
+    /**
+     * Translate the given message to the current locale
+     *
+     * @param string|TranslatableInterface|null $message The message pattern, or a translatable object. If null, an empty string is returned.
+     * @param array $parameters The parameters to replace in the message. Use {key} or %key% syntax in the message
+     *
+     * @return string
+     *
+     * @see View::$translator to define the translator to use
+     * @see View::$locale to define the locale to use
+     */
+    public function _(string|TranslatableInterface|null $message, array $parameters = []): string
+    {
+        if ($message === null) {
+            return '';
+        }
+
+        $translator = $this->translator ?? (self::$fallbackTranslator ??= new IdentityTranslator());
+
+        if ($message instanceof TranslatableInterface) {
+            return $message->trans($translator, $this->locale);
+        }
+
+        return $translator->trans($message, $parameters, locale: $this->locale);
     }
 }

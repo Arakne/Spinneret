@@ -8,7 +8,9 @@ use Override;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Module for the view engine
@@ -35,6 +37,8 @@ final class ViewModule implements ModuleInterface
                 new Reference('service_container'),
                 new Reference(ResponseFactoryInterface::class),
                 new Reference(StreamFactoryInterface::class),
+                new Reference(TranslatorInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference(ViewLocaleResolverInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 '%'.self::RENDERERS_PARAMETER.'%',
             ])
         ;

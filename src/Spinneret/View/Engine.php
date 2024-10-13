@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\View;
 
+use Closure;
 use LogicException;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -10,6 +11,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use RuntimeException;
+
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function sprintf;
 
@@ -27,6 +30,8 @@ final readonly class Engine implements ViewEngineInterface
         private ContainerInterface $container,
         private ResponseFactoryInterface $responseFactory,
         private StreamFactoryInterface $streamFactory,
+        private ?TranslatorInterface $translator,
+        private ?ViewLocaleResolverInterface $localeResolver,
 
         /**
          * Renderers map
@@ -43,7 +48,14 @@ final readonly class Engine implements ViewEngineInterface
     #[Override]
     public function response(object $data, ?ServerRequestInterface $psrRequest = null, ?object $routedRequest = null): ResponseInterface
     {
-        $view = new View($this, $data, $psrRequest, $routedRequest);
+        $view = new View(
+            $this,
+            $data,
+            $psrRequest,
+            $routedRequest,
+            $this->translator,
+            $this->localeResolver?->resolve($data, $psrRequest),
+        );
         $renderer = $this->renderer($data);
 
         $response = $this->responseFactory->createResponse();
@@ -69,7 +81,12 @@ final readonly class Engine implements ViewEngineInterface
     #[Override]
     public function render(object $data, ?View $view = null): string
     {
-        $view ??= new View($this, $data);
+        $view ??= new View(
+            $this,
+            $data,
+            translator: $this->translator,
+            locale: $this->localeResolver?->resolve($data, null),
+        );
         $renderer = $this->renderer($data);
 
         if (!($renderer instanceof ViewRendererInterface)) {
@@ -82,7 +99,12 @@ final readonly class Engine implements ViewEngineInterface
     #[Override]
     public function display(object $data, ?View $view = null): void
     {
-        $view ??= new View($this, $data);
+        $view ??= new View(
+            $this,
+            $data,
+            translator: $this->translator,
+            locale: $this->localeResolver?->resolve($data, null),
+        );
         $renderer = $this->renderer($data);
 
         if (!($renderer instanceof ViewRendererInterface)) {
