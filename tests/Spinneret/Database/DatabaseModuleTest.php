@@ -22,6 +22,7 @@ use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Database\Fixtures\MyEntityModule;
 use Arakne\Tests\Spinneret\Database\Fixtures\MyEntityRepository;
+use Arakne\Tests\Spinneret\Database\Fixtures\OtherRepository;
 use Arakne\Tests\Spinneret\Database\Migration\Fixtures\AddEntitiesMigration;
 use Arakne\Tests\Spinneret\Database\Migration\Fixtures\CreateStructureMigration;
 use Arakne\Tests\Spinneret\Database\Migration\Fixtures\SeparateNameColumnsMigration;
@@ -195,6 +196,30 @@ class DatabaseModuleTest extends TestCase
         $repository->init();
 
         $this->assertSame([], $repository->all());
+    }
+
+    #[Test]
+    public function functionalShouldInjectMultipleDatabaseConnections()
+    {
+        $app = new class(isDev: true, env: 'test') extends Application {
+           public function configDir(): string
+           {
+               return __DIR__ . '/Fixtures/config';
+           }
+
+           protected function applicationModules(): array
+           {
+               return [
+                   new DatabaseModule(),
+                   new MyEntityModule(),
+               ];
+           }
+        };
+
+        $repository = $app->get(OtherRepository::class);
+
+        $this->assertSame('test', $repository->test->name());
+        $this->assertSame('other', $repository->other->name());
     }
 
     #[Test]

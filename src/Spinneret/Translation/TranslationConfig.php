@@ -14,6 +14,9 @@ final readonly class TranslationConfig
      */
     public array $availableLocales;
 
+    /**
+     * @param array<string> $availableLocales
+     */
     public function __construct(
         /**
          * The default locale to use when none is provided.
@@ -34,7 +37,7 @@ final readonly class TranslationConfig
         /**
          * The available locales for the application.
          *
-         * @param list<string> $availableLocales
+         * @param array<string> $availableLocales
          */
         array $availableLocales = ['en'],
 
@@ -49,7 +52,7 @@ final readonly class TranslationConfig
          * List of locales to collect missing translations.
          * If not set, will use the available locales.
          *
-         * @var list<string>|null
+         * @var array<string>|null
          */
         public ?array $collectedLocales = null,
 
@@ -88,6 +91,37 @@ final readonly class TranslationConfig
          */
         public bool $pseudoLocalizationBrackets = true,
     ) {
+        /** @var array<string, string> */
         $this->availableLocales = array_combine($availableLocales, $availableLocales);
+    }
+
+    /**
+     * @param array<string>|null $availableLocales
+     * @param array<string>|null $collectedLocales
+     */
+    public function with(
+        ?string $defaultLocale = null,
+        ?string $translationDir = null,
+        ?array $availableLocales = null,
+        ?bool $collectTranslations = null,
+        ?array $collectedLocales = null,
+        ?string $collectorOutputFile = null,
+        ?bool $pseudoLocalization = null,
+        ?float $pseudoLocalizationExpansionFactor = null,
+        ?bool $pseudoLocalizationAccents = null,
+        ?bool $pseudoLocalizationBrackets = null,
+    ): self {
+        return new self(
+            defaultLocale: $defaultLocale ?? $this->defaultLocale,
+            translationDir: $translationDir ?? $this->translationDir,
+            availableLocales: $availableLocales ?? $this->availableLocales,
+            collectTranslations: $collectTranslations ?? $this->collectTranslations,
+            collectedLocales: $collectedLocales ?? $this->collectedLocales,
+            collectorOutputFile: $collectorOutputFile ?? $this->collectorOutputFile,
+            pseudoLocalization: $pseudoLocalization ?? $this->pseudoLocalization,
+            pseudoLocalizationExpansionFactor: $pseudoLocalizationExpansionFactor ?? $this->pseudoLocalizationExpansionFactor,
+            pseudoLocalizationAccents: $pseudoLocalizationAccents ?? $this->pseudoLocalizationAccents,
+            pseudoLocalizationBrackets: $pseudoLocalizationBrackets ?? $this->pseudoLocalizationBrackets,
+        );
     }
 }

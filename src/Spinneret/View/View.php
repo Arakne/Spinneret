@@ -8,6 +8,8 @@ use Symfony\Component\Translation\IdentityTranslator;
 use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function htmlentities;
+
 /**
  * Store the context for the view rendering
  */
@@ -140,5 +142,22 @@ final class View
         }
 
         return $translator->trans($message, $parameters, locale: $this->locale);
+    }
+
+    /**
+     * Translate the given message to the current locale and escape HTML entities
+     * This is a shortcut for `htmlentities($this->_($message, $parameters))`
+     *
+     * @param string|TranslatableInterface|null $message The message pattern, or a translatable object. If null, an empty string is returned.
+     * @param array $parameters The parameters to replace in the message. Use {key} or %key% syntax in the message
+     *
+     * @return string
+     *
+     * @see View::$translator to define the translator to use
+     * @see View::$locale to define the locale to use
+     */
+    public function e_(string|TranslatableInterface|null $message, array $parameters = []): string
+    {
+        return htmlentities($this->_($message, $parameters));
     }
 }

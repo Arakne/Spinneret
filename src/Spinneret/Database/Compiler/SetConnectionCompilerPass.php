@@ -13,6 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
+use function is_string;
 use function sprintf;
 
 /**
@@ -26,7 +27,7 @@ final readonly class SetConnectionCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container): void
     {
         foreach ($container->findTaggedServiceIds(self::TAG) as $id => $tags) {
-            /** @var string $connectionName */
+            /** @var string|array<string, string> $connectionName */
             $connectionName = $tags[0]['connection'] ?? throw new LogicException(sprintf('Service "%s" tagged with "%s" must have a "connection" attribute', $id, self::TAG));
             $definition = $container->getDefinition($id);
 
@@ -46,11 +47,13 @@ final readonly class SetConnectionCompilerPass implements CompilerPassInterface
                 }
 
                 if ($type->getName() === DatabaseConnectionInterface::class) {
+                    $name = is_string($connectionName) ? $connectionName : $connectionName[$parameter->name];
+
                     $definition->setArgument(
                         $pos,
                         (new Definition(DatabaseConnectionInterface::class))
                             ->setFactory([new Reference(DatabaseConnectionManager::class), 'get'])
-                            ->setArgument(0, $connectionName)
+                            ->setArgument(0, $name)
                     );
                 }
             }

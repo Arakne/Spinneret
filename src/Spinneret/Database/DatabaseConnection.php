@@ -4,6 +4,8 @@ namespace Arakne\Spinneret\Database;
 
 use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\DatabaseExceptionFactory;
+use Arakne\Spinneret\Database\Schema\DatabaseSchemaInterface;
+use LogicException;
 use Override;
 use PDO;
 use PDOException;
@@ -94,6 +96,12 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     }
 
     #[Override]
+    public function quote(string $value): string
+    {
+        return $this->internalConnection()->quote($value);
+    }
+
+    #[Override]
     public function internalConnection(): PDO
     {
         if ($this->connection !== null) {
@@ -118,5 +126,15 @@ final class DatabaseConnection implements DatabaseConnectionInterface
 
         $this->connection = null;
         $this->internalConnection();
+    }
+
+    #[Override]
+    public function schema(): DatabaseSchemaInterface
+    {
+        return match ($this->driver()) {
+            'mysql' => new Schema\MySqlSchema($this),
+            'sqlite' => new Schema\SqliteSchema($this),
+            default => throw new LogicException('Unsupported driver: ' . $this->driver()),
+        };
     }
 }

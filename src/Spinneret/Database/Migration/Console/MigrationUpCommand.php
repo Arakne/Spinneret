@@ -26,6 +26,7 @@ final class MigrationUpCommand extends Command
     #[Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        // @todo up force migrations list
         $io = new SymfonyStyle($input, $output);
 
         if ($this->migrationManager->up(fn (string $line, bool $newLine = true) => $output->write($line, $newLine)) === 0) {

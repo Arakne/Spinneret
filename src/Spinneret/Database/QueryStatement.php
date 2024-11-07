@@ -17,6 +17,7 @@ use function is_array;
 use function preg_replace_callback;
 use function str_repeat;
 use function strpos;
+use function var_dump;
 
 /**
  * Implementation of QueryStatementInterface for PDOStatement

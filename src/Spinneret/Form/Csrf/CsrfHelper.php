@@ -55,6 +55,29 @@ final class CsrfHelper
     }
 
     /**
+     * Try to generate the CSRF token for the given request class
+     *
+     * @param class-string $request The request class
+     * @param ServerRequestInterface $psrRequest The server request, use to extract the session token.
+     *
+     * @return string|null
+     */
+    public function getCsrfToken(string $request, ServerRequestInterface $psrRequest): ?string
+    {
+        $properties = ($this->cache[$request] ??= $this->extractCsrfProperties($request));
+
+        foreach ($properties as $name => $csrf) {
+            $token = $csrf->extract($psrRequest, $name);
+
+            if ($token) {
+                return $token->token();
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Create the form for the given request class, and import the CSRF token
      *
      * This method allows to render the form view with the CSRF token before the form is submitted.
@@ -85,10 +108,10 @@ final class CsrfHelper
     }
 
     /**
-     * @param object $request
+     * @param object|class-string $request
      * @return array<string, Csrf>
      */
-    private function extractCsrfProperties(object $request): array
+    private function extractCsrfProperties(object|string $request): array
     {
         $ret = [];
         $r = new ReflectionClass($request);

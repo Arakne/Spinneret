@@ -119,4 +119,22 @@ class ViewTest extends TestCase
         $this->assertSame('Avec traductions', $view->_($translatable));
         $this->assertSame('', $view->_(null));
     }
+
+    #[Test]
+    public function translateAndEscape()
+    {
+        $translator = new Translator('es');
+        $translator->addLoader('php', new PhpFileLoader());
+        $translator->addResource('php', __DIR__ . '/Fixtures/translations/en.php', 'en');
+        $translator->addResource('php', __DIR__ . '/Fixtures/translations/fr.php', 'fr');
+        $translator->addResource('php', __DIR__ . '/Fixtures/translations/es.php', 'es');
+
+        $view = new View(
+            $this->createMock(ViewEngineInterface::class),
+            new stdClass(),
+            translator: $translator,
+        );
+
+        $this->assertSame('&iexcl;Hola &lt;b&gt;XSS&lt;/b&gt;!', $view->e_('Hello {name}!', ['{name}' => '<b>XSS</b>']));
+    }
 }

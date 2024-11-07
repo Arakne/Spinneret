@@ -20,4 +20,9 @@ final readonly class FixedClock implements ClockInterface
 
         return $instance;
     }
+
+    public static function modify(string $value): DateTimeImmutable
+    {
+        return self::instance()->now()->modify($value);
+    }
 }

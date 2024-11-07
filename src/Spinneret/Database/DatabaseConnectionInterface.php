@@ -3,6 +3,9 @@
 namespace Arakne\Spinneret\Database;
 
 use Arakne\Spinneret\Database\Exception\DatabaseExceptionInterface;
+use Arakne\Spinneret\Database\Schema\DatabaseSchemaInterface;
+use LogicException;
+use PDO;
 use UnitEnum;
 
 /**
@@ -86,4 +89,23 @@ interface DatabaseConnectionInterface
      * @throws DatabaseExceptionInterface
      */
     public function reconnect(): void;
+
+    /**
+     * Quote a string for use in a query
+     * Prefer using parameterized queries instead of this method
+     *
+     * @param string $value
+     * @return string
+     *
+     * @see PDO::quote() For more information about the method
+     */
+    public function quote(string $value): string;
+
+    /**
+     * Get the utility object to interact with the database schema
+     * A new instance is created on each call, so keep a reference if you need to call multiple methods.
+     *
+     * @throws LogicException If the schema is not supported by the database driver
+     */
+    public function schema(): DatabaseSchemaInterface;
 }

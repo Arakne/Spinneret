@@ -14,6 +14,7 @@ use Symfony\Component\Translation\PseudoLocalizationTranslator;
 use Symfony\Component\Translation\Translator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_key_first;
 use function class_exists;
 use function str_replace;
 
@@ -112,9 +113,20 @@ final readonly class TranslationModule implements ConfigurableModuleInterface
 
     public static function createTranslator(TranslationConfig $config, Application $application): Translator
     {
-        $translator = new Translator(
-            $config->defaultLocale ?? (class_exists(Locale::class) ? Locale::getDefault() : ($config->availableLocales[0] ?? 'en')),
-        );
+        $defaultLocale = $config->defaultLocale;
+
+        if ($defaultLocale === null) {
+            if (class_exists(Locale::class)) {
+                /** @var string $defaultLocale */
+                $defaultLocale = Locale::getDefault();
+            } else {
+                $key = array_key_first($config->availableLocales);
+
+                $defaultLocale = $key === null ? 'en' : $config->availableLocales[$key];
+            }
+        }
+
+        $translator = new Translator($defaultLocale);
 
         $translator->addLoader('php', new PhpFileLoader());
         $directory = str_replace('%app.project_dir%', $application->projectDir(), $config->translationDir);

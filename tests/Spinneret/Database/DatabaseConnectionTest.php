@@ -8,7 +8,10 @@ use Arakne\Spinneret\Database\Exception\DatabaseConnectionException;
 use Arakne\Spinneret\Database\Exception\DatabaseConnectionLostException;
 use Arakne\Spinneret\Database\Exception\QueryExecutionException;
 use Arakne\Spinneret\Database\Exception\UniqueConstraintViolationException;
+use Arakne\Spinneret\Database\Schema\MySqlSchema;
+use Arakne\Spinneret\Database\Schema\SqliteSchema;
 use Arakne\Spinneret\Logger\Driver\ArrayLogger;
+use LogicException;
 use PDO;
 use PDOException;
 use PHPUnit\Framework\Attributes\Test;
@@ -48,8 +51,8 @@ class DatabaseConnectionTest extends TestCase
         $this->assertSame('test', $this->connection->name());
         $this->assertSame('sqlite', $this->connection->driver());
         $this->assertSame('sqlite', $this->connection->driver());
+        $this->assertInstanceOf(SqliteSchema::class, $this->connection->schema());
     }
-
 
     #[Test]
     public function query()
@@ -313,5 +316,41 @@ class DatabaseConnectionTest extends TestCase
 
         sleep(2);
         $this->assertSame(0, $connection->exec('SELECT 1'));
+    }
+
+    #[Test]
+    public function schemaMysql()
+    {
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'reconnect',
+                'mysql:host='.$_ENV['MYSQL_TEST_HOST'].';dbname='.$_ENV['MYSQL_TEST_DATABASE'],
+                $_ENV['MYSQL_TEST_USER'],
+                $_ENV['MYSQL_TEST_PASSWORD'],
+            )
+        );
+
+        $this->assertInstanceOf(MySqlSchema::class, $connection->schema());
+    }
+
+    #[Test]
+    public function schemaUnsupported()
+    {
+        $this->expectException(LogicException::class);
+
+        $connection = new DatabaseConnection(
+            new ConnectionConfig(
+                'test',
+                'unsupported:',
+            )
+        );
+
+        $connection->schema();
+    }
+
+    #[Test]
+    public function quote()
+    {
+        $this->assertSame("'te`''\" st'", $this->connection->quote('te`\'" st'));
     }
 }

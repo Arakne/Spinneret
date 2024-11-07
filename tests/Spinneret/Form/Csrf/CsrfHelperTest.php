@@ -7,11 +7,14 @@ use Arakne\Spinneret\Form\Csrf\CsrfTokenParameters;
 use Arakne\Spinneret\Security\Serializer\ParsedCookie;
 use Arakne\Tests\Spinneret\Form\Fixtures\BasicCsrfForm;
 use Arakne\Tests\Spinneret\Form\Fixtures\OtherCsrfForm;
+use ArrayObject;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
 use ReflectionProperty;
+
+use function array_keys;
 
 class CsrfHelperTest extends TestCase
 {
@@ -53,6 +56,23 @@ class CsrfHelperTest extends TestCase
 
         $cacheField = new ReflectionProperty(CsrfHelper::class, 'cache');
         $this->assertSame([BasicCsrfForm::class, OtherCsrfForm::class], array_keys($cacheField->getValue($this->helper)));
+    }
+
+    #[Test]
+    public function getCsrfToken()
+    {
+        $psr = new ServerRequest('POST', 'http://localhost/csrf');
+        $psr = $psr->withAttribute(ParsedCookie::class, new ParsedCookie(
+            token: 'a',
+            creation: 0,
+            expiration: 0,
+            version: 1,
+            data: null,
+        ));
+
+        $this->assertSame('ce6ce7356ed5476e1c0a87a0e838fd5c129a664afebf079f88e6056677d751b3', $this->helper->getCsrfToken(BasicCsrfForm::class, $psr));
+        $this->assertSame('6f9ab287c99556813f109ddab1985bed8761bb3b4fc2a57f91d1085927b44626', $this->helper->getCsrfToken(OtherCsrfForm::class, $psr));
+        $this->assertNull($this->helper->getCsrfToken(ArrayObject::class, $psr));
     }
 
     #[Test]

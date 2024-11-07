@@ -42,6 +42,7 @@ final readonly class RequestHeader implements RequestFieldInterface
     #[Override]
     public function compileExtract(string $requestVarName, string $name): string
     {
+        // @todo use getHeader(xxx)[0] instead of getHeaderLine
         return sprintf('%s->getHeaderLine(%s)', $requestVarName, var_export($this->name ?? $name, true));
     }
 

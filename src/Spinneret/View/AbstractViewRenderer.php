@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\View;
 
 use Override;
 
+use function ob_end_clean;
 use function ob_get_clean;
 use function ob_start;
 
@@ -43,7 +44,14 @@ abstract class AbstractViewRenderer implements ViewRendererInterface
     public function render(View $view, object $data): string
     {
         ob_start();
-        $this->display($view, $data);
-        return ob_get_clean();
+
+        try {
+            $this->display($view, $data);
+            return ob_get_clean();
+        } catch (\Throwable $e) {
+            ob_end_clean();
+
+            throw $e;
+        }
     }
 }

@@ -16,5 +16,10 @@ final class MyEntityModule extends AbstractModule
             public: true,
             tags: [SetConnectionCompilerPass::TAG => ['connection' => 'test']],
         );
+        $this->autowire(
+            OtherRepository::class,
+            public: true,
+            tags: [SetConnectionCompilerPass::TAG => ['connection' => ['test' => 'test', 'other' => 'other']]],
+        );
     }
 }
