@@ -19,7 +19,7 @@ interface ViewEngineInterface
      *
      * @return ResponseInterface The PSR-7 response
      */
-    public function response(object $data, ServerRequestInterface $psrRequest = null, ?object $routedRequest = null): ResponseInterface;
+    public function response(object $data, ?ServerRequestInterface $psrRequest = null, ?object $routedRequest = null): ResponseInterface;
 
     /**
      * Render the response object from presenter to a string

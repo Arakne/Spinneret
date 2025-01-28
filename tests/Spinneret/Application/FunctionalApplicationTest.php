@@ -92,7 +92,7 @@ class FunctionalApplicationTest extends TestCase
                 computed: 1655275095,
             ),
             RunnerConfig::class => new RunnerConfig(
-                workerman: new WorkermanConfig(enable: true),
+                workerman: new WorkermanConfig(enable: true, port: 12001),
             )
         ], $this->app->config());
     }

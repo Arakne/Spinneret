@@ -18,7 +18,6 @@ use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
-use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -48,8 +47,7 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
 {
     public function __construct(
         private DatabaseConfig $config = new DatabaseConfig(),
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function withConfiguration(object $configuration): static
@@ -156,4 +154,18 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
             ->setPublic(true)
         ;
     }
+}
+
+/**
+ * Get an inline service for inject a database connection
+ *
+ * @param string|UnitEnum $name The connection name
+ * @return Definition
+ */
+function database_connection(string|UnitEnum $name): Definition
+{
+    return (new Definition(DatabaseConnectionInterface::class))
+        ->setFactory([new Reference(DatabaseConnectionManagerInterface::class), 'get'])
+        ->setArguments([$name])
+    ;
 }

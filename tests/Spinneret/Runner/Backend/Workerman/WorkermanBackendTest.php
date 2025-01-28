@@ -4,6 +4,7 @@ namespace Arakne\Tests\Spinneret\Runner\Backend\Workerman;
 
 use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanBackend;
 use Arakne\Tests\Spinneret\Application\Fixtures\TestApplication;
+use Closure;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -14,17 +15,33 @@ use Workerman\Protocols\Http\Request;
 use Workerman\Protocols\Http\Response;
 use Workerman\Worker;
 
-use function var_dump;
+use function curl_exec;
+use function curl_init;
+use function curl_setopt;
+use function pcntl_fork;
+use function pcntl_waitpid;
+use function sleep;
 
 class WorkermanBackendTest extends TestCase
 {
     private TestApplication $app;
     private WorkermanBackend $backend;
+    private ?int $lastPid = null;
 
     protected function setUp(): void
     {
         $this->app = new TestApplication(isDev: true, env: 'test');
         $this->backend = $this->app->get(WorkermanBackend::class);
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        if ($this->lastPid !== null) {
+            posix_kill($this->lastPid, SIGKILL);
+            $this->lastPid = null;
+        }
     }
 
     #[Test, DoesNotPerformAssertions]
@@ -52,6 +69,42 @@ class WorkermanBackendTest extends TestCase
     }
 
     #[Test]
+    public function startStop()
+    {
+        $this->backend->init();
+        $pid = $this->launchInBackground(fn () => $this->backend->start(true));
+        sleep(1);
+
+        $curl = curl_init('http://127.0.0.1:12001/hello');
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($curl);
+
+        $this->assertEquals(
+            <<<'HTML'
+            <!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Hello</title>
+                </head>
+                <body>
+                    <h1>Hello, World!</h1>
+                </body>
+            </html>
+            HTML,
+            $response
+        );
+
+        $this->launchInBackground(fn () => $this->backend->stop());
+        sleep(1);
+
+        pcntl_waitpid($pid, $status);
+
+        $this->assertFalse(curl_exec($curl));
+        $this->assertSame(0, $status);
+    }
+
+    #[Test]
     public function handle()
     {
         $req = new Request(<<<HTTP
@@ -59,6 +112,7 @@ class WorkermanBackendTest extends TestCase
             Accept: text/html\r
             Host: localhost\r
             \r
+
             HTTP
         );
 
@@ -66,52 +120,53 @@ class WorkermanBackendTest extends TestCase
         {
             public Response $buffer;
 
-            #[\Override] public function send($send_buffer)
+            #[\Override] public function send($send_buffer, bool $raw = false): ?bool
             {
                 $this->buffer = $send_buffer;
+                return null;
             }
 
-            #[\Override] public function getRemoteIp()
+            #[\Override] public function getRemoteIp(): string
             {
                 // TODO: Implement getRemoteIp() method.
             }
 
-            #[\Override] public function getRemotePort()
+            #[\Override] public function getRemotePort(): int
             {
                 // TODO: Implement getRemotePort() method.
             }
 
-            #[\Override] public function getRemoteAddress()
+            #[\Override] public function getRemoteAddress(): string
             {
                 // TODO: Implement getRemoteAddress() method.
             }
 
-            #[\Override] public function getLocalIp()
+            #[\Override] public function getLocalIp(): string
             {
                 // TODO: Implement getLocalIp() method.
             }
 
-            #[\Override] public function getLocalPort()
+            #[\Override] public function getLocalPort(): int
             {
                 // TODO: Implement getLocalPort() method.
             }
 
-            #[\Override] public function getLocalAddress()
+            #[\Override] public function getLocalAddress(): string
             {
                 // TODO: Implement getLocalAddress() method.
             }
 
-            #[\Override] public function isIPv4()
+            #[\Override] public function isIPv4(): bool
             {
                 // TODO: Implement isIPv4() method.
             }
 
-            #[\Override] public function isIPv6()
+            #[\Override] public function isIPv6(): bool
             {
                 // TODO: Implement isIPv6() method.
             }
 
-            #[\Override] public function close($data = null)
+            #[\Override] public function close($data = null, bool $raw = false): void
             {
                 // TODO: Implement close() method.
             }
@@ -134,5 +189,17 @@ class WorkermanBackendTest extends TestCase
             HTML,
             $con->buffer->rawBody()
         );
+    }
+
+    private function launchInBackground(Closure $task): int
+    {
+        $pid = pcntl_fork();
+
+        if ($pid !== 0) {
+            return $this->lastPid = $pid;
+        }
+
+        $task();
+        exit(1);
     }
 }

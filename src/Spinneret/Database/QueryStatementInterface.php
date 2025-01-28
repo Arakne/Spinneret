@@ -161,6 +161,7 @@ interface QueryStatementInterface
      * @return $this
      *
      * @see QueryStatementInterface::pushNull() For appending a parameter at the end
+     * @todo setNullableXXX methods
      */
     public function setNull(int $index): static;
 

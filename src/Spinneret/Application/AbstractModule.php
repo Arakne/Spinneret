@@ -6,6 +6,8 @@ use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\View\ViewRendererInterface;
 use Override;
+use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Parameter;
@@ -71,9 +73,15 @@ abstract class AbstractModule implements ModuleInterface
      *     autowire: bool,
      *     public: bool,
      *     tags: array<array-key, string|array<string, scalar>>,
+     *     aliases: list<class-string>,
      * }>
      */
     private array $services = [];
+
+    /**
+     * @var array<class-string, class-string>
+     */
+    private array $aliases = [];
 
     /**
      * Whether the module has been configured
@@ -124,6 +132,17 @@ abstract class AbstractModule implements ModuleInterface
                     $definition->addTag($attributes);
                 }
             }
+
+            foreach ($arguments['aliases'] as $alias) {
+                $containerBuilder
+                    ->setAlias($alias, $class)
+                    ->setPublic($arguments['public'])
+                ;
+            }
+        }
+
+        foreach ($this->aliases as $alias => $target) {
+            $containerBuilder->setAlias($alias, $target);
         }
 
         $this->configureContainer($containerBuilder);
@@ -241,18 +260,20 @@ abstract class AbstractModule implements ModuleInterface
      * @param bool $autowire Whether the service should be autowired
      * @param bool $public Whether the service should be public
      * @param array<array-key, string|array<string, scalar>> $tags The service tags
+     * @param list<class-string> $aliases The service aliases
      *
      * @return void
      *
      * @see ContainerBuilder::register()
      */
-    final protected function service(string $class, array $parameters = [], bool $autowire = false, bool $public = false, array $tags = []): void
+    final protected function service(string $class, array $parameters = [], bool $autowire = false, bool $public = false, array $tags = [], array $aliases = []): void
     {
         $this->services[$class] = [
             'params' => $parameters,
             'autowire' => $autowire,
             'public' => $public,
             'tags' => $tags,
+            'aliases' => $aliases,
         ];
     }
 
@@ -265,14 +286,28 @@ abstract class AbstractModule implements ModuleInterface
      * @param class-string $class The service class name
      * @param bool $public Whether the service should be public
      * @param array<array-key, string|array<string, scalar>> $tags The service tags
+     * @param list<class-string> $aliases The service aliases
      *
      * @return void
      *
      * @see ContainerBuilder::register()
      */
-    final protected function autowire(string $class, bool $public = false, array $tags = []): void
+    final protected function autowire(string $class, bool $public = false, array $tags = [], array $aliases = []): void
     {
-        $this->service($class, autowire: true, public: $public, tags: $tags);
+        $this->service($class, autowire: true, public: $public, tags: $tags, aliases: $aliases);
+    }
+
+    /**
+     * Define an alias for a service.
+     *
+     * @param class-string $alias The alias name
+     * @param class-string $target The target service name
+     *
+     * @return void
+     */
+    final protected function alias(string $alias, string $target): void
+    {
+        $this->aliases[$alias] = $target;
     }
 
     private function callConfigure(): void
@@ -304,4 +339,26 @@ function service(string $id): Reference
 function service_nullable(string $id): Reference
 {
     return new Reference($id, ContainerInterface::NULL_ON_INVALID_REFERENCE);
+}
+
+/**
+ * Inject to service parameter an iterable of services with a specific tag.
+ *
+ * @param string $tag The tag name
+ * @return TaggedIteratorArgument
+ */
+function tagged_services(string $tag): TaggedIteratorArgument
+{
+    return new TaggedIteratorArgument($tag);
+}
+
+/**
+ * Helper function to create a service resolver closure.
+ *
+ * @param string $id The service identifier
+ * @return ServiceClosureArgument
+ */
+function service_closure(string $id): ServiceClosureArgument
+{
+    return new ServiceClosureArgument(service($id));
 }

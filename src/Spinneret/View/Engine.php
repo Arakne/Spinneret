@@ -2,7 +2,6 @@
 
 namespace Arakne\Spinneret\View;
 
-use Closure;
 use LogicException;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -11,7 +10,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use RuntimeException;
-
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function sprintf;

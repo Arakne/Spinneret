@@ -3,6 +3,7 @@
 namespace Arakne\Spinneret\View;
 
 use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -18,12 +19,14 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * Required services:
  * - {@see ResponseFactoryInterface}
  * - {@see StreamFactoryInterface}
+ * - {@see PresenterDispatcherInterface} (to use forwarder)
  *
  * Required parameters:
  * - spinneret.renderers - Associative array of response class name to view renderer class name (prefer use constant {@see ViewModule::RENDERERS_PARAMETER})
  *
  * Provided services:
  * - {@see ViewEngineInterface} - alias to {@see Engine}
+ * - {@see ForwarderInterface} - alias to {@see DispatcherForwarder}
  */
 final class ViewModule implements ModuleInterface
 {
@@ -43,7 +46,15 @@ final class ViewModule implements ModuleInterface
             ])
         ;
 
+        $containerBuilder->register(DispatcherForwarder::class, DispatcherForwarder::class)
+            ->setArguments([
+                new Reference(PresenterDispatcherInterface::class),
+                new Reference(ViewEngineInterface::class),
+            ])
+        ;
+
         $containerBuilder->setAlias(ViewEngineInterface::class, Engine::class);
+        $containerBuilder->setAlias(ForwarderInterface::class, DispatcherForwarder::class);
     }
 
     #[Override]

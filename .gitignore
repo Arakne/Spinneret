@@ -13,3 +13,4 @@ items.php
 lang.json
 test2.php
 translations/*.missing.php
+.env

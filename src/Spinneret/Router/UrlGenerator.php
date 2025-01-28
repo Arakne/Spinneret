@@ -12,8 +12,7 @@ final readonly class UrlGenerator implements UrlGeneratorInterface
 {
     public function __construct(
         private SfUrlGeneratorInterface $sfUrlGenerator,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function url(string $requestClass, array $parameters = []): string

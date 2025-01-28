@@ -6,15 +6,17 @@ use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Database\Compiler\SetConnectionCompilerPass;
 use Override;
 
+use function Arakne\Spinneret\Database\database_connection;
+
 final class MyEntityModule extends AbstractModule
 {
     #[Override]
     protected function configure(): void
     {
-        $this->autowire(
+        $this->service(
             MyEntityRepository::class,
+            parameters: [database_connection('test')],
             public: true,
-            tags: [SetConnectionCompilerPass::TAG => ['connection' => 'test']],
         );
         $this->autowire(
             OtherRepository::class,

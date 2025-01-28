@@ -9,9 +9,11 @@ use Workerman\Protocols\Http\Request;
 use Workerman\Protocols\Http\Response;
 use Workerman\Worker;
 
+use function error_reporting;
 use function function_exists;
 use function opcache_get_status;
 use function str_replace;
+use function var_dump;
 
 /**
  * Configure and run the Workerman backend
@@ -68,6 +70,7 @@ final class WorkermanBackend
         $workerman->onMessage = $this->handle(...);
 
         $this->worker = $workerman;
+        Worker::$pidFile = $this->application->logDir().'/workerman.pid'; // @todo make it configurable
     }
 
     /**
@@ -75,8 +78,10 @@ final class WorkermanBackend
      *
      * If {@see init()} was not called before, it will be called
      * This method will block the execution
+     *
+     * @param bool $daemon If true, the process will be detached
      */
-    public function start(): void
+    public function start(bool $daemon = false): void
     {
         if ($this->worker === null) {
             $this->init();
@@ -85,7 +90,29 @@ final class WorkermanBackend
         Worker::$logFile = str_replace('%app.log_dir%', $this->application->logDir(), $this->config->logFile);
 
         global $argv;
-        $argv[1] = 'start';
+        $argv = [$argv[0], 'start'];
+
+        if ($daemon) {
+            $argv[] = '-d';
+        }
+
+        Worker::runAll();
+    }
+
+    /**
+     * Stop all Workerman processes
+     *
+     * If {@see init()} was not called before, it will be called
+     * This method will kill all the processes, so no operation should be done after it
+     */
+    public function stop(): void
+    {
+        if ($this->worker === null) {
+            $this->init();
+        }
+
+        global $argv;
+        $argv = [$argv[0], 'stop'];
 
         Worker::runAll();
     }
@@ -104,11 +131,13 @@ final class WorkermanBackend
      */
     public function handle(ConnectionInterface $connection, Request $request): void
     {
+        $uri = $this->config->secure ? 'https' : 'http' . '://' . $request->header('host', '127.0.0.1') . $request->uri();
+
         // PSR interfaces doesn't allow to easily create the server request
         // So use directly the Nyholm implementation
         $psrRequest = new ServerRequest(
             $request->method(),
-            $request->uri(),
+            $uri,
             $request->header(),
             $request->rawBody(),
             $request->protocolVersion()

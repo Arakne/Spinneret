@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Runner\Backend\Workerman;
 
+use Arakne\Spinneret\Router\RouterConfig;
+
 final readonly class WorkermanConfig
 {
     public function __construct(
@@ -28,6 +30,14 @@ final readonly class WorkermanConfig
          * @var positive-int
          */
         public int $port = 8501,
+
+        /**
+         * Does workmerman backend is accessible only via HTTPS ?
+         *
+         * This parameter is used to generate the request URI scheme.
+         * It should be true if scheme defined on {@see RouterConfig::$baseUrl} is "https".
+         */
+        public bool $secure = false,
 
         /**
          * The number of processes to run

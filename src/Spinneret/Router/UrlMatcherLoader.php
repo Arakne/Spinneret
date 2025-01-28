@@ -20,8 +20,7 @@ final readonly class UrlMatcherLoader implements UrlMatcherLoaderInterface
         private RouteCollectionLoaderInterface $routesLoader,
         private RequestContext $requestContext,
         private ?UrlMatcherCompilerInterface $compiler = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function load(Application $application): UrlMatcherInterface

@@ -5,6 +5,7 @@ namespace Arakne\Tests\Spinneret\Application;
 use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Router\Field\FieldsExtractor;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Tests\Spinneret\Application\Fixtures\Aggr;
 use Arakne\Tests\Spinneret\Application\Fixtures\Bar;
 use Arakne\Tests\Spinneret\Application\Fixtures\Baz;
 use Arakne\Tests\Spinneret\Application\Fixtures\Foo;
@@ -12,13 +13,18 @@ use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloPresenter;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRenderer;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRequest;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloResponse;
+use Arakne\Tests\Spinneret\Application\Fixtures\LazyContainer;
 use Arakne\Tests\Spinneret\Util\Fixtures\A\B;
+use ArrayObject;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 use function Arakne\Spinneret\Application\service;
+use function Arakne\Spinneret\Application\service_closure;
+use function Arakne\Spinneret\Application\tagged_services;
+use function var_dump;
 
 class AbstractModuleTest extends TestCase
 {
@@ -164,5 +170,76 @@ class AbstractModuleTest extends TestCase
 
         $module->register($container);
         $this->assertSame($container->get(Foo::class), $container->get(Bar::class)->foo);
+    }
+
+    #[Test]
+    public function alias()
+    {
+        $module = new class extends AbstractModule {
+            #[Override]
+            protected function configure(): void
+            {
+                $this->service(Foo::class, ['Hello'], aliases: ['alias1']);
+                $this->alias('alias2', Foo::class);
+                $this->autowire(Baz::class, aliases: ['alias3']);
+            }
+        };
+
+        $container = new ContainerBuilder();
+
+        $module->register($container);
+
+        $this->assertInstanceOf(Foo::class, $container->get('alias1'));
+        $this->assertInstanceOf(Baz::class, $container->get('alias3'));
+        $this->assertSame($container->get(Foo::class), $container->get('alias1'));
+        $this->assertSame($container->get('alias1'), $container->get('alias2'));
+        $this->assertSame($container->get(Baz::class), $container->get('alias3'));
+    }
+
+    #[Test]
+    public function tagged_services()
+    {
+        $module = new class extends AbstractModule {
+            #[Override]
+            protected function configure(): void
+            {
+                $this->service(Foo::class, ['Hello'], public: true, tags: ['a']);
+                $this->service(Baz::class, public: true, tags: ['a']);
+                $this->service(Aggr::class, parameters: [tagged_services('a')], public: true);
+            }
+        };
+
+        $container = new ContainerBuilder();
+
+        $module->register($container);
+        $container->compile();
+
+        $this->assertInstanceOf(Aggr::class, $container->get(Aggr::class));
+        $this->assertSame([
+            $container->get(Foo::class),
+            $container->get(Baz::class),
+        ], $container->get(Aggr::class)->services);
+    }
+
+    #[Test]
+    public function service_closure()
+    {
+
+        $module = new class extends AbstractModule {
+            #[Override]
+            protected function configure(): void
+            {
+                $this->service(Foo::class, ['Hello'], public: true);
+                $this->service(LazyContainer::class, parameters: [service_closure(Foo::class)], public: true);
+            }
+        };
+
+        $container = new ContainerBuilder();
+
+        $module->register($container);
+        $container->compile();
+
+        $this->assertInstanceOf(LazyContainer::class, $container->get(LazyContainer::class));
+        $this->assertSame($container->get(Foo::class), ($container->get(LazyContainer::class)->ref)());
     }
 }

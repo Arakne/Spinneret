@@ -25,6 +25,7 @@ final class WorkermanStartCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $io->info('Starting Workerman server');
 
         if (!$this->backend->checkJit()) {
             $io->warning('JIT is not enabled, consider enabling it for better performance');
