@@ -59,6 +59,5 @@ final readonly class RoutedRequest
          * @var SubmittedFormInterface|null
          */
         public ?SubmittedFormInterface $form = null,
-    ) {
-    }
+    ) {}
 }

@@ -34,8 +34,7 @@ final readonly class Router implements RouterInterface
     public function __construct(
         private UrlMatcherInterface $matcher,
         private FormFactoryInterface $formFactory,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function request(ServerRequestInterface $request): RoutedRequest

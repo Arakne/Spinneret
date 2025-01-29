@@ -41,10 +41,7 @@ final class PresenterModule implements ModuleInterface
     }
 
     #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-
-    }
+    public function configureRoutes(RouteCollectionBuilder $builder): void {}
 
     #[Override]
     public function presenters(): array

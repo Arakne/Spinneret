@@ -17,8 +17,7 @@ final readonly class FormFactoryLoader
 {
     public function __construct(
         private RegistryInterface $registry,
-    ) {
-    }
+    ) {}
 
     public function load(Application $application): FormFactoryInterface
     {

@@ -30,8 +30,7 @@ final readonly class FieldsExtractor implements FieldsExtractorInterface
          * @var class-string
          */
         private string $requestClassName,
-    ) {
-    }
+    ) {}
 
     /**
      * Extract fields from the request

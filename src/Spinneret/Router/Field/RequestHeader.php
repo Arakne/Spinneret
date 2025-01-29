@@ -24,8 +24,7 @@ final readonly class RequestHeader implements RequestFieldInterface
          * If not provided, the property name is used.
          */
         private ?string $name = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function extract(ServerRequestInterface $request, string $name): string

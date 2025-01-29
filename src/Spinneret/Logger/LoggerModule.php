@@ -25,8 +25,7 @@ final readonly class LoggerModule implements ConfigurableModuleInterface
 {
     public function __construct(
         private LoggerConfiguration $configuration = new LoggerConfiguration(),
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function withConfiguration(object $configuration): static

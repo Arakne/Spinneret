@@ -24,8 +24,7 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
          * The save directory path, relative to the cache directory
          */
         private string $savePath = '',
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function load(Application $application): ?ContainerInterface

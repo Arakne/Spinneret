@@ -19,8 +19,7 @@ final readonly class HttpdBackend
     public function __construct(
         private Application $application,
         private ServerRequestCreatorInterface $serverRequestCreator,
-    ) {
-    }
+    ) {}
 
     /**
      * Run the HTTP request and send the response.

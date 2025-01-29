@@ -7,6 +7,4 @@ use Throwable;
 /**
  * Base exception type for value objects.
  */
-interface ValueObjectException extends Throwable
-{
-}
+interface ValueObjectException extends Throwable {}

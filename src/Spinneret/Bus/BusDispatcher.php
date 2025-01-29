@@ -35,8 +35,7 @@ final readonly class BusDispatcher implements BusDispatcherInterface
          * - when an error occurs on dispatch method, with the message class, the handler class and the exception, in error level
          */
         private ?LoggerInterface $logger = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function dispatch(object $message): void

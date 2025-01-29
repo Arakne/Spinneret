@@ -14,8 +14,7 @@ final readonly class CsrfTokenParameters
         private ?string $key,
         private ?string $secret,
         private ?string $input,
-    ) {
-    }
+    ) {}
 
     public function token(): ?string
     {

@@ -25,8 +25,7 @@ final class WorkermanBackend
     public function __construct(
         private readonly Application $application,
         private readonly WorkermanConfig $config,
-    ) {
-    }
+    ) {}
 
     /**
      * Check if the JIT is actually enabled

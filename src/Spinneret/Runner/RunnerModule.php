@@ -50,8 +50,7 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
 {
     public function __construct(
         private RunnerConfig $config = new RunnerConfig(),
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function withConfiguration(object $configuration): static

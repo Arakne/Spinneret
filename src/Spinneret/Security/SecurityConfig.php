@@ -88,8 +88,7 @@ final readonly class SecurityConfig
          * The name of the request attribute where the user data will be stored.
          */
         public string $userAttribute = 'user',
-    ) {
-    }
+    ) {}
 
     // @todo debug info pour cacher le secret
 }

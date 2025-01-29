@@ -25,6 +25,5 @@ final readonly class MethodNotAllowed
          * @var list<string>
          */
         public array $allowedMethods,
-    ) {
-    }
+    ) {}
 }

@@ -39,8 +39,7 @@ final readonly class TranslationModule implements ConfigurableModuleInterface
 {
     public function __construct(
         private TranslationConfig $config = new TranslationConfig(),
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void

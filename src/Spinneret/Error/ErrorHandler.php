@@ -46,8 +46,7 @@ final class ErrorHandler
     public function __construct(
         private readonly ErrorConfiguration $configuration,
         private readonly ?LoggerInterface $logger,
-    ) {
-    }
+    ) {}
 
     /**
      * Register the error handler and exception handler callbacks.

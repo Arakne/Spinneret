@@ -17,8 +17,7 @@ final readonly class UrlGeneratorLoader implements UrlGeneratorLoaderInterface
         private RouteCollectionLoaderInterface $routesLoader,
         private RequestContext $requestContext,
         private ?UrlGeneratorCompilerInterface $compiler = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function load(Application $application): UrlGeneratorInterface

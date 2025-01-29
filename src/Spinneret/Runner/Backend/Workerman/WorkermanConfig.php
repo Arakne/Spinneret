@@ -55,6 +55,5 @@ final readonly class WorkermanConfig
          * Use "%app.log_dir%" to refer to the log directory.
          */
         public string $logFile = '%app.log_dir%/workerman.log',
-    ) {
-    }
+    ) {}
 }

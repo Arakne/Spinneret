@@ -23,8 +23,7 @@ final class DatabaseConnectionManager implements DatabaseConnectionManagerInterf
     public function __construct(
         private readonly DatabaseConfig $config,
         private readonly ?LoggerInterface $logger = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function get(string|UnitEnum $name): DatabaseConnection

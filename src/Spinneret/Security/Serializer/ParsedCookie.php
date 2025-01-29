@@ -41,6 +41,5 @@ final readonly class ParsedCookie
          * Can be null in case of anonymous user.
          */
         public ?object $data,
-    ) {
-    }
+    ) {}
 }

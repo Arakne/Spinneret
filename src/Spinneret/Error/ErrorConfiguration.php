@@ -23,8 +23,7 @@ final readonly class ErrorConfiguration
          * If an error is not in this mask, the default PHP error handler will be used.
          */
         public int $convertErrorsToExceptions = E_ALL,
-    ) {
-    }
+    ) {}
 
     /**
      * Check if the given error severity is ignored by the error handler.

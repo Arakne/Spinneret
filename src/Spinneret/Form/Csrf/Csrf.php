@@ -82,8 +82,7 @@ final readonly class Csrf implements RequestFieldInterface, ConstraintInterface,
          * If the attribute is not found or the attribute is not an instance of `ParsedCookie`, the CSRF token will be invalid.
          */
         private string $parsedCookieAttribute = ParsedCookie::class,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function extract(ServerRequestInterface $request, string $name): ?CsrfTokenParameters

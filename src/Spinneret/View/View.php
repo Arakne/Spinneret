@@ -57,11 +57,9 @@ final class View
          * The request object parsed by the router
          */
         public readonly ?object $routedRequest = null,
-
         public readonly ?TranslatorInterface $translator = null,
         public readonly ?string $locale = null,
-    ) {
-    }
+    ) {}
 
     /**
      * Define the parent view (i.e. layout)

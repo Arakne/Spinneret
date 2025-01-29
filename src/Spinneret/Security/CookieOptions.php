@@ -60,8 +60,7 @@ final readonly class CookieOptions
          * If null, the cookie will be deleted when the browser is closed.
          */
         public ?int $maxAge = null,
-    ) {
-    }
+    ) {}
 
     /**
      * Create the cookie string with the given value

@@ -73,6 +73,5 @@ final readonly class LogChannel
          * @var (Closure(mixed, string|\Stringable, array):bool)|null
          */
         public ?Closure $filter = null,
-    ) {
-    }
+    ) {}
 }

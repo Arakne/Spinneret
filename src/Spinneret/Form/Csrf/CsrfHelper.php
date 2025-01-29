@@ -25,8 +25,7 @@ final class CsrfHelper
 
     public function __construct(
         private readonly FormFactoryInterface $formFactory,
-    ) {
-    }
+    ) {}
 
     /**
      * Inject the CSRF token to the request object

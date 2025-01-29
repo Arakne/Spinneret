@@ -52,8 +52,7 @@ final readonly class LoggerFilter
          * @var (Closure(mixed, Stringable|string, array):bool)|null
          */
         public ?Closure $filter = null,
-    ) {
-    }
+    ) {}
 
     /**
      * Check if the log should be dispatched

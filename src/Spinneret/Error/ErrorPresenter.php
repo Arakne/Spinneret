@@ -19,8 +19,7 @@ final readonly class ErrorPresenter implements PresenterInterface
 {
     public function __construct(
         private ?LoggerInterface $logger = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function handleSuccess(object $request, RoutedRequest $routedRequest): object

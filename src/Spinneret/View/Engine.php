@@ -40,8 +40,7 @@ final readonly class Engine implements ViewEngineInterface
          * @var array<class-string, class-string<ViewRendererInterface|ResponseConfiguratorInterface>>
          */
         private array $renderers,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function response(object $data, ?ServerRequestInterface $psrRequest = null, ?object $routedRequest = null): ResponseInterface

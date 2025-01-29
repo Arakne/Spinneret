@@ -18,8 +18,7 @@ final class InternalServerErrorRenderer extends AbstractViewRenderer implements 
 {
     public function __construct(
         private readonly Application $application,
-    ) {
-    }
+    ) {}
 
     /**
      * @psalm-suppress ForbiddenCode

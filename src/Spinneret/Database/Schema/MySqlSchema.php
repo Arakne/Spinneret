@@ -14,8 +14,7 @@ final readonly class MySqlSchema implements DatabaseSchemaInterface
 {
     public function __construct(
         private DatabaseConnectionInterface $connection,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function hasIndex(string $table, string $index): bool

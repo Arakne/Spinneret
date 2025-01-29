@@ -28,8 +28,7 @@ final readonly class PresenterDispatcher implements PresenterDispatcherInterface
          * @var array<class-string, class-string<PresenterInterface>>
          */
         private array $presenters,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function dispatch(RoutedRequest $routedRequest): object

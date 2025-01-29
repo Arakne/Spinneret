@@ -44,6 +44,5 @@ final readonly class ConnectionConfig
          * Whether to automatically reconnect to the database if the connection is lost
          */
         public bool $autoReconnect = true,
-    ) {
-    }
+    ) {}
 }

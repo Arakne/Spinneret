@@ -43,8 +43,7 @@ final readonly class RouterModule implements ConfigurableModuleInterface
 {
     public function __construct(
         private RouterConfig $config = new RouterConfig(),
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function withConfiguration(object $configuration): static

@@ -13,8 +13,7 @@ final readonly class RegisterMiddlewareCompilerPass implements CompilerPassInter
 {
     public function __construct(
         private string $target = Runner::class,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function process(ContainerBuilder $container): void

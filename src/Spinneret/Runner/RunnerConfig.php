@@ -15,8 +15,7 @@ final readonly class RunnerConfig
          */
         public bool $httpd = true,
         public WorkermanConfig $workerman = new WorkermanConfig(),
-    ) {
-    }
+    ) {}
 
     public function workerman(): WorkermanConfig
     {

@@ -66,8 +66,7 @@ final class QueryStatement implements QueryStatementInterface
          */
         private ?bool $dynamic = null,
         private ?LoggerInterface $logger = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function pushInt(int $value): static

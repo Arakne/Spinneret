@@ -29,8 +29,7 @@ final readonly class UrlMatcherCompiler implements UrlMatcherCompilerInterface
 {
     public function __construct(
         private string $targetFile = 'compiled_routes.php',
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function load(Application $application, RequestContext $context): ?UrlMatcherInterface

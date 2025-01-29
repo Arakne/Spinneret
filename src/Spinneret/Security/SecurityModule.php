@@ -35,8 +35,7 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
 {
     public function __construct(
         private SecurityConfig $configuration = new SecurityConfig(),
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function withConfiguration(object $configuration): static

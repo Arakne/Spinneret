@@ -24,8 +24,7 @@ final readonly class UrlGeneratorCompiler implements UrlGeneratorCompilerInterfa
 {
     public function __construct(
         private string $targetFile = 'url_generator_routes.php',
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function load(Application $application, RequestContext $context): ?UrlGeneratorInterface

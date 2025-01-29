@@ -191,9 +191,7 @@ final readonly class Runner implements RunnerInterface
             /**
              * @param Closure(ServerRequestInterface):ResponseInterface $handler
              */
-            public function __construct(private Closure $handler)
-            {
-            }
+            public function __construct(private Closure $handler) {}
 
             #[Override]
             public function handle(ServerRequestInterface $request): ResponseInterface
@@ -208,8 +206,7 @@ final readonly class Runner implements RunnerInterface
                     private MiddlewareInterface $middleware,
                     private RequestHandlerInterface $next,
                     private ?LoggerInterface $logger,
-                ) {
-                }
+                ) {}
 
                 #[Override]
                 public function handle(ServerRequestInterface $request): ResponseInterface

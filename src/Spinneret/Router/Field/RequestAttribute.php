@@ -31,8 +31,7 @@ final readonly class RequestAttribute implements RequestFieldInterface
          * Defining this value when using the attribute on the class will have no effect.
          */
         private ?string $name = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function extract(ServerRequestInterface $request, string $name): mixed

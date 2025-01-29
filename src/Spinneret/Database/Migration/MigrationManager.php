@@ -32,8 +32,7 @@ final readonly class MigrationManager
          */
         private Closure $migrationsResolver,
         private ?LoggerInterface $logger = null,
-    ) {
-    }
+    ) {}
 
     /**
      * List all migrations (applied or not)

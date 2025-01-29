@@ -36,8 +36,7 @@ final class CollectorTranslator implements TranslatorInterface
          * Takes a single placeholder `{locale}` that will be replaced by the locale.
          */
         private readonly string $outputFile,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string

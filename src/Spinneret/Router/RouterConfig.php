@@ -6,6 +6,5 @@ final readonly class RouterConfig
 {
     public function __construct(
         public ?string $baseUrl = null,
-    ) {
-    }
+    ) {}
 }

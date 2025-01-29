@@ -18,6 +18,5 @@ final readonly class NotFound
          * The error message to display
          */
         public ?string $message = null,
-    ) {
-    }
+    ) {}
 }

@@ -36,8 +36,7 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
          * Name of the cache file
          */
         private string $cacheFile = 'config.php',
-    ) {
-    }
+    ) {}
 
     /**
      * @psalm-suppress InvalidReturnStatement

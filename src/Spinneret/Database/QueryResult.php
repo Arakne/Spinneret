@@ -13,8 +13,7 @@ final readonly class QueryResult implements QueryResultInterface
 {
     public function __construct(
         private PDOStatement $statement
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function asAssociativeArray(): array

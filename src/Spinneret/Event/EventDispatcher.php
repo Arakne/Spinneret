@@ -5,7 +5,6 @@ namespace Arakne\Spinneret\Event;
 use Override;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-
 use Throwable;
 
 use function get_debug_type;
@@ -32,10 +31,8 @@ final class EventDispatcher implements EventDispatcherInterface
          * @var array<class-string, list<string>>
          */
         private readonly array $listeners,
-
         private readonly ?LoggerInterface $logger = null
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function dispatch(object $event): void

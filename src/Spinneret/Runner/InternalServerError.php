@@ -44,6 +44,5 @@ final readonly class InternalServerError
          * This value is set only when the error occurs on the view rendering
          */
         public ?object $response = null,
-    ) {
-    }
+    ) {}
 }

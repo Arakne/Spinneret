@@ -36,8 +36,7 @@ final readonly class LoadSessionMiddleware implements MiddlewareInterface
          * The request attribute name where the user data will be stored.
          */
         private string $attributeName = 'user',
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
