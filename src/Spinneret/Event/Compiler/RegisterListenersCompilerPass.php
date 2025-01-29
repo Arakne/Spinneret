@@ -26,6 +26,7 @@ final readonly class RegisterListenersCompilerPass implements CompilerPassInterf
     public function process(ContainerBuilder $container): void
     {
         $definition = $container->getDefinition(EventDispatcher::class);
+        /** @var array<string, list<string>> $listeners */
         $listeners = $definition->getArgument(1);
 
         foreach ($container->findTaggedServiceIds(self::TAG) as $id => $tags) {

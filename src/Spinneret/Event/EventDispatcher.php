@@ -81,9 +81,11 @@ final class EventDispatcher implements EventDispatcherInterface
         $listeners = [];
 
         foreach ($this->listeners[$eventClass] ?? [] as $listener) {
+            /** @var callable(E):void */
             $listeners[] = $this->container->get($listener);
         }
 
+        /** @var list<callable(E):void> $listeners */
         return $this->loadedListeners[$eventClass] = $listeners;
     }
 }

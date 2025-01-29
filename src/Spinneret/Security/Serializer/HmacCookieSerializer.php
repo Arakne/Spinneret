@@ -137,6 +137,9 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
         );
     }
 
+    /**
+     * @psalm-suppress PossiblyFalseArgument
+     */
     #[Override]
     public function toString(ParsedCookie $cookie): string
     {
@@ -154,6 +157,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
             $data = gzdeflate($data);
         }
 
+        /** @var string $signature Cannot be null since PHP 8.0 */
         $signature = hash_hmac($this->algorithm, $data, $this->secret, true);
 
         return self::base64UrlEncode($data) . '.' . self::base64UrlEncode($signature);

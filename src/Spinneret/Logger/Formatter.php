@@ -56,7 +56,7 @@ final readonly class Formatter
             }
         }
 
-        $contextString = $context ? ' ' . json_encode($context) : '';
+        $contextString = $context ? ' ' . (string) json_encode($context) : '';
 
         return $formatted . $message . $contextString;
     }

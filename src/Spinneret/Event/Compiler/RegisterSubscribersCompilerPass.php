@@ -28,6 +28,8 @@ final readonly class RegisterSubscribersCompilerPass implements CompilerPassInte
     public function process(ContainerBuilder $container): void
     {
         $definition = $container->getDefinition(EventDispatcher::class);
+
+        /** @var array<string, list<string>> $listeners */
         $listeners = $definition->getArgument(1);
 
         foreach ($container->findTaggedServiceIds(EventSubscriberInterface::class) as $id => $tags) {

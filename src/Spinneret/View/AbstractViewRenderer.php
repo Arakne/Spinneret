@@ -47,11 +47,18 @@ abstract class AbstractViewRenderer implements ViewRendererInterface
 
         try {
             $this->display($view, $data);
-            return ob_get_clean();
+
+            $content = ob_get_clean();
         } catch (\Throwable $e) {
             ob_end_clean();
 
             throw $e;
         }
+
+        if ($content === false) {
+            throw new \RuntimeException('The output buffer has been closed unexpectedly.');
+        }
+
+        return $content;
     }
 }
