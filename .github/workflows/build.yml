@@ -17,7 +17,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                php-versions: ['8.3']
+                php-versions: ['8.4']
         name: PHP ${{ matrix.php-versions }}
 
         steps:
@@ -77,7 +77,7 @@ jobs:
             - name: Install PHP
               uses: shivammathur/setup-php@v2
               with:
-                  php-version: 8.3
+                  php-version: 8.4
                   extensions: json
                   ini-values: date.timezone=Europe/Paris
 
@@ -105,7 +105,7 @@ jobs:
               run: ./vendor/bin/psalm --shepherd --no-cache --output-format=github
 
             - name: Run checkstyle
-              run: ./vendor/bin/php-cs-fixer check --diff
+              run: PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer check --diff
 
             - name: Wait for MySQL
               run: |
