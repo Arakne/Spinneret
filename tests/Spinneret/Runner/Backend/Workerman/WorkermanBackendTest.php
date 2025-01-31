@@ -73,11 +73,18 @@ class WorkermanBackendTest extends TestCase
     {
         $this->backend->init();
         $pid = $this->launchInBackground(fn () => $this->backend->start(true));
-        sleep(1);
 
         $curl = curl_init('http://127.0.0.1:12001/hello');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($curl);
+
+        for ($i = 0; $i < 100; ++$i) {
+            usleep(100000);
+            $response = curl_exec($curl);
+
+            if ($response !== false) {
+                break;
+            }
+        }
 
         $this->assertEquals(
             <<<'HTML'
