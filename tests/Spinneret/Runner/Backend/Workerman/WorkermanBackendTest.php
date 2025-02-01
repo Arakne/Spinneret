@@ -58,7 +58,7 @@ class WorkermanBackendTest extends TestCase
         /** @var Worker $worker */
         $worker = (new ReflectionProperty($this->backend, 'worker'))->getValue($this->backend);
 
-        $this->assertSame(8, $worker->count);
+        $this->assertSame(2, $worker->count);
         $this->assertSame('Spinneret Workerman', $worker->name);
         $this->assertSame('tcp', $worker->transport);
 

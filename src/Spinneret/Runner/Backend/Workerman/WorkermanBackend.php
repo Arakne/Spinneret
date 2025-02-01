@@ -67,6 +67,7 @@ final class WorkermanBackend
         $workerman->count = $config->processes;
         $workerman->name = $config->name;
         $workerman->onMessage = $this->handle(...);
+        $workerman->reusePort = true;
 
         $this->worker = $workerman;
         Worker::$pidFile = $this->application->logDir().'/workerman.pid'; // @todo make it configurable
