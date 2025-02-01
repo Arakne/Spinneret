@@ -6,6 +6,7 @@ use Arakne\Spinneret\Runner\RunnerConfig;
 return new RunnerConfig(
     workerman: new WorkermanConfig(
         enable: true,
-        port: 12001,
+        host: '127.0.0.1',
+        port: 5123,
     ),
 );

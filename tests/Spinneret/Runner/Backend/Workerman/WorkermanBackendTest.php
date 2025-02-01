@@ -74,7 +74,7 @@ class WorkermanBackendTest extends TestCase
         $this->backend->init();
         $pid = $this->launchInBackground(fn () => $this->backend->start(true));
 
-        $curl = curl_init('http://127.0.0.1:12001/hello');
+        $curl = curl_init('http://127.0.0.1:5123/hello');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
         for ($i = 0; $i < 100; ++$i) {
