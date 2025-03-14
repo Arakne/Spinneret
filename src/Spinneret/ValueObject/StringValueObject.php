@@ -16,6 +16,7 @@ use function is_string;
  * @implements ValueObjectInterface<string>
  * @psalm-immutable
  * @psalm-consistent-constructor
+ * @api
  */
 readonly class StringValueObject implements ValueObjectInterface, JsonSerializable
 {

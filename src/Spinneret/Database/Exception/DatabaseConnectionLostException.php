@@ -11,7 +11,7 @@ use UnitEnum;
  * Exception thrown when the database connection is lost
  * The connection should be re-established before continuing
  */
-class DatabaseConnectionLostException extends RuntimeException implements DatabaseExceptionInterface
+final class DatabaseConnectionLostException extends RuntimeException implements DatabaseExceptionInterface
 {
     public function __construct(
         public readonly string|UnitEnum $connection,

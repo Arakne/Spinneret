@@ -16,6 +16,7 @@ use function is_int;
  * @implements ValueObjectInterface<int>
  * @psalm-immutable
  * @psalm-consistent-constructor
+ * @api
  */
 readonly class IntegerValueObject implements ValueObjectInterface, JsonSerializable
 {

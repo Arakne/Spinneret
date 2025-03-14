@@ -74,8 +74,8 @@ final readonly class MigrationManager
             $migration->up($this->connectionManager, $output);
             $this->repository->markAsApplied($migration);
 
-            $time = round((microtime(true) - $start) * 1000, 2);
-            $output("Migration {$migration->name()} applied in " . $time . 'ms', true);
+            $time = round((microtime(true) - $start) * 1000.0, 2);
+            $output("Migration {$migration->name()} applied in {$time}ms", true);
             $this->logger?->info('Migration {{ migration }} applied in {{ time }} ms', [
                 'migration' => $migration->name(),
                 'time' => $time,
@@ -117,8 +117,8 @@ final readonly class MigrationManager
             $migration->down($this->connectionManager, $output);
             $this->repository->remove($migration);
 
-            $time = round((microtime(true) - $start) * 1000, 2);
-            $output("Migration {$migration->name()} rolled back in " . $time . 'ms', true);
+            $time = round((microtime(true) - $start) * 1000.0, 2);
+            $output("Migration {$migration->name()} rolled back in {$time}ms", true);
             $this->logger?->info('Migration {{ migration }} rolled back in {{ time }} ms', [
                 'migration' => $migration->name(),
                 'time' => $time,
@@ -159,8 +159,8 @@ final readonly class MigrationManager
             $migration->down($this->connectionManager, $output);
             $this->repository->remove($migration);
 
-            $time = round((microtime(true) - $start) * 1000, 2);
-            $output("Migration {$migration->name()} rolled back in " . $time . 'ms', true);
+            $time = round((microtime(true) - $start) * 1000.0, 2);
+            $output("Migration {$migration->name()} rolled back in {$time}ms", true);
             $this->logger?->info('Migration {{ migration }} rolled back in {{ time }} ms', [
                 'migration' => $migration->name(),
                 'time' => $time,

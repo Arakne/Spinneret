@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Router\Field;
 
+use Override;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -38,6 +39,7 @@ final readonly class FieldsExtractor implements FieldsExtractorInterface
      * @param ServerRequestInterface $request
      * @return array<string, mixed>
      */
+    #[Override]
     public function __invoke(ServerRequestInterface $request): array
     {
         $extractors = $this->fieldsExtractors($request->getMethod());

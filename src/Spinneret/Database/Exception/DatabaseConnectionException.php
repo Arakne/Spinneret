@@ -10,7 +10,7 @@ use UnitEnum;
 /**
  * An error has occurs during the database connection
  */
-class DatabaseConnectionException extends RuntimeException implements DatabaseExceptionInterface
+final class DatabaseConnectionException extends RuntimeException implements DatabaseExceptionInterface
 {
     public function __construct(
         public readonly string|UnitEnum $connection,

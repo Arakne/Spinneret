@@ -9,6 +9,8 @@ use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
 /**
  * Base application wrapper for the console.
+ *
+ * @api
  */
 class Console extends ConsoleApplication
 {

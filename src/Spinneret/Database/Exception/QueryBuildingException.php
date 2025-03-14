@@ -13,7 +13,7 @@ use UnitEnum;
  * When this exception is thrown, it means that the query could not be built, so it's not executed.
  * This means that the error results from invalid code, and can only be fixed by changing the code.
  */
-class QueryBuildingException extends LogicException implements DatabaseExceptionInterface
+final class QueryBuildingException extends LogicException implements DatabaseExceptionInterface
 {
     public function __construct(
         public readonly string|UnitEnum $connection,

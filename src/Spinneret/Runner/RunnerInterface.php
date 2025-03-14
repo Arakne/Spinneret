@@ -3,6 +3,7 @@
 namespace Arakne\Spinneret\Runner;
 
 use Arakne\Spinneret\Router\RoutedRequest;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -28,6 +29,7 @@ interface RunnerInterface extends RequestHandlerInterface
      *
      * @return ResponseInterface
      */
+    #[Override]
     public function handle(ServerRequestInterface $request): ResponseInterface;
 
     /**

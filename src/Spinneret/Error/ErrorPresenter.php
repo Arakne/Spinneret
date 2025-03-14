@@ -31,7 +31,7 @@ final readonly class ErrorPresenter implements PresenterInterface
     public function handleError(object $request, RoutedRequest $routedRequest): object
     {
         $this->logger?->error(
-            'Uncaught exception : ' . $request->error,
+            'Uncaught exception : ' . (string) $request->error,
             (array) $request,
         );
 

@@ -48,7 +48,7 @@ final readonly class ContextLogger implements LoggerInterface
     public function log($level, \Stringable|string $message, array $context = []): void
     {
         if ($this->marker !== null) {
-            $message = $this->marker . ' ' . $message;
+            $message = $this->marker . ' ' . (string) $message;
         }
 
         $context += $this->context;

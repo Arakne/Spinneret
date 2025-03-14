@@ -8,7 +8,7 @@ use UnitEnum;
 /**
  * Exception thrown when a unique constraint violation occurs (e.g. insert with duplicate key)
  */
-class UniqueConstraintViolationException extends QueryExecutionException
+final class UniqueConstraintViolationException extends QueryExecutionException
 {
     public function __construct(
         /**

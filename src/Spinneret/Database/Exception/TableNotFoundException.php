@@ -8,7 +8,7 @@ use UnitEnum;
 /**
  * Exception thrown when querying a table that does not exist
  */
-class TableNotFoundException extends QueryExecutionException
+final class TableNotFoundException extends QueryExecutionException
 {
     public function __construct(
         /**

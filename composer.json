@@ -40,7 +40,10 @@
     "psr-4": {
       "Arakne\\": "src/"
     },
-    "files": ["src/Spinneret/View/helpers.php"]
+    "files": [
+      "src/Spinneret/View/helpers.php",
+      "src/Spinneret/Application/functions.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
