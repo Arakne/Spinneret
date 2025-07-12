@@ -29,6 +29,11 @@ use function strtr;
  */
 final readonly class HmacCookieSerializer implements CookieSerializerInterface
 {
+    /**
+     * Maximum length of the uncompressed data.
+     */
+    private const int MAX_DATA_LENGTH = 1_000_000;
+
     private ClockInterface $clock;
 
     public function __construct(
@@ -98,7 +103,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
         }
 
         if ($this->compress) {
-            if (($data = @gzinflate($data)) === false) {
+            if (($data = @gzinflate($data, self::MAX_DATA_LENGTH)) === false) {
                 return null;
             }
         }
@@ -108,6 +113,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
 
         if (
             !is_array($data)
+            || count($data) !== 5
             || !isset($data['t'], $data['c'], $data['e'], $data['v'])
             || !array_key_exists('d', $data)
             || !is_string($data['t'])
@@ -117,6 +123,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
             || $data['v'] !== $this->version
             || ($data['d'] !== null && !is_array($data['d']))
         ) {
+            // @todo log invalid cookie format - this may indicate a secret leak
             return null;
         }
 

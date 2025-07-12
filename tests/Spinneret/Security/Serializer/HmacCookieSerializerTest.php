@@ -9,6 +9,8 @@ use Arakne\Tests\Spinneret\Stub\FixedClock;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function str_repeat;
+
 class HmacCookieSerializerTest extends TestCase
 {
     private HmacCookieSerializer $serializer;
@@ -210,6 +212,14 @@ class HmacCookieSerializerTest extends TestCase
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
         $data = gzdeflate(json_encode(['t' => 'a', 'c' => FixedClock::instance()->now()->getTimestamp() + 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => []]));
+        $signature = hash_hmac('sha512', $data, 'secret', true);
+        $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
+
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => null, 'invalid' => 'key']));
+        $signature = hash_hmac('sha512', $data, 'secret', true);
+        $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
+
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' =>  ['a' => str_repeat('a', 10000000)]]));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 

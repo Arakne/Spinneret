@@ -273,7 +273,7 @@ class Application implements RunnerInterface, ContainerInterface
 
         foreach ($this->modules() as $module) {
             if ($module instanceof ConfigurableModuleInterface) {
-                $config = $module->configuration();
+                $config = $module->configuration(); // @todo inject parameters in the configuration object ?
                 $container->set($config::class, $config);
             }
         }

@@ -8,6 +8,7 @@
          failOnRisky="true"
          failOnWarning="true"
          displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
 >
     <testsuites>
         <testsuite name="default">
@@ -19,7 +20,11 @@
         <bootstrap class="Arakne\Tests\RestoreErrorHandlerExtension" />
     </extensions>
 
-    <source restrictNotices="true" restrictWarnings="true">
+    <source
+        restrictNotices="false"
+        restrictWarnings="false"
+        restrictDeprecations="false"
+    >
         <include>
             <directory>src</directory>
         </include>

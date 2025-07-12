@@ -26,7 +26,8 @@
     "psr/log": "^3.0",
     "league/commonmark": "^2.5.3",
     "psr/clock": "^1.0",
-    "workerman/workerman": "~5.0"
+    "workerman/workerman": "~5.0",
+    "arakne/swf": "~0.2"
   },
   "require-dev": {
     "phpunit/phpunit": "~10.5",
