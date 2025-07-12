@@ -45,6 +45,11 @@ jobs:
                   mysql user: 'test'
                   mysql password: 'test'
 
+            - name: Install SVG renderer commands
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y librsvg2-bin
+
             - name: Validate composer.json and composer.lock
               run: composer validate --strict
 
@@ -87,6 +92,11 @@ jobs:
                   mysql database: 'test'
                   mysql user: 'test'
                   mysql password: 'test'
+
+            - name: Install SVG renderer commands
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y librsvg2-bin
 
             - name: Install Infection
               run: |
