@@ -17,6 +17,7 @@ final class RouteCollectionLoader implements RouteCollectionLoaderInterface
         $builder = new RouteCollectionBuilder();
 
         foreach ($application->modules() as $module) {
+            // @todo Call only modules that define routes
             $module->configureRoutes($builder);
         }
 

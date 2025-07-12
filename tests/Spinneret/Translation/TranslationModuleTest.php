@@ -21,9 +21,6 @@ class TranslationModuleTest extends TestCase
     public function emptyMethods()
     {
         $module = new TranslationModule();
-        $this->assertSame([], $module->presenters());
-        $this->assertSame([], $module->renderers());
-
         $routes = new RouteCollectionBuilder();
         $module->configureRoutes($routes);
 

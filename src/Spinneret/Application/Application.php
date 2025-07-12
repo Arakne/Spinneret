@@ -292,22 +292,15 @@ class Application implements RunnerInterface, ContainerInterface
         $containerBuilder->register(Application::class)->setPublic(true)->setSynthetic(true);
 
         $renderers = [];
-        $presenters = [];
 
         foreach ($this->modules() as $module) {
             $module->register($containerBuilder);
-
-            $presenters += $module->presenters();
-            $renderers += $module->renderers();
 
             if ($module instanceof ConfigurableModuleInterface) {
                 $config = $module->configuration();
                 $containerBuilder->register($config::class)->setSynthetic(true);
             }
         }
-
-        $containerBuilder->setParameter(ViewModule::RENDERERS_PARAMETER, $renderers);
-        $containerBuilder->setParameter(PresenterModule::PRESENTERS_PARAMETER, $presenters);
 
         foreach ($this->containerParameters() as $name => $value) {
             $containerBuilder->setParameter($name, $value);

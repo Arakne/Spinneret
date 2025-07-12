@@ -93,21 +93,9 @@ final readonly class TranslationModule implements ConfigurableModuleInterface
     }
 
     #[Override]
-    public function presenters(): array
-    {
-        return [];
-    }
-
-    #[Override]
     public function configureRoutes(RouteCollectionBuilder $builder): void
     {
         // No-op
-    }
-
-    #[Override]
-    public function renderers(): array
-    {
-        return [];
     }
 
     public static function createTranslator(TranslationConfig $config, Application $application): Translator

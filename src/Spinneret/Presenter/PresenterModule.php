@@ -3,33 +3,35 @@
 namespace Arakne\Spinneret\Presenter;
 
 use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Presenter\Compiler\RegisterPresentersCompilerPass;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
+use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Register services for the presenter module
  *
- * Required parameters:
- * - spinneret.presenters: The array mapping of request class name to presenter class name. Use {@see PresenterModule::PRESENTERS_PARAMETER} instead of hardcoding the parameter name.
- *
  * Provided services:
  * - {@see PresenterDispatcherInterface} - Alias to {@see PresenterDispatcher}
  * - {@see RequestPresenter}
+ *
+ * Used tags:
+ * - PresenterInterface::class: Used to register presenters in the container.
+ *                              The "request" parameter must be defined with the associated request class name.
  */
 final class PresenterModule implements ModuleInterface
 {
-    public const string PRESENTERS_PARAMETER = 'spinneret.presenters';
-
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->setParameter(self::PRESENTERS_PARAMETER, []);
+        $containerBuilder->addCompilerPass(new RegisterPresentersCompilerPass());
+
         $containerBuilder->register(PresenterDispatcher::class, PresenterDispatcher::class)
             ->setArguments([
                 new Reference('service_container'),
-                '%'.self::PRESENTERS_PARAMETER.'%',
+                new AbstractArgument('Defined by ' . RegisterPresentersCompilerPass::class),
             ])
         ;
 
@@ -42,16 +44,4 @@ final class PresenterModule implements ModuleInterface
 
     #[Override]
     public function configureRoutes(RouteCollectionBuilder $builder): void {}
-
-    #[Override]
-    public function presenters(): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function renderers(): array
-    {
-        return [];
-    }
 }

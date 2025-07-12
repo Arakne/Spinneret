@@ -3,8 +3,12 @@
 namespace Arakne\Tests\Spinneret\Application;
 
 use Arakne\Spinneret\Application\AbstractModule;
+use Arakne\Spinneret\Presenter\PresenterInterface;
+use Arakne\Spinneret\Presenter\RequestPresenter;
 use Arakne\Spinneret\Router\Field\FieldsExtractor;
+use Arakne\Spinneret\Router\Result\NotFound;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\View\ViewRendererInterface;
 use Arakne\Tests\Spinneret\Application\Fixtures\Aggr;
 use Arakne\Tests\Spinneret\Application\Fixtures\Bar;
 use Arakne\Tests\Spinneret\Application\Fixtures\Baz;
@@ -39,13 +43,34 @@ class AbstractModuleTest extends TestCase
             }
         };
 
-        $this->assertSame([HelloRequest::class => HelloPresenter::class], $module->presenters());
         $container = new ContainerBuilder();
-
         $module->register($container);
 
         $this->assertInstanceOf(HelloPresenter::class, $container->get(HelloPresenter::class));
         $this->assertTrue($container->getDefinition(HelloPresenter::class)->isPublic());
+        $this->assertSame([PresenterInterface::class => [['request' => HelloRequest::class]]], $container->getDefinition(HelloPresenter::class)->getTags());
+    }
+    #[Test]
+    public function presentersWithMultipleRequestOnSamePresenter()
+    {
+        $module = new class extends AbstractModule {
+            #[Override]
+            protected function configure(): void
+            {
+                $this->presenter(HelloRequest::class, RequestPresenter::class);
+                $this->presenter(NotFound::class, RequestPresenter::class);
+            }
+        };
+
+        $container = new ContainerBuilder();
+        $module->register($container);
+
+        $this->assertInstanceOf(RequestPresenter::class, $container->get(RequestPresenter::class));
+        $this->assertTrue($container->getDefinition(RequestPresenter::class)->isPublic());
+        $this->assertSame([PresenterInterface::class => [
+            ['request' => HelloRequest::class],
+            ['request' => NotFound::class],
+        ]], $container->getDefinition(RequestPresenter::class)->getTags());
     }
 
     #[Test]
@@ -59,13 +84,12 @@ class AbstractModuleTest extends TestCase
             }
         };
 
-        $this->assertSame([HelloResponse::class => HelloRenderer::class], $module->renderers());
         $container = new ContainerBuilder();
-
         $module->register($container);
 
         $this->assertInstanceOf(HelloRenderer::class, $container->get(HelloRenderer::class));
         $this->assertTrue($container->getDefinition(HelloRenderer::class)->isPublic());
+        $this->assertSame([ViewRendererInterface::class => [['response' => HelloResponse::class]]], $container->getDefinition(HelloRenderer::class)->getTags());
     }
 
     #[Test]
@@ -79,13 +103,12 @@ class AbstractModuleTest extends TestCase
             }
         };
 
-        $this->assertSame([HelloRequest::class => HelloPresenter::class], $module->presenters());
         $container = new ContainerBuilder();
-
         $module->register($container);
 
         $this->assertInstanceOf(HelloPresenter::class, $container->get(HelloPresenter::class));
         $this->assertTrue($container->getDefinition(HelloPresenter::class)->isPublic());
+        $this->assertSame([PresenterInterface::class => [['request' => HelloRequest::class]]], $container->getDefinition(HelloPresenter::class)->getTags());
 
         $routes = new RouteCollectionBuilder();
         $module->configureRoutes($routes);

@@ -25,9 +25,6 @@ class FormModuleTest extends TestCase
     public function emptyMethods()
     {
         $routerModule = new FormModule();
-        $this->assertSame([], $routerModule->presenters());
-        $this->assertSame([], $routerModule->renderers());
-
         $routes = new RouteCollectionBuilder();
         $routerModule->configureRoutes($routes);
 

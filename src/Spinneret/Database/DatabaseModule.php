@@ -86,18 +86,6 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
         // No-op
     }
 
-    #[Override]
-    public function presenters(): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function renderers(): array
-    {
-        return [];
-    }
-
     private function registerMigration(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->register(MigrationManager::class, MigrationManager::class)

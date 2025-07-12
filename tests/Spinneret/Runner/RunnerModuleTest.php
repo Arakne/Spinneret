@@ -36,9 +36,6 @@ class RunnerModuleTest extends TestCase
     public function emptyMethods()
     {
         $runnerModule = new RunnerModule();
-        $this->assertSame([], $runnerModule->presenters());
-        $this->assertSame([], $runnerModule->renderers());
-
         $routes = new RouteCollectionBuilder();
         $runnerModule->configureRoutes($routes);
 

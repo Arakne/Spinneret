@@ -2,9 +2,7 @@
 
 namespace Arakne\Spinneret\Application;
 
-use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
-use Arakne\Spinneret\View\ViewRendererInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -38,22 +36,8 @@ interface ModuleInterface
      *
      * @param RouteCollectionBuilder $builder
      * @return void
+     *
+     * @todo Use another interface for module which can define routes
      */
     public function configureRoutes(RouteCollectionBuilder $builder): void;
-
-    /**
-     * Define map of request class to it's handling presenter
-     * The present must be declared as a public service in the container.
-     *
-     * @return array<class-string, class-string<PresenterInterface>>
-     */
-    public function presenters(): array;
-
-    /**
-     * Define map of response class to it's rendering class.
-     * The renderer must be declared as a public service in the container.
-     *
-     * @return array<class-string, class-string<ViewRendererInterface>>
-     */
-    public function renderers(): array;
 }

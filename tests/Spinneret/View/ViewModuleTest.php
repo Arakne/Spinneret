@@ -24,9 +24,6 @@ class ViewModuleTest extends TestCase
     public function emptyMethods()
     {
         $routerModule = new ViewModule();
-        $this->assertSame([], $routerModule->presenters());
-        $this->assertSame([], $routerModule->renderers());
-
         $routes = new RouteCollectionBuilder();
         $routerModule->configureRoutes($routes);
 
@@ -37,7 +34,6 @@ class ViewModuleTest extends TestCase
     public function register()
     {
         $container = new ContainerBuilder();
-        $container->setParameter(ViewModule::RENDERERS_PARAMETER, []);
         $container->set(ResponseFactoryInterface::class, new Psr17Factory());
         $container->set(StreamFactoryInterface::class, new Psr17Factory());
         $container->set(PresenterDispatcherInterface::class, new class implements PresenterDispatcherInterface
@@ -50,6 +46,16 @@ class ViewModuleTest extends TestCase
 
         $routerModule = new ViewModule();
         $routerModule->register($container);
+
+        foreach ($container->getDefinitions() as $definition) {
+            $definition->setPublic(true);
+        }
+
+        foreach ($container->getAliases() as $alias) {
+            $alias->setPublic(true);
+        }
+
+        $container->compile();
 
         $this->assertInstanceOf(Engine::class, $container->get(ViewEngineInterface::class));
         $this->assertInstanceOf(DispatcherForwarder::class, $container->get(ForwarderInterface::class));

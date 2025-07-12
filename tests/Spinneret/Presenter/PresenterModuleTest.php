@@ -21,9 +21,6 @@ class PresenterModuleTest extends TestCase
     public function emptyMethods()
     {
         $routerModule = new PresenterModule();
-        $this->assertSame([], $routerModule->presenters());
-        $this->assertSame([], $routerModule->renderers());
-
         $routes = new RouteCollectionBuilder();
         $routerModule->configureRoutes($routes);
 
@@ -41,6 +38,16 @@ class PresenterModuleTest extends TestCase
 
         $routerModule = new PresenterModule();
         $routerModule->register($container);
+
+        foreach ($container->getDefinitions() as $definition) {
+            $definition->setPublic(true);
+        }
+
+        foreach ($container->getAliases() as $alias) {
+            $alias->setPublic(true);
+        }
+
+        $container->compile();
 
         $this->assertInstanceOf(PresenterDispatcher::class, $container->get(PresenterDispatcherInterface::class));
         $this->assertInstanceOf(RequestPresenter::class, $container->get(RequestPresenter::class));

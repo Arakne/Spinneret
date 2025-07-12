@@ -121,18 +121,6 @@ final readonly class RouterModule implements ConfigurableModuleInterface
         // No-op
     }
 
-    #[Override]
-    public function presenters(): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function renderers(): array
-    {
-        return [];
-    }
-
     public static function createRequestContext(RouterConfig $config): RequestContext
     {
         /** @psalm-suppress RiskyTruthyFalsyComparison */

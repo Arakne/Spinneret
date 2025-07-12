@@ -109,12 +109,22 @@ abstract class AbstractModule implements ModuleInterface
     {
         $this->callConfigure();
 
-        foreach ($this->presenters as $presenterClass) {
-            $containerBuilder->autowire($presenterClass, $presenterClass)->setPublic(true);
+        foreach ($this->presenters as $requestClass => $presenterClass) {
+            if (!$containerBuilder->hasDefinition($presenterClass)) {
+                $definition = $containerBuilder->autowire($presenterClass, $presenterClass)->setPublic(true);
+            } else {
+                $definition = $containerBuilder->getDefinition($presenterClass);
+            }
+
+            $definition->addTag(PresenterInterface::class, ['request' => $requestClass]);
         }
 
-        foreach ($this->renderers as $rendererClass) {
-            $containerBuilder->autowire($rendererClass, $rendererClass)->setPublic(true);
+        foreach ($this->renderers as $responseClass => $rendererClass) {
+            $containerBuilder
+                ->autowire($rendererClass, $rendererClass)
+                ->addTag(ViewRendererInterface::class, ['response' => $responseClass])
+                ->setPublic(true)
+            ;
         }
 
         foreach ($this->services as $class => $arguments) {
@@ -156,22 +166,6 @@ abstract class AbstractModule implements ModuleInterface
         foreach ($this->routes as ['methods' => $methods, 'path' => $path, 'target' => $target]) {
             $builder->add($path, $target, $methods);
         }
-    }
-
-    #[Override]
-    final public function presenters(): array
-    {
-        $this->callConfigure();
-
-        return $this->presenters;
-    }
-
-    #[Override]
-    final public function renderers(): array
-    {
-        $this->callConfigure();
-
-        return $this->renderers;
     }
 
     /**

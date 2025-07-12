@@ -40,9 +40,6 @@ class BusModuleTest extends TestCase
     public function emptyMethods()
     {
         $routerModule = new BusModule();
-        $this->assertSame([], $routerModule->presenters());
-        $this->assertSame([], $routerModule->renderers());
-
         $routes = new RouteCollectionBuilder();
         $routerModule->configureRoutes($routes);
 

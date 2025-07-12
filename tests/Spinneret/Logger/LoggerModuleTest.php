@@ -22,9 +22,6 @@ class LoggerModuleTest extends TestCase
     public function emptyMethods()
     {
         $module = new LoggerModule();
-        $this->assertSame([], $module->presenters());
-        $this->assertSame([], $module->renderers());
-
         $routes = new RouteCollectionBuilder();
         $module->configureRoutes($routes);
 

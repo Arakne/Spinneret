@@ -103,18 +103,6 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
         // No-op
     }
 
-    #[Override]
-    public function presenters(): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function renderers(): array
-    {
-        return [];
-    }
-
     private function registerHttpdBackend(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->register(ServerRequestCreator::class, ServerRequestCreator::class)

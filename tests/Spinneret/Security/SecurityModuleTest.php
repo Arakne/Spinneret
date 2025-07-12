@@ -25,9 +25,6 @@ class SecurityModuleTest extends TestCase
     public function emptyMethods()
     {
         $routerModule = new SecurityModule();
-        $this->assertSame([], $routerModule->presenters());
-        $this->assertSame([], $routerModule->renderers());
-
         $routes = new RouteCollectionBuilder();
         $routerModule->configureRoutes($routes);
 

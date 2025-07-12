@@ -32,9 +32,6 @@ class RouterModuleTest extends TestCase
     public function emptyMethods()
     {
         $routerModule = new RouterModule();
-        $this->assertSame([], $routerModule->presenters());
-        $this->assertSame([], $routerModule->renderers());
-
         $routes = new RouteCollectionBuilder();
         $routerModule->configureRoutes($routes);
 

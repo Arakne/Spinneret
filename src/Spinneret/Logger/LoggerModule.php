@@ -60,18 +60,6 @@ final readonly class LoggerModule implements ConfigurableModuleInterface
         // No-op
     }
 
-    #[Override]
-    public function presenters(): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function renderers(): array
-    {
-        return [];
-    }
-
     private function createLogger(LogChannel $channel): Definition|Reference
     {
         if ($channel->service !== null) {

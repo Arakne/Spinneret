@@ -40,9 +40,6 @@ class DatabaseModuleTest extends TestCase
     public function emptyMethods()
     {
         $databaseModule = new DatabaseModule();
-        $this->assertSame([], $databaseModule->presenters());
-        $this->assertSame([], $databaseModule->renderers());
-
         $routes = new RouteCollectionBuilder();
         $databaseModule->configureRoutes($routes);
 

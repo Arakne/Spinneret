@@ -59,16 +59,4 @@ final class FormModule implements ModuleInterface
     {
         // No-op
     }
-
-    #[Override]
-    public function presenters(): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function renderers(): array
-    {
-        return  [];
-    }
 }

@@ -96,18 +96,6 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
         // No-op
     }
 
-    #[Override]
-    public function presenters(): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function renderers(): array
-    {
-        return [];
-    }
-
     public static function createUserMiddleware(CookieSerializerInterface $serializer, AuthenticationCookieHelper $cookieHelper, SecurityConfig $config): LoadSessionMiddleware
     {
         return new LoadSessionMiddleware($serializer, $cookieHelper, $config->cookie->name, $config->userAttribute);
