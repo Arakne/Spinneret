@@ -17,7 +17,6 @@ use Arakne\Tests\Spinneret\Application\Fixtures\TestApplication;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\TextUI\Configuration\File;
 
 class FunctionalApplicationTest extends TestCase
 {
@@ -267,17 +266,5 @@ HTML
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertEquals('{"message":"My configured message","computed":1655275095}', (string) $response->getBody());
-    }
-
-    #[Test]
-    public function containerParameters()
-    {
-        $params = $this->app->get(Parameters::class);
-
-        $this->assertSame($this->app->isDev, $params->isDev);
-        $this->assertSame($this->app->projectDir(), $params->projectDir);
-        $this->assertSame($this->app->logDir(), $params->logDir);
-        $this->assertSame($this->app->cacheDir(), $params->cacheDir);
-        $this->assertSame($this->app->configDir(), $params->configDir);
     }
 }

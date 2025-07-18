@@ -232,32 +232,6 @@ class Application implements RunnerInterface, ContainerInterface
     }
 
     /**
-     * Define container parameters
-     * Those parameters can be used in the container configuration
-     *
-     * By default, the following parameters are defined:
-     * - app.dev: whether the application is in development mode
-     * - app.project_dir: the project root directory
-     * - app.cache_dir: the cache directory
-     * - app.config_dir: the configuration directory
-     * - app.log_dir: the log directory
-     *
-     * To add or override parameters, override this method in the application class.
-     *
-     * @return array<string, array|bool|string|int|float|\UnitEnum|null>
-     */
-    protected function containerParameters(): array
-    {
-        return [
-            'app.dev' => $this->isDev,
-            'app.project_dir' => $this->projectDir(),
-            'app.cache_dir' => $this->cacheDir(),
-            'app.config_dir' => $this->configDir(),
-            'app.log_dir' => $this->logDir(),
-        ];
-    }
-
-    /**
      * Load the container
      *
      * When {@see Application::isDev} is true, the container is always reloaded.
@@ -299,10 +273,6 @@ class Application implements RunnerInterface, ContainerInterface
                 $config = $module->configuration();
                 $containerBuilder->register($config::class)->setSynthetic(true);
             }
-        }
-
-        foreach ($this->containerParameters() as $name => $value) {
-            $containerBuilder->setParameter($name, $value);
         }
 
         $containerBuilder->compile();
