@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Application\Fixtures\Configurable;
 
 use Arakne\Spinneret\Application\AbstractConfigurableModule;
+use Arakne\Spinneret\Application\Application;
 use Override;
 
 /**
@@ -26,7 +27,7 @@ final class ConfigurableModule extends AbstractConfigurableModule
     }
 
     #[Override]
-    protected function defaultConfiguration(): object
+    protected static function defaultConfiguration(Application $app): object
     {
         return new TestConfig();
     }

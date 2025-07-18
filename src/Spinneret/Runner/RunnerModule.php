@@ -92,7 +92,7 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
             $this->registerHttpdBackend($containerBuilder);
         }
 
-        if ($this->config->workerman->enable) {
+        if ($this->config->workerman?->enable === true) {
             $this->registerWorkermanBackend($containerBuilder);
         }
     }

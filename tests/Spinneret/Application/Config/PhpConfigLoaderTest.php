@@ -93,8 +93,8 @@ return static function (Arakne\Spinneret\Application\Application $app): array {
     $configPath = $app->configDir();
 
     return [
-		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\FooConfig' => (require $configPath . '/foo.php')(null),
-		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\PersonsConfig' => (require $configPath . '/persons.php')(null),
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\FooConfig' => (require $configPath . '/foo.php')(),
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\PersonsConfig' => (require $configPath . '/persons.php')(),
 
     ];
 };
@@ -136,8 +136,8 @@ return static function (Arakne\Spinneret\Application\Application $app): array {
     $configPath = $app->configDir();
 
     return [
-		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\FooConfig' => (require $configPath . '/foo2.php')((require $configPath . '/foo.php')(null)),
-		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\PersonsConfig' => (require $configPath . '/robert.php')((require $configPath . '/persons.php')(null)),
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\FooConfig' => (require $configPath . '/foo2.php')((require $configPath . '/foo.php')()),
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\PersonsConfig' => (require $configPath . '/robert.php')((require $configPath . '/persons.php')()),
 
     ];
 };
@@ -153,7 +153,7 @@ PHP
     public function withInvalidArgumentCount()
     {
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessageMatches('#Invalid config file .*/invalid-arg-count/invalid-arg-count.php : the closure must take at most one parameter.#');
+        $this->expectExceptionMessageMatches('#Invalid config file .*/invalid-arg-count/invalid-arg-count.php : the closure can take at most the application and the previous config object.#');
 
         $app = $this->createApp(__DIR__ . '/Fixtures/invalid-arg-count');
         $loader = new PhpConfigLoader();
@@ -218,6 +218,48 @@ return static function (Arakne\Spinneret\Application\Application $app): array {
     return [
 		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\FooConfig' => (require $configPath . '/test/foo.php')(require $configPath . '/foo.php'),
 		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\PersonsConfig' => (require $configPath . '/test/persons.php')(require $configPath . '/persons.php'),
+
+    ];
+};
+PHP
+            , file_get_contents(self::CACHE_DIR . '/config.php')
+        );
+
+        $cachedConfig = $loader->load($app);
+        $this->assertEquals($config, $cachedConfig);
+    }
+
+    #[Test]
+    public function loadWithApp()
+    {
+        $app = $this->createApp(__DIR__ . '/Fixtures/with-app');
+        $loader = new PhpConfigLoader();
+        $config = $loader->load($app);
+
+        $this->assertEquals([
+            FooConfig::class => new FooConfig(foo: 'test-foo'),
+            PersonsConfig::class => new PersonsConfig(
+                new PersonConfig(
+                    firstName: 'Robert',
+                    lastName: 'Smith',
+                ),
+                new PersonConfig(
+                    firstName: 'test',
+                    lastName: 'test',
+                ),
+            )
+        ], $config);
+
+        $this->assertFileExists(self::CACHE_DIR . '/config.php');
+        $this->assertEquals(<<<'PHP'
+<?php
+
+return static function (Arakne\Spinneret\Application\Application $app): array {
+    $configPath = $app->configDir();
+
+    return [
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\FooConfig' => (require $configPath . '/foo.php')($app),
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\PersonsConfig' => (require $configPath . '/test/persons.php')(require $configPath . '/persons.php', $app),
 
     ];
 };

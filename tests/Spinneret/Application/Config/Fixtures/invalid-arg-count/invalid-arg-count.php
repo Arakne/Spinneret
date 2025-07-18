@@ -1,3 +1,3 @@
 <?php
 
-return fn ($foo, $bar) => null;
+return fn ($foo, $bar, $baz) => null;

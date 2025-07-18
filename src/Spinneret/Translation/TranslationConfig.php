@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Translation;
 
+use Arakne\Spinneret\Application\Application;
+
 use function array_combine;
 
 final readonly class TranslationConfig
@@ -19,20 +21,20 @@ final readonly class TranslationConfig
      */
     public function __construct(
         /**
+         * The directory where translation files are stored.
+         *
+         * The translations must be stored as PHP files, returning an array of translations.
+         * The filename should be the locale code, e.g. `en.php`.
+         */
+        public string $translationDir,
+
+        /**
          * The default locale to use when none is provided.
          *
          * If not set, {@see Locale::getDefault()} will be used.
          * The default locale should be one of the available locales.
          */
         public ?string $defaultLocale = null,
-
-        /**
-         * The directory where translation files are stored.
-         *
-         * The translations must be stored as PHP files, returning an array of translations.
-         * The filename should be the locale code, e.g. `en.php`.
-         */
-        public string $translationDir = '%app.project_dir%/translations',
 
         /**
          * The available locales for the application.
@@ -112,8 +114,8 @@ final readonly class TranslationConfig
         ?bool $pseudoLocalizationBrackets = null,
     ): self {
         return new self(
-            defaultLocale: $defaultLocale ?? $this->defaultLocale,
             translationDir: $translationDir ?? $this->translationDir,
+            defaultLocale: $defaultLocale ?? $this->defaultLocale,
             availableLocales: $availableLocales ?? $this->availableLocales,
             collectTranslations: $collectTranslations ?? $this->collectTranslations,
             collectedLocales: $collectedLocales ?? $this->collectedLocales,
@@ -122,6 +124,13 @@ final readonly class TranslationConfig
             pseudoLocalizationExpansionFactor: $pseudoLocalizationExpansionFactor ?? $this->pseudoLocalizationExpansionFactor,
             pseudoLocalizationAccents: $pseudoLocalizationAccents ?? $this->pseudoLocalizationAccents,
             pseudoLocalizationBrackets: $pseudoLocalizationBrackets ?? $this->pseudoLocalizationBrackets,
+        );
+    }
+
+    public static function default(Application $app): self
+    {
+        return new self(
+            translationDir: $app->projectDir() . '/translations',
         );
     }
 }

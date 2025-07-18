@@ -124,7 +124,7 @@ class RunnerModuleTest extends TestCase
         $container = new ContainerBuilder();
 
         $container->set(Application::class, $app);
-        $container->set(RunnerConfig::class, $conf = new RunnerConfig(workerman: new WorkermanConfig(enable: true)));
+        $container->set(RunnerConfig::class, $conf = new RunnerConfig(workerman: WorkermanConfig::default($app)->with(enable: true)));
         $container->set(RouterInterface::class, $this->createMock(RouterInterface::class));
         $container->set(PresenterDispatcherInterface::class, $this->createMock(PresenterDispatcherInterface::class));
         $container->set(ViewEngineInterface::class, $this->createMock(ViewEngineInterface::class));

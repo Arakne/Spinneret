@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Translation;
 
+use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Translation\TranslationConfig;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -12,7 +13,7 @@ class TranslationConfigTest extends TestCase
     public function with()
     {
 
-        $config = new TranslationConfig(
+        $config = TranslationConfig::default(new Application())->with(
             defaultLocale: 'en',
             availableLocales: ['en', 'fr', 'es'],
         );

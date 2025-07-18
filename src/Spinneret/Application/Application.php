@@ -11,8 +11,8 @@ use Arakne\Spinneret\Form\FormModule;
 use Arakne\Spinneret\Presenter\PresenterModule;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Router\RouterModule;
-use Arakne\Spinneret\Runner\RunnerModule;
 use Arakne\Spinneret\Runner\RunnerInterface;
+use Arakne\Spinneret\Runner\RunnerModule;
 use Arakne\Spinneret\Util\Project;
 use Arakne\Spinneret\View\ViewModule;
 use Override;
@@ -132,7 +132,7 @@ class Application implements RunnerInterface, ContainerInterface
             new PresenterModule(),
             new ViewModule(),
             new FormModule(),
-            new ErrorModule(),
+            ErrorModule::create($this),
             new RunnerModule(),
             ...$this->applicationModules(),
         ];
@@ -141,7 +141,8 @@ class Application implements RunnerInterface, ContainerInterface
 
         foreach ($modules as $i => $module) {
             if ($module instanceof ConfigurableModuleInterface) {
-                $configItem = $config[$module->configuration()::class] ?? null;
+                $defaultConfig = $module->configuration();
+                $configItem = $config[$defaultConfig::class] ?? null;
 
                 if ($configItem) {
                     /** @psalm-suppress ArgumentTypeCoercion */
@@ -273,7 +274,7 @@ class Application implements RunnerInterface, ContainerInterface
 
         foreach ($this->modules() as $module) {
             if ($module instanceof ConfigurableModuleInterface) {
-                $config = $module->configuration(); // @todo inject parameters in the configuration object ?
+                $config = $module->configuration();
                 $container->set($config::class, $config);
             }
         }
@@ -290,8 +291,6 @@ class Application implements RunnerInterface, ContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->register(Application::class)->setPublic(true)->setSynthetic(true);
-
-        $renderers = [];
 
         foreach ($this->modules() as $module) {
             $module->register($containerBuilder);

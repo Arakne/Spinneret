@@ -14,8 +14,10 @@ use Throwable;
 use function array_push;
 use function count;
 use function glob;
+use function implode;
 use function is_file;
 use function is_object;
+use function is_subclass_of;
 use function natsort;
 use function realpath;
 use function sprintf;
@@ -60,13 +62,12 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
         foreach ($files as $file) {
             /** @psalm-suppress UnresolvableInclude */
             $configObject = require $file;
-            $isClosure = false;
+            $closureMetadata = null;
 
             if ($configObject instanceof Closure) {
-                $isClosure = true;
-
+                $closureMetadata = $this->processConfigurationClosure($file, $configObject);
                 /** @psalm-suppress MixedAssignment */
-                $configObject = $this->callConfigurationClosure($file, $configByClassName, $configObject);
+                $configObject = $closureMetadata->call($app, $configByClassName);
             }
 
             if (!is_object($configObject)) {
@@ -75,10 +76,10 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
 
             $configByClassName[$configObject::class] = $configObject;
 
-            if (!$isClosure) {
-                $filesByClassName[$configObject::class] = [[$file, false]];
+            if ($closureMetadata === null) {
+                $filesByClassName[$configObject::class] = [[$file, null]];
             } else {
-                $filesByClassName[$configObject::class][] = [$file, true];
+                $filesByClassName[$configObject::class][] = [$file, $closureMetadata];
             }
         }
 
@@ -104,28 +105,40 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
         return $globalConfigFiles;
     }
 
-    private function callConfigurationClosure(string $file, array $previousConfig, Closure $config): mixed
+    private function processConfigurationClosure(string $file, Closure $config): ClosureMetadata
     {
-        // @todo Permettre de passer l'application en 2e paramètre, donnant accès aux dossier de l'application
         $reflectionFunction = new ReflectionFunction($config);
-        $parameters = $reflectionFunction->getParameters();
+        $reflectionParameters = $reflectionFunction->getParameters();
 
-        if (count($parameters) > 1) {
-            throw new LogicException(sprintf('Invalid config file %s : the closure must take at most one parameter.', $file));
+        if (!$reflectionParameters) {
+            return new ClosureMetadata($file, $config, [], null);
         }
 
-        if (!$parameters) {
-            return $config();
+        if (count($reflectionParameters) > 2) {
+            throw new LogicException(sprintf('Invalid config file %s : the closure can take at most the application and the previous config object.', $file));
         }
 
-        $parameter = $parameters[0];
-        $parameterType = $parameter->getType();
+        $parameters = [];
+        $expectedConfigType = null;
 
-        if (!$parameterType instanceof ReflectionNamedType) {
-            throw new LogicException(sprintf('Invalid type for parameter %s of config file %s : it must be an atomic nullable class.', $parameter->getName(), $file));
+        foreach ($reflectionParameters as $parameter) {
+            $parameterType = $parameter->getType();
+
+            if (!$parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
+                throw new LogicException(sprintf('Invalid type for parameter %s of config file %s : it must be an atomic nullable class.', $parameter->getName(), $file));
+            }
+
+            $parameterTypeName = $parameterType->getName();
+
+            if ($parameterTypeName === Application::class || is_subclass_of($parameterTypeName, Application::class)) {
+                $parameters[] = ClosureMetadata::PARAM_IS_APPLICATION;
+            } else {
+                $parameters[] = ClosureMetadata::PARAM_IS_CONFIG;
+                $expectedConfigType = $parameterTypeName;
+            }
         }
 
-        return $config($previousConfig[$parameterType->getName()] ?? null);
+        return new ClosureMetadata($file, $config, $parameters, $expectedConfigType);
     }
 
     /**
@@ -157,7 +170,7 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
 
     /**
      * @param Application $app
-     * @param array<string, list<list{string, bool}>> $filesByClassName
+     * @param array<string, list<list{string, ClosureMetadata|null}>> $filesByClassName
      *
      * @return void
      */
@@ -169,16 +182,26 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
         foreach ($filesByClassName as $className => $files) {
             $callStack = 'null';
 
-            foreach ($files as [$file, $isClosure]) {
+            foreach ($files as [$file, $closureMetadata]) {
                 $file = str_replace($configDir, '', realpath($file));
                 $req = 'require $configPath . ' . var_export($file, true);
 
-                if (!$isClosure) {
+                if ($closureMetadata === null) {
                     $callStack = $req;
                     continue;
                 }
 
-                $callStack = "($req)($callStack)";
+                $parameters = [];
+
+                foreach ($closureMetadata->parameters as $parameter) {
+                    $parameters[] = match ($parameter) {
+                        ClosureMetadata::PARAM_IS_APPLICATION => '$app',
+                        ClosureMetadata::PARAM_IS_CONFIG => $callStack,
+                    };
+                }
+
+                $parameters = implode(', ', $parameters);
+                $callStack = "($req)($parameters)";
             }
 
             $lines .= "\t\t" . var_export($className, true) . ' => ' . $callStack . ",\n";
@@ -197,5 +220,61 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
             PHP;
 
         Files::write($app->cacheDir().'/'.$this->cacheFile, $content);
+    }
+}
+
+/**
+ * @internal
+ */
+final readonly class ClosureMetadata
+{
+    public const int PARAM_IS_APPLICATION = 1;
+    public const int PARAM_IS_CONFIG = 2;
+
+    public function __construct(
+        public string $file,
+        public Closure $closure,
+
+        /**
+         * @var list<self::PARAM_IS_APPLICATION|self::PARAM_IS_CONFIG>
+         */
+        public array $parameters,
+
+        public ?string $expectedReturnType = null,
+    ) {}
+
+    /**
+     * @param Application $app
+     * @param array<string, object> $previousConfig
+     *
+     * @return object|null
+     */
+    public function call(Application $app, array $previousConfig): ?object
+    {
+        $parameters = [];
+
+        foreach ($this->parameters as $parameter) {
+            $parameters[] = match ($parameter) {
+                self::PARAM_IS_APPLICATION => $app,
+                self::PARAM_IS_CONFIG => $previousConfig[$this->expectedReturnType] ?? null,
+            };
+        }
+
+        $configObject = ($this->closure)(...$parameters);
+
+        if (!is_object($configObject)) {
+            return null;
+        }
+
+        if ($this->expectedReturnType !== null && !$configObject instanceof $this->expectedReturnType) {
+            throw new LogicException(sprintf(
+                'Invalid parameter for config file %s : the parameter type %s must be same as return type %s.',
+                $this->file,
+                $configObject::class,
+                $this->expectedReturnType,
+            ));
+        }
+
+        return $configObject;
     }
 }

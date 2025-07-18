@@ -14,15 +14,19 @@ use Override;
  *
  * @template C as object
  * @implements ConfigurableModuleInterface<C>
+ *
+ * @psalm-consistent-constructor
  */
 abstract class AbstractConfigurableModule extends AbstractModule implements ConfigurableModuleInterface
 {
-    /**
-     * The current configuration object
-     *
-     * @var C|null
-     */
-    private ?object $configuration = null;
+    final protected function __construct(
+        /**
+         * The current configuration object
+         *
+         * @var C
+         */
+        private object $configuration,
+    ) {}
 
     #[Override]
     final public function withConfiguration(object $configuration): static
@@ -36,7 +40,7 @@ abstract class AbstractConfigurableModule extends AbstractModule implements Conf
     #[Override]
     final public function configuration(): object
     {
-        return $this->configuration ??= $this->defaultConfiguration();
+        return $this->configuration;
     }
 
     /**
@@ -44,5 +48,18 @@ abstract class AbstractConfigurableModule extends AbstractModule implements Conf
      *
      * @return C
      */
-    abstract protected function defaultConfiguration(): object;
+    abstract protected static function defaultConfiguration(Application $app): object;
+
+    /**
+     * Create the module with the default configuration
+     *
+     * @param Application $app The application instance. Used to access application settings.
+     *
+     * @return static
+     * @psalm-suppress UnsafeGenericInstantiation
+     */
+    public static function create(Application $app): static
+    {
+        return new static(static::defaultConfiguration($app));
+    }
 }

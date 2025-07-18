@@ -47,7 +47,7 @@ final class ErrorModule extends AbstractConfigurableModule implements BootableMo
     }
 
     #[Override]
-    protected function defaultConfiguration(): object
+    protected static function defaultConfiguration(Application $app): object
     {
         return new ErrorConfiguration();
     }

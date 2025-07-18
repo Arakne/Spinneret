@@ -20,7 +20,7 @@ class TranslationModuleTest extends TestCase
     #[Test]
     public function emptyMethods()
     {
-        $module = new TranslationModule();
+        $module = TranslationModule::create(new Application());
         $routes = new RouteCollectionBuilder();
         $module->configureRoutes($routes);
 
@@ -33,16 +33,15 @@ class TranslationModuleTest extends TestCase
         $app = new Application(isDev: true, env: 'test');
         $container = new ContainerBuilder();
 
-        $config = new TranslationConfig(
+        $config = TranslationConfig::default($app)->with(
             defaultLocale: 'en',
             availableLocales: ['en', 'fr', 'es'],
         );
 
-        $container->setParameter('app.project_dir', $app->projectDir());
         $container->set(Application::class, $app);
         $container->set(TranslationConfig::class, $config);
 
-        $module = (new TranslationModule())->withConfiguration($config);
+        $module = TranslationModule::create($app)->withConfiguration($config);
         $module->register($container);
 
         $this->assertInstanceOf(Translator::class, $container->get(TranslatorInterface::class));
@@ -59,17 +58,16 @@ class TranslationModuleTest extends TestCase
         $app = new Application(isDev: true, env: 'test');
         $container = new ContainerBuilder();
 
-        $config = new TranslationConfig(
+        $config = TranslationConfig::default($app)->with(
             defaultLocale: 'en',
             availableLocales: ['en', 'fr', 'es'],
             collectTranslations: true,
         );
 
-        $container->setParameter('app.project_dir', $app->projectDir());
         $container->set(Application::class, $app);
         $container->set(TranslationConfig::class, $config);
 
-        $module = (new TranslationModule())->withConfiguration($config);
+        $module = TranslationModule::create($app)->withConfiguration($config);
         $module->register($container);
 
         $this->assertInstanceOf(CollectorTranslator::class, $container->get(TranslatorInterface::class));
@@ -84,17 +82,16 @@ class TranslationModuleTest extends TestCase
         $app = new Application(isDev: true, env: 'test');
         $container = new ContainerBuilder();
 
-        $config = new TranslationConfig(
+        $config = TranslationConfig::default($app)->with(
             defaultLocale: 'en',
             availableLocales: ['en', 'fr', 'es'],
             pseudoLocalization: true,
         );
 
-        $container->setParameter('app.project_dir', $app->projectDir());
         $container->set(Application::class, $app);
         $container->set(TranslationConfig::class, $config);
 
-        $module = (new TranslationModule())->withConfiguration($config);
+        $module = TranslationModule::create($app)->withConfiguration($config);
         $module->register($container);
 
         $this->assertInstanceOf(PseudoLocalizationTranslator::class, $container->get(TranslatorInterface::class));

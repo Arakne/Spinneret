@@ -17,7 +17,6 @@ final readonly class LogChannel
     public function __construct(
         /**
          * The file to write logs to.
-         * The parameter "%app.log_dir%" can be used to refer to the application log directory.
          *
          * If set, {@see FileLogger} will be used as the logger driver.
          */

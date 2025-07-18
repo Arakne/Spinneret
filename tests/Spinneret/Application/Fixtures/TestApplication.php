@@ -19,7 +19,7 @@ class TestApplication extends Application
             new HelloModule(),
             new ErrorModule(),
             new RegistrationModule(),
-            new ConfigurableModule(),
+            ConfigurableModule::create($this),
             new DownloadModule(),
         ];
     }

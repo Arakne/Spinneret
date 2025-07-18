@@ -9,11 +9,8 @@ use Workerman\Protocols\Http\Request;
 use Workerman\Protocols\Http\Response;
 use Workerman\Worker;
 
-use function error_reporting;
 use function function_exists;
 use function opcache_get_status;
-use function str_replace;
-use function var_dump;
 
 /**
  * Configure and run the Workerman backend
@@ -70,7 +67,7 @@ final class WorkermanBackend
         $workerman->reusePort = true;
 
         $this->worker = $workerman;
-        Worker::$pidFile = $this->application->logDir().'/workerman.pid'; // @todo make it configurable
+        Worker::$pidFile = $config->pidFile;
     }
 
     /**
@@ -87,7 +84,7 @@ final class WorkermanBackend
             $this->init();
         }
 
-        Worker::$logFile = str_replace('%app.log_dir%', $this->application->logDir(), $this->config->logFile);
+        Worker::$logFile = $this->config->logFile;
 
         global $argv;
         $argv = [$argv[0], 'start'];

@@ -16,7 +16,7 @@ class TranslationApplication extends Application
     protected function applicationModules(): array
     {
         return [
-            new TranslationModule(),
+            TranslationModule::create($this),
             new class extends AbstractModule {
                 protected function configure(): void
                 {

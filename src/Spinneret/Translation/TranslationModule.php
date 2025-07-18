@@ -16,7 +16,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_key_first;
 use function class_exists;
-use function str_replace;
 
 /**
  * Provide translation services.
@@ -30,7 +29,6 @@ use function str_replace;
  * - {@see TranslatorInterface} - Alias one of the above services based on configuration.
  *
  * Required services:
- * - {@see Application}
  * - {@see TranslationConfig}
  *
  * @implements ConfigurableModuleInterface<TranslationConfig>
@@ -38,7 +36,7 @@ use function str_replace;
 final readonly class TranslationModule implements ConfigurableModuleInterface
 {
     public function __construct(
-        private TranslationConfig $config = new TranslationConfig(),
+        private TranslationConfig $config
     ) {}
 
     #[Override]
@@ -48,7 +46,6 @@ final readonly class TranslationModule implements ConfigurableModuleInterface
             ->setFactory([self::class, 'createTranslator'])
             ->setArguments([
                 new Reference(TranslationConfig::class),
-                new Reference(Application::class),
             ])
         ;
 
@@ -98,7 +95,7 @@ final readonly class TranslationModule implements ConfigurableModuleInterface
         // No-op
     }
 
-    public static function createTranslator(TranslationConfig $config, Application $application): Translator
+    public static function createTranslator(TranslationConfig $config): Translator
     {
         $defaultLocale = $config->defaultLocale;
 
@@ -116,12 +113,22 @@ final readonly class TranslationModule implements ConfigurableModuleInterface
         $translator = new Translator($defaultLocale);
 
         $translator->addLoader('php', new PhpFileLoader());
-        $directory = str_replace('%app.project_dir%', $application->projectDir(), $config->translationDir);
 
         foreach ($config->availableLocales as $locale) {
-            $translator->addResource('php', $directory . DIRECTORY_SEPARATOR . $locale . '.php', $locale);
+            $translator->addResource('php', $config->translationDir . DIRECTORY_SEPARATOR . $locale . '.php', $locale);
         }
 
         return $translator;
+    }
+
+    /**
+     * Create the translation module with default configuration.
+     *
+     * @param Application $app
+     * @return self
+     */
+    public static function create(Application $app): self
+    {
+        return new self(TranslationConfig::default($app));
     }
 }

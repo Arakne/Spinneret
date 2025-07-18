@@ -4,6 +4,8 @@ namespace Arakne\Spinneret\Runner;
 
 use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanConfig;
 
+use function assert;
+
 final readonly class RunnerConfig
 {
     public function __construct(
@@ -14,11 +16,13 @@ final readonly class RunnerConfig
          * Note: this value is resolved at compile time, so you should not use an environment variable here
          */
         public bool $httpd = true,
-        public WorkermanConfig $workerman = new WorkermanConfig(),
+        public ?WorkermanConfig $workerman = null,
     ) {}
 
     public function workerman(): WorkermanConfig
     {
+        assert($this->workerman !== null);
+
         return $this->workerman;
     }
 }

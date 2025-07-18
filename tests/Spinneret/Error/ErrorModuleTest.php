@@ -24,7 +24,7 @@ class ErrorModuleTest extends TestCase
             protected function applicationModules(): array
             {
                 return [
-                    new ErrorModule(),
+                    ErrorModule::create($this),
                 ];
             }
         };
@@ -65,7 +65,7 @@ HTML
             protected function applicationModules(): array
             {
                 return [
-                    new ErrorModule(),
+                    ErrorModule::create($this),
                 ];
             }
         };
@@ -95,7 +95,7 @@ HTML
             protected function applicationModules(): array
             {
                 return [
-                    new ErrorModule(),
+                    ErrorModule::create($this),
                     new LoggerModule(),
                     new PublicArrayLoggerModule(),
                 ];
