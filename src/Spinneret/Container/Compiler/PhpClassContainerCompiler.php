@@ -1,0 +1,158 @@
+<?php
+
+namespace Arakne\Spinneret\Container\Compiler;
+
+use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\BuiltContainer;
+use Arakne\Spinneret\Container\Exception\ContainerBuildException;
+use Arakne\Spinneret\Container\Service\ServiceMetadata;
+use Override;
+
+use Throwable;
+
+use function implode;
+use function sprintf;
+use function var_export;
+
+/**
+ * @implements ContainerCompilerInterface<string>
+ */
+final readonly class PhpClassContainerCompiler implements ContainerCompilerInterface
+{
+    public function __construct(
+        public string $className = 'CompiledContainer',
+        public string $namespace = '',
+    ) {}
+
+    #[Override]
+    public function compile(BuiltContainer $container): string
+    {
+        return <<<PHP
+namespace {$this->namespace} {
+    final class {$this->className} implements \Psr\Container\ContainerInterface
+    {
+        private array \$instances = [];
+        private array \$aliases = {$this->buildAliases($container)};
+        private array \$servicesByTag = {$this->buildTags($container)};
+        private array \$serviceIds = {$this->buildServiceIds($container)};
+
+        #[\Override]
+        public function get(string \$id): mixed
+        {
+            \$id = \$this->aliases[\$id] ?? \$id;
+
+            return \$this->instances[\$id] ??= \$this->instantiate(\$id);
+        }
+
+        #[\Override]
+        public function has(string \$id): bool
+        {
+            return isset(\$this->serviceIds[\$id]);
+        }
+
+        public function findByTag(string \$tag): iterable
+        {
+            foreach (\$this->servicesByTag[\$tag] ?? [] as \$id) {
+                yield \$this->get(\$id);
+            }
+        }
+
+        private function instantiate(string \$id): mixed
+        {
+            return match (\$id) {
+                {$this->buildServiceInstantiations($container)}
+                default => throw new \Arakne\Spinneret\Container\Exception\ServiceNotFoundException(sprintf('Service "%s" not found', \$id)),
+            };   
+        }
+    }
+}
+PHP;
+    }
+
+    private function buildAliases(BuiltContainer $container): string
+    {
+        $aliases = [];
+
+        foreach ($container->aliases as $alias => $id) {
+            while ($next = $container->aliases[$id] ?? null) {
+                $id = $next;
+            }
+
+            $aliases[$alias] = $id;
+        }
+
+        return var_export($aliases, true);
+    }
+
+    private function buildTags(BuiltContainer $container): string
+    {
+        $servicesByTag = [];
+
+        foreach ($container->services as $id => $service) {
+            foreach ($service->tags as $tag) {
+                $servicesByTag[$tag][] = $id;
+            }
+        }
+
+        return var_export($servicesByTag, true);
+    }
+
+    private function buildServiceIds(BuiltContainer $container): string
+    {
+        $ids = [];
+
+        foreach ($container->aliases as $alias => $_) {
+            $ids[$alias] = 1;
+        }
+
+        foreach ($container->services as $id => $_) {
+            $ids[$id] = 1;
+        }
+
+        return var_export($ids, true);
+    }
+
+    private function buildServiceInstantiations(BuiltContainer $container): string
+    {
+        $cases = '';
+
+        foreach ($container->services as $id => $service) {
+            try {
+                $cases .= sprintf(
+                    "%s => %s,\n",
+                    var_export($id, true),
+                    $this->buildServiceInstantiation($service)
+                );
+            } catch (Throwable $e) {
+                throw new ContainerBuildException(
+                    sprintf('Failed to compile service "%s": %s', $id, $e->getMessage()),
+                    previous: $e
+                );
+            }
+        }
+
+        return $cases;
+    }
+
+    private function buildServiceInstantiation(ServiceMetadata $service): string
+    {
+        $arguments = $this->buildArguments($service->arguments);
+        $factory = $service->factory;
+
+        if ($factory === null) {
+            return sprintf('new \%s(%s)', $service->class, $arguments);
+        }
+
+        return $factory->compile($arguments);
+    }
+
+    private function buildArguments(array $arguments): string
+    {
+        return implode(', ', array_map($this->buildArgument(...), $arguments));
+    }
+
+    private function buildArgument(ArgumentInterface $argument): string
+    {
+        return $argument->compile();
+    }
+}
