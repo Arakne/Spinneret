@@ -2,31 +2,43 @@
 
 namespace Arakne\Tests\Spinneret\Container\Compiler;
 
+use Arakne\Spinneret\Container\Argument\DynamicArray;
 use Arakne\Spinneret\Container\Argument\Literal;
 use Arakne\Spinneret\Container\Argument\PropertyAccess;
 use Arakne\Spinneret\Container\Argument\Reference;
 use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
 use Arakne\Spinneret\Container\Compiler\PhpClassContainerCompiler;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
+use Arakne\Spinneret\Container\Exception\ServiceNotFoundException;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments;
 use Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\InstanceFactory;
+use Arakne\Tests\Spinneret\Container\Fixtures\NullableContainerClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory;
+use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\ComplexTag;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\MyTagInterface;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer;
+use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\Tagged;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedA;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedB;
+use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
 use Psr\Container\NotFoundExceptionInterface;
 
+use SplPriorityQueue;
+
+use function bin2hex;
 use function class_exists;
+use function iterator_to_array;
+use function random_bytes;
 
 class PhpClassContainerCompilerTest extends TestCase
 {
@@ -309,6 +321,98 @@ class PhpClassContainerCompilerTest extends TestCase
             ->factory(static fn() => new SingleLiteralClass('test'))
         ;
         $builder->build()->compile();
+    }
+
+    #[Test]
+    public function withAnonymousServices()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(TagContainer::class);
+        $builder->anonymous(Tagged::class, ['a'])->tag(new ComplexTag(1));
+        $builder->anonymous(Tagged::class, ['b'])->tag(new ComplexTag(5));
+        $builder->anonymous(Tagged::class, ['c'])->tag(new ComplexTag(2));
+        $builder->processor(new class implements ContainerBuilderProcessorInterface {
+            #[Override]
+            public function process(ContainerBuilder $builder): void
+            {
+                $priority = new SplPriorityQueue();
+                $container = $builder->services[TagContainer::class];
+
+                foreach ($builder->findByTag(ComplexTag::class) as $service => $tags) {
+                    foreach ($tags as $tag) {
+                        $priority->insert(new Reference($service->id), $tag->priority);
+                    }
+                }
+
+                $container->arguments[0] = iterator_to_array($priority, false);
+            }
+        });
+
+        $container = $builder->build();
+        $compiled = $container->compile(new PhpClassContainerCompiler('AnonymousServicesContainerTest'));
+        eval($compiled);
+
+        $compiledContainer = new \AnonymousServicesContainerTest();
+
+        $this->assertInstanceOf(TagContainer::class, $container->get(TagContainer::class));
+        $this->assertCount(3, $container->get(TagContainer::class)->tagged);
+        $this->assertSame('b', $container->get(TagContainer::class)->tagged[0]->value);
+        $this->assertSame('c', $container->get(TagContainer::class)->tagged[1]->value);
+        $this->assertSame('a', $container->get(TagContainer::class)->tagged[2]->value);
+
+        $this->assertInstanceOf(DynamicArray::class, $container->services[TagContainer::class]->arguments[0]);
+    }
+
+    #[Test]
+    public function autowireNullableShouldIgnoreIfInvalid()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(NullableContainerClass::class);
+
+        $container = $builder->build();
+        $compiled = $container->compile(new PhpClassContainerCompiler('NullableContainerTest'));
+        eval($compiled);
+
+        $compiledContainer = new \NullableContainerTest();
+
+        $this->assertTrue($compiledContainer->has(NullableContainerClass::class));
+        $this->assertInstanceOf(NullableContainerClass::class, $compiledContainer->get(NullableContainerClass::class));
+        $instance = $compiledContainer->get(NullableContainerClass::class);
+        $this->assertNull($instance->dep);
+    }
+
+    #[Test]
+    public function referenceNotNullOnInvalidShouldThrowError()
+    {
+        $this->expectException(ServiceNotFoundException::class);
+        $this->expectExceptionMessage('Service "Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass" not found.');
+
+        $builder = new ContainerBuilder();
+        $builder->register(NullableContainerClass::class)->arg(new Reference(SingleLiteralClass::class));
+
+        $container = $builder->build();
+        $compiled = $container->compile(new PhpClassContainerCompiler('NullableContainerTestWithReference'));
+        eval($compiled);
+
+        $compiledContainer = new \NullableContainerTestWithReference();
+        $compiledContainer->get(NullableContainerClass::class);
+    }
+
+    #[Test]
+    public function getContainer()
+    {
+        $container = $this->compileContainer(new ContainerBuilder());
+        $this->assertTrue($container->has(ContainerInterface::class));
+        $this->assertSame($container, $container->get(ContainerInterface::class));
+    }
+
+    private function compileContainer(ContainerBuilder $builder): ContainerInterface
+    {
+        $built = $builder->build();
+        $compiled = $built->compile(new PhpClassContainerCompiler($className = 'CompiledContainer'.bin2hex(random_bytes(8))));
+        eval($compiled);
+
+        return new $className();
     }
 }
 

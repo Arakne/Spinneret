@@ -9,6 +9,7 @@ use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Override;
 use Psr\Container\ContainerInterface;
 
+use function assert;
 use function sprintf;
 
 // @todo use custom ContainerInterface with custom methods
@@ -37,13 +38,17 @@ final class BuiltContainer implements ContainerInterface
     {
         $id = $this->resolveAlias($id);
 
+        if ($id === ContainerInterface::class) {
+            return $this;
+        }
+
         return $this->instances[$id] ??= $this->instantiate($id);
     }
 
     #[Override]
     public function has(string $id): bool
     {
-        return isset($this->services[$id]) || isset($this->aliases[$id]);
+        return $id === ContainerInterface::class || isset($this->services[$id]) || isset($this->aliases[$id]);
     }
 
     /**
@@ -94,6 +99,8 @@ final class BuiltContainer implements ContainerInterface
         if ($service->factory !== null) {
             return $service->factory->create($this, $arguments);
         }
+
+        assert($service->class !== null);
 
         /** @psalm-suppress MixedMethodCall */
         return new ($service->class)(...$arguments);

@@ -13,6 +13,8 @@ use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
 use Closure;
+use Psr\Container\ContainerInterface;
+use ReflectionClass;
 use ReflectionFunction;
 
 use function array_is_list;
@@ -23,11 +25,16 @@ use function is_object;
 use function is_string;
 use function method_exists;
 
-
-// @todo: public, shared, inline, preload
+/**
+ * Builder for service metadata.
+ */
 final class ServiceBuilder
 {
     /**
+     * List of arguments to pass to the service constructor or factory.
+     * This is a 0-indexed array of values.
+     * The first argument is at index 0, the second at index 1, and so on.
+     *
      * @var list<mixed>
      */
     public array $arguments = [];
@@ -42,21 +49,78 @@ final class ServiceBuilder
      */
     public array $tags = [];
 
+    /**
+     * Indicates whether the service is public.
+     *
+     * A public service can be accessed using {@see ContainerInterface::get()},
+     * while a private service can only be accessed by using dependency injection through the container.
+     *
+     * Note: The container will not enforce this visibility, it's simply a hint allowing the container apply optimizations.
+     *
+     * @todo: not implemented yet.
+     */
+    public bool $public = false;
+
+    /**
+     * Indicates whether the service is shared.
+     *
+     * A shared service is a singleton, meaning that only one instance of the service will be created and reused.
+     * A non-shared service will create a new instance each time it is requested.
+     *
+     * @todo: not implemented yet.
+     */
+    public bool $shared = true;
+
+    /**
+     * Indicates whether the service instantiation should be inlined.
+     *
+     * If true, in case of compiled container, the service will be instantiated directly in the compiled code,
+     * instead of being resolved from the container.
+     * This can improve performance, but disallow usage of public or shared services.
+     *
+     * This flags will be automatically set to true if it's safe to inline the service:
+     * - The service is not shared
+     * - The service is private and is used only by a single service
+     *
+     * @todo: not implemented yet.
+     */
+    public bool $inline = false;
+
+    /**
+     * Ignore the service if it is invalid.
+     *
+     * If the service cannot be built or instantiated,
+     * it will be deleted from the container and not included in the compiled container.
+     *
+     * This flag is automatically set to true if the service has been auto-registered by the autowiring processor.
+     */
+    public bool $ignoreIfInvalid = false;
+
+    private ?ReflectionClass $reflection = null;
+
     public function __construct(
-        public string $id,
+        /**
+         * The service ID.
+         */
+        public readonly string $id,
 
         /**
-         * @var class-string
-         * @todo make it nullable to allow service without class
+         * The class name of the service.
+         * This value must be provided if the service does not have a factory.
+         *
+         * @var class-string|null
          */
-        public string $class,
+        public ?string $class,
     ) {}
 
     /**
-     * @param class-string $class
+     * Define the service class.
+     * Use null to indicate that the service does not have a class (e.g., use a factory, or it's a literal value).
+     *
+     * @param class-string|null $class
      * @return $this
      */
-    public function class(string $class): self
+    public function class(?string $class): self
     {
         $this->class = $class;
 
@@ -74,6 +138,16 @@ final class ServiceBuilder
         return $this;
     }
 
+    /**
+     * Add a new argument to the service constructor or factory.
+     * Use {@see ArgumentInterface} to provide a dynamic argument.
+     *
+     * Note: to modify an existing argument, directly modify the `arguments` property.
+     *
+     * @param mixed $value
+     *
+     * @return $this
+     */
     public function arg(mixed $value): self
     {
         $this->arguments[] = $value;
@@ -81,6 +155,12 @@ final class ServiceBuilder
         return $this;
     }
 
+    /**
+     * Add a new tag to the service.
+     *
+     * @param string|object $tag The tag name, or object.
+     * @return $this
+     */
     public function tag(string|object $tag): self
     {
         $this->tags[] = $tag;
@@ -138,13 +218,37 @@ final class ServiceBuilder
         return new FunctionServiceFactory($factory);
     }
 
+    /**
+     * Get the reflection of the service class.
+     *
+     * @return ReflectionClass|null The reflection of the service class, or null if the class is not set.
+     */
+    public function reflection(): ?ReflectionClass
+    {
+        if ($this->reflection?->name === $this->class) {
+            return $this->reflection;
+        }
+
+        return $this->reflection = $this->class !== null
+            ? new ReflectionClass($this->class)
+            : null
+        ;
+    }
+
+    /**
+     * Build the service metadata.
+     *
+     * @throws ContainerBuildException When the service cannot be built.
+     */
     public function build(): ServiceMetadata
     {
+        // @todo handle ignoreIfInvalid
         return new ServiceMetadata(
             class: $this->class,
             arguments: $this->buildArguments(),
             factory: $this->resolveFactory(),
             tags: $this->buildTags(),
+            ignoreIfInvalid: $this->ignoreIfInvalid,
         );
     }
 

@@ -7,7 +7,6 @@ use Arakne\Spinneret\Container\Argument\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Override;
-use ReflectionClass;
 use ReflectionNamedType;
 
 use function count;
@@ -43,7 +42,7 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                     }
                 } else {
                     // Resolve parameters from the constructor.
-                    $parameters = new ReflectionClass($service->class)->getConstructor()?->getParameters();
+                    $parameters = $service->reflection()?->getConstructor()?->getParameters();
                 }
 
                 // Cannot resolve parameter types, skip autowiring.
@@ -77,12 +76,11 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
 
                     // Auto-register the service if not set.
                     if (!$builder->defined($typeName)) {
-                        $builder->register($typeName);
+                        $builder->register($typeName)->ignoreIfInvalid = true;
                     }
 
-                    // @todo handle nullable
                     /** @psalm-suppress PropertyTypeCoercion */
-                    $service->arguments[$index] = new Reference($parameterType->getName());
+                    $service->arguments[$index] = new Reference($parameterType->getName(), $parameterType->allowsNull());
                 }
             }
         } while (count($resolved) < count($builder->services)); // Repeat until no new service is added

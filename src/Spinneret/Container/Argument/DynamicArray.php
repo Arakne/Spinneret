@@ -6,6 +6,7 @@ use Override;
 use Psr\Container\ContainerInterface;
 
 use function array_is_list;
+use function is_array;
 use function var_export;
 
 final readonly class DynamicArray implements ArgumentInterface
@@ -27,6 +28,10 @@ final readonly class DynamicArray implements ArgumentInterface
 
         /** @var mixed $value */
         foreach ($this->values as $key => $value) {
+            if (is_array($value)) {
+                $value = new self($value);
+            }
+
             if ($value instanceof ArgumentInterface) {
                 /** @var mixed $value */
                 $value = $value->resolve($container);
@@ -47,6 +52,10 @@ final readonly class DynamicArray implements ArgumentInterface
 
         /** @var mixed $value */
         foreach ($this->values as $key => $value) {
+            if (is_array($value)) {
+                $value = new self($value);
+            }
+
             if ($value instanceof ArgumentInterface) {
                 $value = $value->compile();
             } else {

@@ -15,7 +15,10 @@ final readonly class ResolveAliasesProcessor implements ContainerBuilderProcesso
             /** @var mixed $argument */
             foreach ($service->arguments as $index => $argument) {
                 if ($argument instanceof Reference) {
-                    $service->arguments[$index] = new Reference($this->resolveAlias($builder, $argument->id));
+                    $service->arguments[$index] = new Reference(
+                        $this->resolveAlias($builder, $argument->id),
+                        $argument->nullOnInvalid,
+                    );
                 }
             }
         }

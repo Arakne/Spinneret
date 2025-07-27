@@ -8,13 +8,17 @@ use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Override;
 
+use Psr\Container\ContainerInterface;
 use Throwable;
 
+use function assert;
 use function implode;
 use function sprintf;
 use function var_export;
 
 /**
+ * Compile the container into a PHP class that implements `Psr\Container\ContainerInterface`.
+ *
  * @implements ContainerCompilerInterface<string>
  */
 final readonly class PhpClassContainerCompiler implements ContainerCompilerInterface
@@ -40,6 +44,10 @@ namespace {$this->namespace} {
         public function get(string \$id): mixed
         {
             \$id = \$this->aliases[\$id] ?? \$id;
+            
+            if (\$id === \Psr\Container\ContainerInterface::class) {
+                return \$this;
+            }
 
             return \$this->instances[\$id] ??= \$this->instantiate(\$id);
         }
@@ -57,11 +65,26 @@ namespace {$this->namespace} {
             }
         }
 
-        private function instantiate(string \$id): mixed
+        private function getOrNull(string \$id): mixed
+        {
+            \$id = \$this->aliases[\$id] ?? \$id;
+
+            if (\$id === \Psr\Container\ContainerInterface::class) {
+                return \$this;
+            }
+
+            try {
+                return \$this->instances[\$id] ??= \$this->instantiate(\$id, true);
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        private function instantiate(string \$id, bool \$ignoreInvalid = false): mixed
         {
             return match (\$id) {
                 {$this->buildServiceInstantiations($container)}
-                default => throw new \Arakne\Spinneret\Container\Exception\ServiceNotFoundException(sprintf('Service "%s" not found', \$id)),
+                default => throw new \Arakne\Spinneret\Container\Exception\ServiceNotFoundException(sprintf('Service "%s" not found.', \$id)),
             };   
         }
     }
@@ -109,6 +132,8 @@ PHP;
             $ids[$id] = 1;
         }
 
+        $ids[ContainerInterface::class] = 1;
+
         return var_export($ids, true);
     }
 
@@ -124,6 +149,10 @@ PHP;
                     $this->buildServiceInstantiation($service)
                 );
             } catch (Throwable $e) {
+                if ($service->ignoreIfInvalid) {
+                    continue;
+                }
+
                 throw new ContainerBuildException(
                     sprintf('Failed to compile service "%s": %s', $id, $e->getMessage()),
                     previous: $e
@@ -140,6 +169,7 @@ PHP;
         $factory = $service->factory;
 
         if ($factory === null) {
+            assert($service->class !== null);
             return sprintf('new \%s(%s)', $service->class, $arguments);
         }
 

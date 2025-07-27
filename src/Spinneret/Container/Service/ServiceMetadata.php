@@ -3,13 +3,14 @@
 namespace Arakne\Spinneret\Container\Service;
 
 use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 
 final readonly class ServiceMetadata
 {
 
     public function __construct(
-        /** @var class-string */
-        public string $class,
+        /** @var class-string|null */
+        public ?string $class,
 
         /** @var list<ArgumentInterface> */
         public array $arguments = [],
@@ -17,5 +18,10 @@ final readonly class ServiceMetadata
 
         /** @var list<string> */
         public array $tags = [],
-    ) {}
+        public bool $ignoreIfInvalid = false,
+    ) {
+        if ($class === null && $factory === null) {
+            throw new ContainerBuildException('Service must have a class or a factory.');
+        }
+    }
 }

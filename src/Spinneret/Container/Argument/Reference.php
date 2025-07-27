@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\Container\Argument;
 
 use Override;
 use Psr\Container\ContainerInterface;
+use Throwable;
 
 use function class_exists;
 use function sprintf;
@@ -17,18 +18,31 @@ final readonly class Reference implements ArgumentInterface
 {
     public function __construct(
         public string $id,
+        public bool $nullOnInvalid = false,
     ) {}
 
     #[Override]
     public function resolve(ContainerInterface $container): mixed
     {
-        return $container->get($this->id);
+        try {
+            return $container->get($this->id);
+        } catch (Throwable $e) {
+            if ($this->nullOnInvalid) {
+                return null;
+            }
+
+            throw $e;
+        }
     }
 
     #[Override]
     public function compile(): string
     {
-        return sprintf('$this->get(%s)', var_export($this->id, true));
+        if ($this->nullOnInvalid) {
+            return sprintf('$this->getOrNull(%s)', var_export($this->id, true));
+        } else {
+            return sprintf('$this->get(%s)', var_export($this->id, true));
+        }
     }
 
     #[Override]
