@@ -5,6 +5,8 @@ namespace Arakne\Spinneret\Container\Builder;
 use Arakne\Spinneret\Container\Builder\Configurator\AttributeConfigurator;
 use Arakne\Spinneret\Container\Builder\Configurator\ConfiguratorInterface;
 use Arakne\Spinneret\Container\Builder\Configurator\InstanceOfConfigurator;
+use Arakne\Spinneret\Container\Builder\Configurator\ServiceConfiguratorAttributeConfigurator;
+use Arakne\Spinneret\Container\Builder\Loader\DirectoryLoader;
 use Arakne\Spinneret\Container\Builder\Processor\AutowireProcessor;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
 use Arakne\Spinneret\Container\Builder\Processor\InlineTaggedIteratorProcessor;
@@ -13,7 +15,6 @@ use Arakne\Spinneret\Container\BuiltContainer;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Closure;
 use Generator;
-
 use Throwable;
 
 use function class_exists;
@@ -96,7 +97,7 @@ final class ContainerBuilder
     /**
      * @var list<ConfiguratorInterface>
      */
-    private array $configurators = [];
+    private array $configurators;
 
     /**
      * @var list<ContainerBuilderProcessorInterface>
@@ -105,6 +106,10 @@ final class ContainerBuilder
 
     public function __construct()
     {
+        $this->configurators = [
+            new ServiceConfiguratorAttributeConfigurator(),
+        ];
+
         $this->processors = [
             new AutowireProcessor(),
             new InlineTaggedIteratorProcessor(),
@@ -185,6 +190,24 @@ final class ContainerBuilder
         }
 
         return $builder;
+    }
+
+    /**
+     * Import all classes from a directory into the container.
+     *
+     * Usage:
+     * ```php
+     * $builder->import(__DIR__, __NAMESPACE__); // Import all classes in the current directory
+     * ```
+     *
+     * @param string $directory The directory to scan for classes.
+     * @param string $namespace The namespace to use for the classes found in the directory. All classes should follow PSR-4 standards.
+     *
+     * @return void
+     */
+    public function import(string $directory, string $namespace = ''): void
+    {
+        new DirectoryLoader($directory, $namespace)->load($this);
     }
 
     /**
@@ -369,12 +392,10 @@ final class ContainerBuilder
      */
     public function build(): BuiltContainer
     {
-        if ($this->configurators !== []) {
-            foreach ($this->services as $service) {
-                foreach ($this->configurators as $configurator) {
-                    if ($configurator->supports($service)) {
-                        $configurator->configure($service, $this);
-                    }
+        foreach ($this->services as $service) {
+            foreach ($this->configurators as $configurator) {
+                if ($configurator->supports($service)) {
+                    $configurator->configure($service, $this);
                 }
             }
         }

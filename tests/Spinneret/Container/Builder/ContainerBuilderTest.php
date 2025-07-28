@@ -32,14 +32,20 @@ use Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\ComplexTag;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\Tagged;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\DepConfig;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\MessageDispatcher;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\MessageHandlerTag;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoA;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoAHandler;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoB;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoBHandler;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\SimpleDep;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-
 use SplPriorityQueue;
 
 use function iterator_to_array;
-use function var_dump;
 
 class ContainerBuilderTest extends TestCase
 {
@@ -524,6 +530,50 @@ class ContainerBuilderTest extends TestCase
         $container = $builder->build();
 
         $container->get(NullableContainerClass::class);
+    }
+
+    #[Test]
+    public function import()
+    {
+        $builder = new ContainerBuilder();
+        $builder->import(__DIR__ . '/../Fixtures/WithLoader', 'Arakne\Tests\Spinneret\Container\Fixtures\WithLoader');
+
+        $builder->processor(new class implements ContainerBuilderProcessorInterface {
+            #[Override]
+            public function process(ContainerBuilder $builder): void
+            {
+                $handlers = [];
+                $dispatcher = $builder->services[MessageDispatcher::class];
+
+                foreach ($builder->findByTag(MessageHandlerTag::class) as $service => $attributes) {
+                    foreach ($attributes as $attribute) {
+                        $handlers[$attribute->message] = new Reference($service->id);
+                    }
+                }
+
+                $dispatcher->arguments[0] = $handlers;
+            }
+        });
+        $builder->register(DepConfig::class, ['my-key']);
+
+        $container = $builder->build();
+        $this->assertTrue($container->has(DepConfig::class));
+        $this->assertTrue($container->has(DoAHandler::class));
+        $this->assertTrue($container->has(DoBHandler::class));
+        $this->assertTrue($container->has(MessageDispatcher::class));
+        $this->assertTrue($container->has(SimpleDep::class));
+
+        $this->assertSame('my-key', $container->get(DepConfig::class)->key);
+        $this->assertInstanceOf(DoAHandler::class, $container->get(DoAHandler::class));
+        $this->assertInstanceOf(DoBHandler::class, $container->get(DoBHandler::class));
+        $this->assertSame($container->get(SimpleDep::class), $container->get(DoBHandler::class)->dep);
+        $this->assertSame($container->get(DepConfig::class), $container->get(SimpleDep::class)->config);
+        $this->assertInstanceOf(MessageDispatcher::class, $container->get(MessageDispatcher::class));
+        $this->assertInstanceOf(MessageDispatcher::class, $container->get('dispatcher'));
+        $this->assertSame([
+            DoA::class => $container->get(DoAHandler::class),
+            DoB::class => $container->get(DoBHandler::class),
+        ], $container->get(MessageDispatcher::class)->handlers);
     }
 }
 
