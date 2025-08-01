@@ -14,6 +14,8 @@ use function sprintf;
  */
 final readonly class StaticMethodServiceFactory implements ServiceFactoryInterface
 {
+    use FactoryHelperTrait;
+
     public function __construct(
         /**
          * @var class-string

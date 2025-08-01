@@ -6,7 +6,6 @@ use Arakne\Spinneret\Console\Console;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
 use Override;
-use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 use function assert;
@@ -21,7 +20,7 @@ final readonly class RegisterConsoleCommandProcessor implements ContainerBuilder
         $commandMap = [];
 
         foreach ($builder->findByTag(AsCommand::class) as $service => $tags) {
-            $service->public = true;
+            $service->public();
 
             foreach ($tags as $tag) {
                 assert($tag instanceof AsCommand);
@@ -34,24 +33,6 @@ final readonly class RegisterConsoleCommandProcessor implements ContainerBuilder
             }
         }
 
-        $definition->arguments[1] = $commandMap;
-    }
-    private function resolveCommandNames(ContainerBuilder $container, string $serviceId): array|null
-    {
-        try {
-            /** @psalm-suppress ArgumentTypeCoercion */
-            $reflection = new ReflectionClass($container->getDefinition($serviceId)->getClass() ?? $serviceId);
-
-            foreach ($reflection->getAttributes(AsCommand::class) as $attribute) {
-                return [$attribute->newInstance()->name];
-            }
-
-            /** @var Command $command */
-            $command = $container->get($serviceId);
-
-            return [$command->getName(), ...$command->getAliases()];
-        } catch (\Throwable $e) {
-            return null;
-        }
+        $definition->set(1, $commandMap);
     }
 }

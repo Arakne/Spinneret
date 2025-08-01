@@ -29,6 +29,8 @@ use function var_export;
  */
 final readonly class Literal implements ArgumentInterface
 {
+    use ValueHelperTrait;
+
     public function __construct(
         public mixed $value,
     ) {}
@@ -126,7 +128,6 @@ final readonly class Literal implements ArgumentInterface
             return sprintf('((object) %s)', self::dump((array)$obj));
         }
 
-        // @todo test enum
         if ($obj instanceof UnitEnum) {
             return sprintf('\%s::%s', $obj::class, $obj->name);
         }

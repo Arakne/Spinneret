@@ -16,6 +16,8 @@ use function sprintf;
  */
 final readonly class MethodServiceFactory implements ServiceFactoryInterface
 {
+    use FactoryHelperTrait;
+
     public function __construct(
         public ArgumentInterface $object,
         public string $method,

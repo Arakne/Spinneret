@@ -18,6 +18,8 @@ use function sprintf;
  */
 final readonly class FunctionServiceFactory implements ServiceFactoryInterface
 {
+    use FactoryHelperTrait;
+
     public function __construct(
         /**
          * Callable string function or Closure to be executed.

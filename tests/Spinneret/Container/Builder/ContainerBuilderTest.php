@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Container\Builder;
 
 use Arakne\Spinneret\Container\Argument\DynamicArray;
+use Arakne\Spinneret\Container\Argument\Literal;
 use Arakne\Spinneret\Container\Argument\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
@@ -220,33 +221,12 @@ class ContainerBuilderTest extends TestCase
     }
 
     #[Test]
-    public function withStaticFactoryArraySyntax()
+    public function withInlineInstanceFactory()
     {
         $builder = new ContainerBuilder();
+        $builder->register(InstanceFactory::class)->arg('must not be used');
         $builder->register(SingleLiteralClass::class)
-            ->factory([StaticFactory::class, 'create'])
-            ->arg('test')
-        ;
-
-        $container = $builder->build();
-        $this->assertTrue($container->has(SingleLiteralClass::class));
-        $this->assertInstanceOf(SingleLiteralClass::class, $container->get(SingleLiteralClass::class));
-        $instance = $container->get(SingleLiteralClass::class);
-        $this->assertSame('TEST', $instance->value);
-        $this->assertSame($instance, $container->get(SingleLiteralClass::class));
-
-        $this->assertInstanceOf(StaticMethodServiceFactory::class, $container->services[SingleLiteralClass::class]->factory);
-        $this->assertSame(StaticFactory::class, $container->services[SingleLiteralClass::class]->factory->class);
-        $this->assertSame('create', $container->services[SingleLiteralClass::class]->factory->method);
-    }
-
-    #[Test]
-    public function withInstanceFactory()
-    {
-        $builder = new ContainerBuilder();
-        $builder->register(InstanceFactory::class)->arg('---');
-        $builder->register(SingleLiteralClass::class)
-            ->factory(new InstanceFactory('')->create(...))
+            ->factory(new InstanceFactory('---')->create(...))
             ->arg('test')
         ;
 
@@ -258,17 +238,17 @@ class ContainerBuilderTest extends TestCase
         $this->assertSame($instance, $container->get(SingleLiteralClass::class));
 
         $this->assertInstanceOf(MethodServiceFactory::class, $container->services[SingleLiteralClass::class]->factory);
-        $this->assertEquals(new Reference(InstanceFactory::class), $container->services[SingleLiteralClass::class]->factory->object);
+        $this->assertEquals(new Literal(new InstanceFactory('---')), $container->services[SingleLiteralClass::class]->factory->object);
         $this->assertSame('create', $container->services[SingleLiteralClass::class]->factory->method);
     }
 
     #[Test]
-    public function withInstanceFactoryArraySyntax()
+    public function withReferenceInstanceFactory()
     {
         $builder = new ContainerBuilder();
         $builder->register(InstanceFactory::class)->arg('---');
         $builder->register(SingleLiteralClass::class)
-            ->factory([new Reference(InstanceFactory::class), 'create'])
+            ->factory(new Reference(InstanceFactory::class)->method('create'))
             ->arg('test')
         ;
 
@@ -331,7 +311,7 @@ class ContainerBuilderTest extends TestCase
             ->arg(42)
         ;
         $builder->register(SingleLiteralClass::class)
-            ->factory([new Reference(AutowireableFactory::class), 'create'])
+            ->factory(new Reference(AutowireableFactory::class)->method('create'))
             ->arg('test')
         ;
 
@@ -408,17 +388,6 @@ class ContainerBuilderTest extends TestCase
         $this->assertSame('a', $container->get(TagContainer::class)->tagged[2]->value);
 
         $this->assertInstanceOf(DynamicArray::class, $container->services[TagContainer::class]->arguments[0]);
-    }
-
-    #[Test]
-    public function invalidFactory()
-    {
-        $this->expectException(ContainerBuildException::class);
-        $this->expectExceptionMessage('Factory must be a callable or an array with two elements: [class, method].');
-
-        $builder = new ContainerBuilder();
-        $builder->register(SingleLiteralClass::class)->factory([]);
-        $builder->build();
     }
 
     #[Test]

@@ -8,7 +8,6 @@ use Arakne\Spinneret\Database\DatabaseConnectionInterface;
 use Arakne\Spinneret\Database\DatabaseConnectionManagerInterface;
 use Override;
 use Psr\Container\ContainerInterface;
-
 use UnitEnum;
 
 use function sprintf;
@@ -27,7 +26,10 @@ final readonly class DatabaseConnection implements ArgumentInterface
     #[Override]
     public function resolve(ContainerInterface $container): DatabaseConnectionInterface
     {
-        return $container->get(DatabaseConnectionManagerInterface::class)->get($this->name);
+        /** @var DatabaseConnectionManagerInterface $manager */
+        $manager = $container->get(DatabaseConnectionManagerInterface::class);
+
+        return $manager->get($this->name);
     }
 
     #[Override]

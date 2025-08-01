@@ -4,7 +4,6 @@ namespace Arakne\Spinneret\Database;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
 use Arakne\Spinneret\Container\Argument\ArgumentInterface;
-use Arakne\Spinneret\Container\Argument\ClosureArgument;
 use Arakne\Spinneret\Container\Argument\Reference;
 use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
@@ -86,7 +85,7 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
         $containerBuilder->register(MigrationManager::class, [
             new Reference(MigrationRepositoryInterface::class),
             new Reference(DatabaseConnectionManagerInterface::class),
-            new ClosureArgument(new TaggedServiceIterator(MigrationInterface::class)),
+            new TaggedServiceIterator(MigrationInterface::class)->asClosure(),
             new Reference(LoggerInterface::class, nullOnInvalid: true),
         ]);
 

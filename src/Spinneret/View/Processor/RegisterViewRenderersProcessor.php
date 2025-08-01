@@ -19,7 +19,7 @@ final readonly class RegisterViewRenderersProcessor implements ContainerBuilderP
         $renderers = [];
 
         foreach ($builder->findByTag(Renderer::class) as $service => $tags) {
-            $service->public = true;
+            $service->public();
 
             foreach ($tags as $tag) {
                 assert($tag instanceof Renderer);
@@ -27,6 +27,6 @@ final readonly class RegisterViewRenderersProcessor implements ContainerBuilderP
             }
         }
 
-        $engineDefinition->arguments[5] = $renderers;
+        $engineDefinition->set(5, $renderers);
     }
 }

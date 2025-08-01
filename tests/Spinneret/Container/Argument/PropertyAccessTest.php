@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Container\Argument;
 
 use Arakne\Spinneret\Container\Argument\PropertyAccess;
+use Arakne\Spinneret\Container\Argument\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments;
 use Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass;
@@ -20,7 +21,7 @@ class PropertyAccessTest extends TestCase
             ->arg(42)
         ;
         $builder->register(SingleLiteralClass::class)
-            ->arg(new PropertyAccess(ClassWithLiteralArguments::class, 'foo'))
+            ->arg(new PropertyAccess(new Reference(ClassWithLiteralArguments::class), 'foo'))
         ;
 
         $container = $builder->build();
@@ -31,15 +32,15 @@ class PropertyAccessTest extends TestCase
     #[Test]
     public function compile()
     {
-        $propertyAccess = new PropertyAccess(ClassWithLiteralArguments::class, 'test');
+        $propertyAccess = new PropertyAccess(new Reference(ClassWithLiteralArguments::class), 'test');
         $this->assertSame('$this->get(\'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments\')->test', $propertyAccess->compile());
     }
 
     #[Test]
     public function type()
     {
-        $this->assertNull(new PropertyAccess(ClassWithLiteralArguments::class, 'test')->type());
-        $this->assertNull(new PropertyAccess('not_a_class', 'test')->type());
-        $this->assertSame('int', new PropertyAccess(ClassWithLiteralArguments::class, 'bar')->type());
+        $this->assertNull(new PropertyAccess(new Reference(ClassWithLiteralArguments::class), 'test')->type());
+        $this->assertNull(new PropertyAccess(new Reference('not_a_class'), 'test')->type());
+        $this->assertSame('int', new PropertyAccess(new Reference(ClassWithLiteralArguments::class), 'bar')->type());
     }
 }

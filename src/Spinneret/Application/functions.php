@@ -3,12 +3,9 @@
 namespace Arakne\Spinneret\Application;
 
 use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\Argument\ClosureArgument;
 use Arakne\Spinneret\Container\Argument\Reference;
 use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
-use Closure;
-use Psr\Container\ContainerInterface;
-
-use function sprintf;
 
 /**
  * Helper function to create a new service reference.
@@ -51,27 +48,5 @@ function tagged_services(string $tag): TaggedServiceIterator
  */
 function service_closure(string $id): ArgumentInterface
 {
-    // @todo refactor & test
-    return new class(service($id)) implements ArgumentInterface
-    {
-        public function __construct(
-            private readonly ArgumentInterface $argument,
-        ) {}
-
-        #[\Override]
-        public function resolve(ContainerInterface $container): mixed
-        {
-            return fn () => $this->argument->resolve($container);
-        }
-
-        #[\Override] public function compile(): string
-        {
-            return sprintf('(fn () => %s)', $this->argument->compile());
-        }
-
-        #[\Override] public function type(): ?string
-        {
-            return Closure::class;
-        }
-    };
+    return new ClosureArgument(new Reference($id));
 }

@@ -15,11 +15,11 @@ final readonly class RegisterPresentersProcessor implements ContainerBuilderProc
     #[Override]
     public function process(ContainerBuilder $builder): void
     {
-        $dispatcherDefinition = $builder->services[PresenterDispatcher::class] ?? null;
+        $dispatcherDefinition = $builder->services[PresenterDispatcher::class];
         $presenters = [];
 
         foreach ($builder->findByTag(Presenter::class) as $service => $tags) {
-            $service->public = true;
+            $service->public();
 
             foreach ($tags as $tag) {
                 assert($tag instanceof Presenter);
@@ -27,6 +27,6 @@ final readonly class RegisterPresentersProcessor implements ContainerBuilderProc
             }
         }
 
-        $dispatcherDefinition->arguments[1] = $presenters;
+        $dispatcherDefinition->set(1, $presenters);
     }
 }

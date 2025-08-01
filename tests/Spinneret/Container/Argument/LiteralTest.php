@@ -61,6 +61,18 @@ class LiteralTest extends TestCase
     }
 
     #[Test]
+    public function dumpEnum()
+    {
+        $this->assertSame('\Arakne\Tests\Spinneret\Container\Argument\MyEnum::Foo', Literal::dump(MyEnum::Foo));
+    }
+
+    #[Test]
+    public function dumpDateTimeZone()
+    {
+        $this->assertSame('new \DateTimeZone(\'Europe/Paris\')', Literal::dump(new \DateTimeZone('Europe/Paris')));
+    }
+
+    #[Test]
     public function resolve()
     {
         $this->assertSame(42, new Literal(42)->resolve($this->createMock(ContainerInterface::class)));
@@ -114,4 +126,10 @@ class PrivateConstructor
     {
         return new self();
     }
+}
+
+enum MyEnum
+{
+    case Foo;
+    case Bar;
 }

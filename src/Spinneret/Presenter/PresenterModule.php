@@ -34,7 +34,7 @@ final class PresenterModule implements ModuleInterface
         ]);
 
         $containerBuilder->alias(PresenterDispatcherInterface::class, PresenterDispatcher::class);
-        $containerBuilder->register(RequestPresenter::class)->public = true;
+        $containerBuilder->register(RequestPresenter::class)->public();
     }
 
     #[Override]

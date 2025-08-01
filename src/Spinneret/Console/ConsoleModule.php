@@ -42,8 +42,7 @@ final class ConsoleModule extends AbstractModule
     {
         $containerBuilder->processor(new RegisterConsoleCommandProcessor());
         $containerBuilder->configureAttribute(AsCommand::class, static function (ServiceBuilder $service, ContainerBuilder $builder, AsCommand $attribute): void {
-            $service->tag($attribute);
-            $service->public = true;
+            $service->tag($attribute)->public();
         });
 
         $containerBuilder->register(CacheClearCommand::class, [service(Application::class)]);

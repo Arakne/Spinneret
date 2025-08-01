@@ -143,7 +143,7 @@ class PhpClassContainerCompilerTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->register(ClassWithLiteralArguments::class)->arg('a')->arg(1);
-        $builder->register(SingleLiteralClass::class)->arg(new PropertyAccess(ClassWithLiteralArguments::class, 'foo'));
+        $builder->register(SingleLiteralClass::class)->arg(new PropertyAccess(new Reference(ClassWithLiteralArguments::class), 'foo'));
 
         $container = $builder->build();
         $compiled = $container->compile(new PhpClassContainerCompiler('PropertyAccessContainerTest'));

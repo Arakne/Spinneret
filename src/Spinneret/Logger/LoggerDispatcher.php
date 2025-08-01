@@ -27,7 +27,7 @@ final readonly class LoggerDispatcher implements LoggerInterface
     #[Override]
     public function log($level, Stringable|string $message, array $context = []): void
     {
-        $intLevel = LoggerFilter::levelToInt($level);
+        $intLevel = LoggerFilter::levelToInt($level) ?? 1;
 
         foreach ($this->loggers as $logger) {
             if ($logger->match($intLevel, $message, $context)) {

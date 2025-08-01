@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Service;
 
+use Arakne\Spinneret\Container\Argument\Call;
 use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory;
@@ -41,5 +42,14 @@ class StaticMethodServiceFactoryTest extends TestCase
         $compiled = $factory->compile($arguments);
 
         $this->assertSame('\Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory::create("test")', $compiled);
+    }
+
+    #[Test]
+    public function call()
+    {
+        $factory = new StaticMethodServiceFactory(StaticFactory::class, 'create');
+        $value = $factory->call(['test']);
+
+        $this->assertEquals(new Call($factory, ['test']), $value);
     }
 }

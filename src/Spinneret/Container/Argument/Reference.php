@@ -2,7 +2,6 @@
 
 namespace Arakne\Spinneret\Container\Argument;
 
-use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Override;
 use Psr\Container\ContainerInterface;
 use Throwable;
@@ -17,9 +16,25 @@ use function var_export;
  */
 final readonly class Reference implements ArgumentInterface
 {
+    use ValueHelperTrait;
+
     public function __construct(
+        /**
+         * The ID of the service to reference.
+         * This ID must correspond to a service registered in the container.
+         */
         public string $id,
+
+        /**
+         * Use null if the service is not found or invalid.
+         */
         public bool $nullOnInvalid = false,
+
+        /**
+         * Default value to return if the service is not found or invalid.
+         *
+         * Note: if the default value is null, use `nullOnInvalid` instead.
+         */
         public mixed $defaultValueOnInvalid = null,
     ) {}
 
@@ -59,19 +74,14 @@ final readonly class Reference implements ArgumentInterface
         return class_exists($this->id) ? $this->id : null;
     }
 
+    /**
+     * Change the ID of the referenced service.
+     *
+     * @param string $id The new ID of the service to reference.
+     * @return self
+     */
     public function withId(string $id): self
     {
         return new self($id, $this->nullOnInvalid, $this->defaultValueOnInvalid);
-    }
-
-    // @todo test + document + define in trait
-    public function method(string $name): MethodServiceFactory
-    {
-        return new MethodServiceFactory($this, $name);
-    }
-
-    public function property(string $property): PropertyAccess
-    {
-        return new PropertyAccess($this->id, $property);
     }
 }

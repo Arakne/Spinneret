@@ -10,7 +10,6 @@ use ReflectionNamedType;
 
 use function class_exists;
 use function sprintf;
-use function var_export;
 
 /**
  * Represents access to a property of an object stored in the container.
@@ -18,8 +17,18 @@ use function var_export;
  */
 final readonly class PropertyAccess implements ArgumentInterface
 {
+    use ValueHelperTrait;
+
     public function __construct(
-        public string $id,
+        /**
+         * The object from which the property will be accessed.
+         */
+        public ArgumentInterface $object,
+
+        /**
+         * The name of the property to access.
+         * This property must exist in the class of the object.
+         */
         public string $property,
     ) {}
 
@@ -27,24 +36,26 @@ final readonly class PropertyAccess implements ArgumentInterface
     public function resolve(ContainerInterface $container): mixed
     {
         /** @psalm-suppress MixedPropertyFetch */
-        return $container->get($this->id)->{$this->property};
+        return $this->object->resolve($container)->{$this->property};
     }
 
     #[Override]
     public function compile(): string
     {
-        return sprintf('$this->get(%s)->%s', var_export($this->id, true), $this->property);
+        return sprintf('%s->%s', $this->object->compile(), $this->property);
     }
 
     #[Override]
     public function type(): ?string
     {
-        if (!class_exists($this->id)) {
+        $type = $this->object->type();
+
+        if ($type === null || !class_exists($type)) {
             return null;
         }
 
         try {
-            $r = new ReflectionClass($this->id);
+            $r = new ReflectionClass($type);
             $type = $r->getProperty($this->property)->getType();
 
             if (!$type instanceof ReflectionNamedType) {

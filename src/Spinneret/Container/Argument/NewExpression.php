@@ -5,36 +5,44 @@ namespace Arakne\Spinneret\Container\Argument;
 use Override;
 use Psr\Container\ContainerInterface;
 
+use function implode;
 use function is_array;
 use function sprintf;
 
-// @todo test + doc
+/**
+ * Represents a new expression to create an object.
+ *
+ * Unlike {@see Literal} with an object, arguments are resolved dynamically,
+ * and do not depend on promoted properties.
+ */
 final readonly class NewExpression implements ArgumentInterface
 {
+    use ValueHelperTrait;
+
     public function __construct(
+        /**
+         * Class name of the object to create.
+         *
+         * @var class-string
+         */
         public string $className,
+
+        /**
+         * Arguments to pass to the constructor of the class.
+         * Can be a list or an associative array.
+         * If an associative array is used, the keys will be used as named arguments.
+         *
+         * @var array<mixed>
+         */
         public array $arguments = [],
     ) {}
 
     #[Override]
     public function resolve(ContainerInterface $container): mixed
     {
-        $arguments = [];
+        $arguments = new DynamicArray($this->arguments)->resolve($container);
 
-        foreach ($this->arguments as $key => $value) {
-            if (is_array($value)) {
-                $value = new DynamicArray($value);
-            }
-
-            if ($value instanceof ArgumentInterface) {
-                /** @var mixed $value */
-                $value = $value->resolve($container);
-            }
-
-            /** @var mixed $value */
-            $arguments[$key] = $value;
-        }
-
+        /** @psalm-suppress MixedMethodCall */
         return new ($this->className)(...$arguments);
     }
 
@@ -42,7 +50,7 @@ final readonly class NewExpression implements ArgumentInterface
     public function compile(): string
     {
         $isList = array_is_list($this->arguments);
-        $output = '';
+        $arguments = [];
 
         /** @var mixed $value */
         foreach ($this->arguments as $key => $value) {
@@ -57,13 +65,13 @@ final readonly class NewExpression implements ArgumentInterface
             }
 
             if ($isList) {
-                $output .= $value . ', ';
+                $arguments[] = $value;
             } else {
-                $output .= $key . ': ' . $value . ', ';
+                $arguments[] = $key . ': ' . $value;
             }
         }
 
-        return sprintf('new \%s(%s)', $this->className, rtrim($output, ', ')); // @todo use implode instead
+        return sprintf('new \%s(%s)', $this->className, implode(', ', $arguments));
     }
 
     #[Override]

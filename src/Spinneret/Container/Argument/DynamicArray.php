@@ -11,6 +11,8 @@ use function var_export;
 
 final readonly class DynamicArray implements ArgumentInterface
 {
+    use ValueHelperTrait;
+
     public function __construct(
         /**
          * @var array<array-key, mixed>

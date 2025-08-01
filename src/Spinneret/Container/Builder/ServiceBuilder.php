@@ -5,27 +5,18 @@ namespace Arakne\Spinneret\Container\Builder;
 use Arakne\Spinneret\Container\Argument\ArgumentInterface;
 use Arakne\Spinneret\Container\Argument\DynamicArray;
 use Arakne\Spinneret\Container\Argument\Literal;
-use Arakne\Spinneret\Container\Argument\Reference;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
-use Arakne\Spinneret\Container\Service\FunctionServiceFactory;
-use Arakne\Spinneret\Container\Service\MethodServiceFactory;
+use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
-use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
 use Closure;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
-use ReflectionFunction;
-
 use Throwable;
 
-use function array_is_list;
 use function array_values;
-use function count;
 use function is_array;
 use function is_object;
-use function is_string;
-use function method_exists;
 
 /**
  * Builder for service metadata.
@@ -44,9 +35,9 @@ final class ServiceBuilder
     public array $arguments = [];
 
     /**
-     * @var ServiceFactoryInterface|Closure|callable-string|list{ArgumentInterface|class-string, string}|null
+     * @var ServiceFactoryInterface|Closure|callable-string|null
      */
-    public ServiceFactoryInterface|Closure|string|array|null $factory = null;
+    public ServiceFactoryInterface|Closure|string|null $factory = null;
 
     /**
      * @var list<string|object>
@@ -143,10 +134,10 @@ final class ServiceBuilder
     }
 
     /**
-     * @param ServiceFactoryInterface|Closure|callable-string|list{ArgumentInterface|class-string, string}|null $factory
+     * @param ServiceFactoryInterface|Closure|callable-string|null $factory
      * @return $this
      */
-    public function factory(ServiceFactoryInterface|Closure|string|array|null $factory): self
+    public function factory(ServiceFactoryInterface|Closure|string|null $factory): self
     {
         $this->factory = $factory;
 
@@ -166,6 +157,22 @@ final class ServiceBuilder
     public function arg(mixed $value): self
     {
         $this->arguments[] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Modify an existing argument at the given index.
+     *
+     * @param non-negative-int $index The argument index to modify. This value is 0-based, meaning that the first argument is at index 0, the second at index 1, and so on.
+     * @param mixed $value The new value for the argument.
+     *
+     * @return $this
+     */
+    public function set(int $index, mixed $value): self
+    {
+        /** @psalm-suppress PropertyTypeCoercion */
+        $this->arguments[$index] = $value;
 
         return $this;
     }
@@ -198,10 +205,25 @@ final class ServiceBuilder
     }
 
     /**
-     * @return ServiceFactoryInterface|null
-     * @psalm-suppress DocblockTypeContradiction
+     * Define the service as public.
+     * Public services can be accessed using {@see ContainerInterface::get()},
+     * while private services can only be accessed by using dependency injection through the container.
+     *
+     * @param bool $public
+     * @return $this
      */
-    // @todo: externalize this to a separate class
+    public function public(bool $public = true): self
+    {
+        $this->public = $public;
+
+        return $this;
+    }
+
+    /**
+     * Convert the factory property to a proper ServiceFactoryInterface instance.
+     *
+     * @return ServiceFactoryInterface|null
+     */
     public function resolveFactory(): ?ServiceFactoryInterface
     {
         $factory = $this->factory;
@@ -210,41 +232,7 @@ final class ServiceBuilder
             return $factory;
         }
 
-        if (is_string($factory)) {
-            return $this->factory = new FunctionServiceFactory($factory);
-        }
-
-        if (is_array($factory)) {
-            if (
-                !array_is_list($factory)
-                || count($factory) !== 2
-                || (!is_string($factory[0]) && !$factory[0] instanceof ArgumentInterface)
-                || !is_string($factory[1])
-            ) {
-                throw new ContainerBuildException('Factory must be a callable or an array with two elements: [class, method].');
-            }
-
-            return $this->factory = $factory[0] instanceof ArgumentInterface
-                ? new MethodServiceFactory($factory[0], $factory[1])
-                : new StaticMethodServiceFactory($factory[0], $factory[1])
-            ;
-        }
-
-        // @todo handle global functions
-        $reflection = new ReflectionFunction($factory);
-        $calledClass = $reflection->getClosureCalledClass()?->getName();
-        $methodName = $reflection->getName();
-
-        // @todo do not use calledClass for instance methods to resolve the service ID
-        // @todo In this case, prefer to use new Literal with closure this, and let the compiler inlining the factory instanciation.
-        if ($calledClass !== null && method_exists($calledClass, $methodName)) {
-            return $reflection->isStatic()
-                ? new StaticMethodServiceFactory($calledClass, $reflection->getName())
-                : new MethodServiceFactory(new Reference($calledClass), $reflection->getName())
-            ;
-        }
-
-        return new FunctionServiceFactory($factory);
+        return $this->factory = ServiceFactoryConverter::convert($factory);
     }
 
     /**

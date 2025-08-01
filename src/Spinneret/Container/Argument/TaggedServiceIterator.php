@@ -18,6 +18,8 @@ use function var_export;
  */
 final readonly class TaggedServiceIterator implements ArgumentInterface
 {
+    use ValueHelperTrait;
+
     public function __construct(
         public string $tag,
     ) {}

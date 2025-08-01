@@ -30,7 +30,7 @@ final readonly class RegisterHandlersProcessor implements ContainerBuilderProces
         $busDispatcher = $builder->services[BusDispatcher::class];
 
         foreach ($builder->findByTag(MessageHandler::class) as $service => $tags) {
-            $service->public = true;
+            $service->public();
             $resolved = false;
 
             foreach ($tags as $tag) {
@@ -47,7 +47,7 @@ final readonly class RegisterHandlersProcessor implements ContainerBuilderProces
             }
         }
 
-        $busDispatcher->arguments[1] = $handlers;
+        $busDispatcher->set(1, $handlers);
     }
 
     /**

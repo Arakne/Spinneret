@@ -23,7 +23,6 @@ final readonly class Renderer implements ServiceConfiguratorAttributeInterface
     #[Override]
     public function configure(ServiceBuilder $service, ContainerBuilder $container): void
     {
-        $service->public = true;
-        $service->tag($this);
+        $service->public()->tag($this);
     }
 }

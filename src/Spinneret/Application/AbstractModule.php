@@ -123,6 +123,7 @@ abstract class AbstractModule implements ModuleInterface
         foreach ($this->services as $class => $arguments) {
             if ($containerBuilder->defined($class)) {
                 $definition = $containerBuilder->services[$class];
+                /** @psalm-suppress PropertyTypeCoercion */
                 $definition->arguments = $arguments['params'] + $definition->arguments;
                 $definition->public = $definition->public || $arguments['public'];
             } else {
@@ -151,14 +152,18 @@ abstract class AbstractModule implements ModuleInterface
                 $definition = $containerBuilder->services[$presenterClass];
             }
 
-            $definition->public = true;
-            $definition->tag(new Presenter($requestClass));
+            $definition
+                ->public()
+                ->tag(new Presenter($requestClass))
+            ;
         }
 
         foreach ($this->renderers as $responseClass => $rendererClass) {
             $definition = $containerBuilder->register($rendererClass);
-            $definition->public = true;
-            $definition->tag(new Renderer($responseClass));
+            $definition
+                ->public()
+                ->tag(new Renderer($responseClass))
+            ;
         }
 
         $this->configureContainer($containerBuilder);

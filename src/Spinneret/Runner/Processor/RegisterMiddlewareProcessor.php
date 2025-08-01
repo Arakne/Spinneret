@@ -26,7 +26,6 @@ final readonly class RegisterMiddlewareProcessor implements ContainerBuilderProc
             $middlewares[] = new Reference($service->id);
         }
 
-        $service = $builder->services[$this->target];
-        $service->arguments[3] = $middlewares;
+        $builder->services[$this->target]->set(3, $middlewares);
     }
 }

@@ -109,13 +109,16 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
 
         $containerBuilder->alias(ServerRequestCreatorInterface::class, ServerRequestCreator::class);
 
-        $containerBuilder->register(
-            HttpdBackend::class,
-            [
-                new Reference(Application::class),
-                new Reference(ServerRequestCreatorInterface::class),
-            ]
-        )->public = true;
+        $containerBuilder
+            ->register(
+                HttpdBackend::class,
+                [
+                    new Reference(Application::class),
+                    new Reference(ServerRequestCreatorInterface::class),
+                ]
+            )
+            ->public()
+        ;
     }
 
     private function registerWorkermanBackend(ContainerBuilder $containerBuilder): void
@@ -125,10 +128,16 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
             ->factory(new Reference(RunnerConfig::class)->method('workerman'))
         ;
 
-        $containerBuilder->register(WorkermanBackend::class, [
-            new Reference(Application::class),
-            new Reference(WorkermanConfig::class),
-        ])->public = true;
+        $containerBuilder
+            ->register(
+                WorkermanBackend::class,
+                [
+                    new Reference(Application::class),
+                    new Reference(WorkermanConfig::class),
+                ]
+            )
+            ->public()
+        ;
 
         $containerBuilder->register(WorkermanStartCommand::class, [new Reference(WorkermanBackend::class)]);
     }
