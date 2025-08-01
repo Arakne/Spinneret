@@ -3,10 +3,10 @@
 namespace Arakne\Spinneret\Container\Argument;
 
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Override;
 use Psr\Container\ContainerInterface;
 
-use function method_exists;
 use function sprintf;
 use function var_export;
 
@@ -25,12 +25,10 @@ final readonly class TaggedServiceIterator implements ArgumentInterface
     #[Override]
     public function resolve(ContainerInterface $container): iterable
     {
-        // @todo use dedicated interface for container
-        if (!method_exists($container, 'findByTag')) {
+        if (!$container instanceof SpinneretContainerInterface) {
             throw new ContainerBuildException('Container does not support tagged services.');
         }
 
-        /** @psalm-suppress MixedReturnStatement - TODO: remove when interface will be created */
         return $container->findByTag($this->tag);
     }
 

@@ -4,12 +4,15 @@ namespace Arakne\Tests\Spinneret\Container\Argument;
 
 use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\MyTagInterface;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedA;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedB;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+
+use Psr\Container\ContainerInterface;
 
 use function iterator_to_array;
 
@@ -45,6 +48,15 @@ class TaggedServiceIteratorTest extends TestCase
         $this->assertCount(2, $resolved);
         $this->assertInstanceOf(TaggedA::class, $resolved[0]);
         $this->assertInstanceOf(TaggedB::class, $resolved[1]);
+    }
+
+    #[Test]
+    public function resolveInvalidContainerInstance()
+    {
+        $this->expectException(ContainerBuildException::class);
+        $this->expectExceptionMessage('Container does not support tagged services.');
+
+        new TaggedServiceIterator(MyTagInterface::class)->resolve($this->createMock(ContainerInterface::class));
     }
 
     #[Test]

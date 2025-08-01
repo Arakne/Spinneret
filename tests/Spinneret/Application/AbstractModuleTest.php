@@ -3,11 +3,14 @@
 namespace Arakne\Tests\Spinneret\Application;
 
 use Arakne\Spinneret\Application\AbstractModule;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Presenter\Attribute\Presenter;
 use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Presenter\RequestPresenter;
 use Arakne\Spinneret\Router\Field\FieldsExtractor;
 use Arakne\Spinneret\Router\Result\NotFound;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\View\Attribute\Renderer;
 use Arakne\Spinneret\View\ViewRendererInterface;
 use Arakne\Tests\Spinneret\Application\Fixtures\Aggr;
 use Arakne\Tests\Spinneret\Application\Fixtures\Bar;
@@ -18,17 +21,13 @@ use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRenderer;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRequest;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloResponse;
 use Arakne\Tests\Spinneret\Application\Fixtures\LazyContainer;
-use Arakne\Tests\Spinneret\Util\Fixtures\A\B;
-use ArrayObject;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 use function Arakne\Spinneret\Application\service;
 use function Arakne\Spinneret\Application\service_closure;
 use function Arakne\Spinneret\Application\tagged_services;
-use function var_dump;
 
 class AbstractModuleTest extends TestCase
 {
@@ -46,10 +45,11 @@ class AbstractModuleTest extends TestCase
         $container = new ContainerBuilder();
         $module->register($container);
 
-        $this->assertInstanceOf(HelloPresenter::class, $container->get(HelloPresenter::class));
-        $this->assertTrue($container->getDefinition(HelloPresenter::class)->isPublic());
-        $this->assertSame([PresenterInterface::class => [['request' => HelloRequest::class]]], $container->getDefinition(HelloPresenter::class)->getTags());
+        $this->assertTrue($container->services[HelloPresenter::class]->public);
+        $this->assertEquals([new Presenter(HelloRequest::class)], $container->services[HelloPresenter::class]->tags);
+        $this->assertInstanceOf(HelloPresenter::class, $container->build()->get(HelloPresenter::class));
     }
+
     #[Test]
     public function presentersWithMultipleRequestOnSamePresenter()
     {
@@ -65,12 +65,12 @@ class AbstractModuleTest extends TestCase
         $container = new ContainerBuilder();
         $module->register($container);
 
-        $this->assertInstanceOf(RequestPresenter::class, $container->get(RequestPresenter::class));
-        $this->assertTrue($container->getDefinition(RequestPresenter::class)->isPublic());
-        $this->assertSame([PresenterInterface::class => [
-            ['request' => HelloRequest::class],
-            ['request' => NotFound::class],
-        ]], $container->getDefinition(RequestPresenter::class)->getTags());
+        $this->assertInstanceOf(RequestPresenter::class, $container->build()->get(RequestPresenter::class));
+        $this->assertTrue($container->services[RequestPresenter::class]->public);
+        $this->assertEquals([
+            new Presenter(HelloRequest::class),
+            new Presenter(NotFound::class),
+        ], $container->services[RequestPresenter::class]->tags);
     }
 
     #[Test]
@@ -87,9 +87,9 @@ class AbstractModuleTest extends TestCase
         $container = new ContainerBuilder();
         $module->register($container);
 
-        $this->assertInstanceOf(HelloRenderer::class, $container->get(HelloRenderer::class));
-        $this->assertTrue($container->getDefinition(HelloRenderer::class)->isPublic());
-        $this->assertSame([ViewRendererInterface::class => [['response' => HelloResponse::class]]], $container->getDefinition(HelloRenderer::class)->getTags());
+        $this->assertInstanceOf(HelloRenderer::class, $container->build()->get(HelloRenderer::class));
+        $this->assertTrue($container->services[HelloRenderer::class]->public);
+        $this->assertEquals([new Renderer(HelloResponse::class)], $container->services[HelloRenderer::class]->tags);
     }
 
     #[Test]
@@ -106,9 +106,9 @@ class AbstractModuleTest extends TestCase
         $container = new ContainerBuilder();
         $module->register($container);
 
-        $this->assertInstanceOf(HelloPresenter::class, $container->get(HelloPresenter::class));
-        $this->assertTrue($container->getDefinition(HelloPresenter::class)->isPublic());
-        $this->assertSame([PresenterInterface::class => [['request' => HelloRequest::class]]], $container->getDefinition(HelloPresenter::class)->getTags());
+        $this->assertInstanceOf(HelloPresenter::class, $container->build()->get(HelloPresenter::class));
+        $this->assertTrue($container->services[HelloPresenter::class]->public);
+        $this->assertEquals([new Presenter(HelloRequest::class)], $container->services[HelloPresenter::class]->tags);
 
         $routes = new RouteCollectionBuilder();
         $module->configureRoutes($routes);
@@ -128,7 +128,7 @@ class AbstractModuleTest extends TestCase
             {
                 $this->service(Foo::class, ['Hello']);
                 $this->service(Bar::class, autowire: true, public: true);
-                $this->service(Baz::class, tags: ['test', 'other' => ['key' => 'value']]);
+                $this->service(Baz::class, tags: ['test', (object) ['key' => 'value']]);
             }
         };
 
@@ -136,21 +136,14 @@ class AbstractModuleTest extends TestCase
 
         $module->register($container);
 
-        $this->assertInstanceOf(Foo::class, $container->get(Foo::class));
-        $this->assertFalse($container->getDefinition(Foo::class)->isPublic());
-        $this->assertFalse($container->getDefinition(Foo::class)->isAutowired());
-        $this->assertSame('Hello', $container->get(Foo::class)->bar);
+        $this->assertInstanceOf(Foo::class, $container->build()->get(Foo::class));
+        $this->assertFalse($container->services[Foo::class]->public);
+        $this->assertSame('Hello', $container->build()->get(Foo::class)->bar);
 
-        $this->assertSame([
-            'test' => [[]],
-            'other' => [['key' => 'value']],
-        ], $container->getDefinition(Baz::class)->getTags());
+        $this->assertEquals(['test', (object) ['key' => 'value']], $container->services[Baz::class]->tags);
 
-        $container->compile();
-
-        $this->assertInstanceOf(Bar::class, $container->get(Bar::class));
-        $this->assertTrue($container->getDefinition(Bar::class)->isPublic());
-        $this->assertTrue($container->getDefinition(Bar::class)->isAutowired());
+        $this->assertInstanceOf(Bar::class, $container->build()->get(Bar::class));
+        $this->assertTrue($container->services[Bar::class]->public);
     }
 
     #[Test]
@@ -162,19 +155,15 @@ class AbstractModuleTest extends TestCase
             {
                 $this->service(Foo::class, ['Hello']);
                 $this->autowire(Bar::class);
-                $this->autowire(Baz::class, tags: ['test', 'other' => ['key' => 'value']]);
+                $this->autowire(Baz::class, tags: ['test', (object) ['key' => 'value']]);
             }
         };
 
         $container = new ContainerBuilder();
 
         $module->register($container);
-        $this->assertFalse($container->getDefinition(Bar::class)->isPublic());
-        $this->assertTrue($container->getDefinition(Bar::class)->isAutowired());
-        $this->assertSame([
-            'test' => [[]],
-            'other' => [['key' => 'value']],
-        ], $container->getDefinition(Baz::class)->getTags());
+        $this->assertFalse($container->services[Bar::class]->public);
+        $this->assertEquals(['test', (object) ['key' => 'value']], $container->services[Baz::class]->tags);
     }
 
     #[Test]
@@ -192,7 +181,8 @@ class AbstractModuleTest extends TestCase
         $container = new ContainerBuilder();
 
         $module->register($container);
-        $this->assertSame($container->get(Foo::class), $container->get(Bar::class)->foo);
+        $built = $container->build();
+        $this->assertSame($built->get(Foo::class), $built->get(Bar::class)->foo);
     }
 
     #[Test]
@@ -212,11 +202,13 @@ class AbstractModuleTest extends TestCase
 
         $module->register($container);
 
-        $this->assertInstanceOf(Foo::class, $container->get('alias1'));
-        $this->assertInstanceOf(Baz::class, $container->get('alias3'));
-        $this->assertSame($container->get(Foo::class), $container->get('alias1'));
-        $this->assertSame($container->get('alias1'), $container->get('alias2'));
-        $this->assertSame($container->get(Baz::class), $container->get('alias3'));
+        $built = $container->build();
+
+        $this->assertInstanceOf(Foo::class, $built->get('alias1'));
+        $this->assertInstanceOf(Baz::class, $built->get('alias3'));
+        $this->assertSame($built->get(Foo::class), $built->get('alias1'));
+        $this->assertSame($built->get('alias1'), $built->get('alias2'));
+        $this->assertSame($built->get(Baz::class), $built->get('alias3'));
     }
 
     #[Test]
@@ -235,13 +227,13 @@ class AbstractModuleTest extends TestCase
         $container = new ContainerBuilder();
 
         $module->register($container);
-        $container->compile();
+        $built = $container->build();
 
-        $this->assertInstanceOf(Aggr::class, $container->get(Aggr::class));
+        $this->assertInstanceOf(Aggr::class, $built->get(Aggr::class));
         $this->assertSame([
-            $container->get(Foo::class),
-            $container->get(Baz::class),
-        ], $container->get(Aggr::class)->services);
+            $built->get(Foo::class),
+            $built->get(Baz::class),
+        ], $built->get(Aggr::class)->services);
     }
 
     #[Test]
@@ -260,9 +252,9 @@ class AbstractModuleTest extends TestCase
         $container = new ContainerBuilder();
 
         $module->register($container);
-        $container->compile();
+        $built = $container->build();
 
-        $this->assertInstanceOf(LazyContainer::class, $container->get(LazyContainer::class));
-        $this->assertSame($container->get(Foo::class), ($container->get(LazyContainer::class)->ref)());
+        $this->assertInstanceOf(LazyContainer::class, $built->get(LazyContainer::class));
+        $this->assertSame($built->get(Foo::class), ($built->get(LazyContainer::class)->ref)());
     }
 }

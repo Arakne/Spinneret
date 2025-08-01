@@ -91,11 +91,11 @@ final readonly class LoggerFilter
      * The returned value is higher for more important levels
      *
      * @param mixed $level
-     * @return int
+     * @return int|null
      */
-    public static function levelToInt(mixed $level): int
+    public static function levelToInt(mixed $level): ?int
     {
-        if (is_int($level)) {
+        if (is_int($level) || $level === null) {
             return $level;
         }
 

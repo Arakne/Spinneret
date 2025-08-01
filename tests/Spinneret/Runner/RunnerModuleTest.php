@@ -3,7 +3,7 @@
 namespace Arakne\Tests\Spinneret\Runner;
 
 use Arakne\Spinneret\Application\Application;
-use Arakne\Spinneret\Console\ConsoleModule;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RouterInterface;
@@ -20,13 +20,11 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreatorInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RouteCollection;
 
 class RunnerModuleTest extends TestCase
@@ -48,24 +46,15 @@ class RunnerModuleTest extends TestCase
         $app = new Application(isDev: true, env: 'test');
         $container = new ContainerBuilder();
 
+        $runnerModule = new RunnerModule();
+        $runnerModule->register($container);
+        $container = $container->build();
+
         $container->set(Application::class, $app);
         $container->set(RunnerConfig::class, new RunnerConfig());
         $container->set(RouterInterface::class, $this->createMock(RouterInterface::class));
         $container->set(PresenterDispatcherInterface::class, $this->createMock(PresenterDispatcherInterface::class));
         $container->set(ViewEngineInterface::class, $this->createMock(ViewEngineInterface::class));
-
-        $runnerModule = new RunnerModule();
-        $runnerModule->register($container);
-
-        foreach ($container->getDefinitions() as $definition) {
-            $definition->setPublic(true);
-        }
-
-        foreach ($container->getAliases() as $alias) {
-            $alias->setPublic(true);
-        }
-
-        $container->compile();
 
         $this->assertInstanceOf(Runner::class, $container->get(RunnerInterface::class));
         $this->assertInstanceOf(Psr17Factory::class, $container->get(ResponseFactoryInterface::class));
@@ -87,25 +76,18 @@ class RunnerModuleTest extends TestCase
         $app = new Application(isDev: true, env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
-        $container->set(RunnerConfig::class, $conf = new RunnerConfig(httpd: false));
-        $container->set(RouterInterface::class, $this->createMock(RouterInterface::class));
-        $container->set(PresenterDispatcherInterface::class, $this->createMock(PresenterDispatcherInterface::class));
-        $container->set(ViewEngineInterface::class, $this->createMock(ViewEngineInterface::class));
-
+        $conf = new RunnerConfig(httpd: false);
         $runnerModule = new RunnerModule();
         $runnerModule = $runnerModule->withConfiguration($conf);
         $runnerModule->register($container);
 
-        foreach ($container->getDefinitions() as $definition) {
-            $definition->setPublic(true);
-        }
+        $container = $container->build();
 
-        foreach ($container->getAliases() as $alias) {
-            $alias->setPublic(true);
-        }
-
-        $container->compile();
+        $container->set(Application::class, $app);
+        $container->set(RunnerConfig::class, $conf);
+        $container->set(RouterInterface::class, $this->createMock(RouterInterface::class));
+        $container->set(PresenterDispatcherInterface::class, $this->createMock(PresenterDispatcherInterface::class));
+        $container->set(ViewEngineInterface::class, $this->createMock(ViewEngineInterface::class));
 
         $this->assertInstanceOf(Runner::class, $container->get(RunnerInterface::class));
         $this->assertInstanceOf(Psr17Factory::class, $container->get(ResponseFactoryInterface::class));
@@ -122,26 +104,18 @@ class RunnerModuleTest extends TestCase
     {
         $app = new Application(isDev: true, env: 'test');
         $container = new ContainerBuilder();
-
-        $container->set(Application::class, $app);
-        $container->set(RunnerConfig::class, $conf = new RunnerConfig(workerman: WorkermanConfig::default($app)->with(enable: true)));
-        $container->set(RouterInterface::class, $this->createMock(RouterInterface::class));
-        $container->set(PresenterDispatcherInterface::class, $this->createMock(PresenterDispatcherInterface::class));
-        $container->set(ViewEngineInterface::class, $this->createMock(ViewEngineInterface::class));
-
+        $conf = new RunnerConfig(workerman: WorkermanConfig::default($app)->with(enable: true));
         $runnerModule = new RunnerModule();
         $runnerModule = $runnerModule->withConfiguration($conf);
         $runnerModule->register($container);
 
-        foreach ($container->getDefinitions() as $definition) {
-            $definition->setPublic(true);
-        }
+        $container = $container->build();
 
-        foreach ($container->getAliases() as $alias) {
-            $alias->setPublic(true);
-        }
-
-        $container->compile();
+        $container->set(Application::class, $app);
+        $container->set(RunnerConfig::class, $conf);
+        $container->set(RouterInterface::class, $this->createMock(RouterInterface::class));
+        $container->set(PresenterDispatcherInterface::class, $this->createMock(PresenterDispatcherInterface::class));
+        $container->set(ViewEngineInterface::class, $this->createMock(ViewEngineInterface::class));
 
         $this->assertInstanceOf(WorkermanBackend::class, $container->get(WorkermanBackend::class));
         $this->assertInstanceOf(WorkermanStartCommand::class, $container->get(WorkermanStartCommand::class));

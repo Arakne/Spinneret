@@ -3,13 +3,13 @@
 namespace Arakne\Tests\Spinneret\Translation;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Translation\CollectorTranslator;
 use Arakne\Spinneret\Translation\TranslationConfig;
 use Arakne\Spinneret\Translation\TranslationModule;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Translation\PseudoLocalizationTranslator;
 use Symfony\Component\Translation\Translator;
@@ -38,11 +38,12 @@ class TranslationModuleTest extends TestCase
             availableLocales: ['en', 'fr', 'es'],
         );
 
-        $container->set(Application::class, $app);
-        $container->set(TranslationConfig::class, $config);
-
         $module = TranslationModule::create($app)->withConfiguration($config);
         $module->register($container);
+        $container = $container->build();
+
+        $container->set(Application::class, $app);
+        $container->set(TranslationConfig::class, $config);
 
         $this->assertInstanceOf(Translator::class, $container->get(TranslatorInterface::class));
         $this->assertInstanceOf(Translator::class, $container->get(Translator::class));
@@ -64,11 +65,12 @@ class TranslationModuleTest extends TestCase
             collectTranslations: true,
         );
 
-        $container->set(Application::class, $app);
-        $container->set(TranslationConfig::class, $config);
-
         $module = TranslationModule::create($app)->withConfiguration($config);
         $module->register($container);
+        $container = $container->build();
+
+        $container->set(Application::class, $app);
+        $container->set(TranslationConfig::class, $config);
 
         $this->assertInstanceOf(CollectorTranslator::class, $container->get(TranslatorInterface::class));
         $this->assertInstanceOf(Translator::class, $container->get(Translator::class));
@@ -88,11 +90,12 @@ class TranslationModuleTest extends TestCase
             pseudoLocalization: true,
         );
 
-        $container->set(Application::class, $app);
-        $container->set(TranslationConfig::class, $config);
-
         $module = TranslationModule::create($app)->withConfiguration($config);
         $module->register($container);
+        $container = $container->build();
+
+        $container->set(Application::class, $app);
+        $container->set(TranslationConfig::class, $config);
 
         $this->assertInstanceOf(PseudoLocalizationTranslator::class, $container->get(TranslatorInterface::class));
         $this->assertInstanceOf(Translator::class, $container->get(Translator::class));

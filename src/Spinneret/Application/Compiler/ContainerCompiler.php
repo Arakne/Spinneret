@@ -3,15 +3,18 @@
 namespace Arakne\Spinneret\Application\Compiler;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Container\BuiltContainer;
+use Arakne\Spinneret\Container\Compiler\PhpClassContainerCompiler;
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Arakne\Spinneret\Util\Files;
 use Override;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Throwable;
 
+use function bin2hex;
 use function is_file;
 use function preg_replace;
+use function random_bytes;
+use function var_dump;
 
 /**
  * Default implementation of {@see ContainerCompilerInterface}.
@@ -27,7 +30,7 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
     ) {}
 
     #[Override]
-    public function load(Application $application): ?ContainerInterface
+    public function load(Application $application): ?SpinneretContainerInterface
     {
         $containerClassPath = $application->cacheDir().'/'.$this->savePath.'/'.$this->containerClassName($application).'.php';
 
@@ -41,7 +44,7 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
             return null;
         }
 
-        if (!$container instanceof ContainerInterface) {
+        if (!$container instanceof SpinneretContainerInterface) {
             return null;
         }
 
@@ -49,17 +52,23 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
     }
 
     #[Override]
-    public function compile(Application $application, ContainerBuilder $container): void
+    public function compile(Application $application, BuiltContainer $container): void
     {
-        $dumper = new PhpDumper($container);
+        $fileName = $this->containerClassName($application);
+        $className = $fileName . '_' . bin2hex(random_bytes(8));
+        $code = <<<PHP
+            <?php
 
-        /** @var array<string, string> $files */
-        $files = $dumper->dump([
-            'as_files' => true,
-            'class' => $this->containerClassName($application),
-        ]);
+            require_once __DIR__ . '/{$className}.php';
 
-        Files::writeAll($application->cacheDir().'/'.$this->savePath, $files);
+            return new {$className}();
+            PHP
+        ;
+
+        $classCode = '<?php ' . $container->compile(new PhpClassContainerCompiler($className));
+
+        Files::write($application->cacheDir() . '/' . $this->savePath . '/' . $className . '.php', $classCode);
+        Files::write($application->cacheDir() . '/' . $this->savePath . '/' . $fileName . '.php', $code);
     }
 
     private function containerClassName(Application $application): string

@@ -3,12 +3,12 @@
 namespace Arakne\Spinneret\Presenter;
 
 use Arakne\Spinneret\Application\ModuleInterface;
-use Arakne\Spinneret\Presenter\Compiler\RegisterPresentersCompilerPass;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Presenter\Processor\RegisterPresentersProcessor;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
-use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
+use Psr\Container\ContainerInterface;
 
 /**
  * Register services for the presenter module
@@ -26,20 +26,15 @@ final class PresenterModule implements ModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->addCompilerPass(new RegisterPresentersCompilerPass());
+        $containerBuilder->processor(new RegisterPresentersProcessor());
 
-        $containerBuilder->register(PresenterDispatcher::class, PresenterDispatcher::class)
-            ->setArguments([
-                new Reference('service_container'),
-                new AbstractArgument('Defined by ' . RegisterPresentersCompilerPass::class),
-            ])
-        ;
+        $containerBuilder->register(PresenterDispatcher::class, [
+            new Reference(ContainerInterface::class),
+            [],
+        ]);
 
-        $containerBuilder->setAlias(PresenterDispatcherInterface::class, PresenterDispatcher::class);
-
-        $containerBuilder->register(RequestPresenter::class, RequestPresenter::class)
-            ->setPublic(true)
-        ;
+        $containerBuilder->alias(PresenterDispatcherInterface::class, PresenterDispatcher::class);
+        $containerBuilder->register(RequestPresenter::class)->public = true;
     }
 
     #[Override]

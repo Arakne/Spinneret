@@ -575,6 +575,22 @@ class ContainerBuilderTest extends TestCase
             DoB::class => $container->get(DoBHandler::class),
         ], $container->get(MessageDispatcher::class)->handlers);
     }
+
+    #[Test]
+    public function runtimeService()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SingleLiteralClass::class)->runtime();
+        $builder->register(NullableContainerClass::class);
+
+        $built = $builder->build();
+
+        $this->assertFalse($built->has(SingleLiteralClass::class));
+        $this->assertArrayNotHasKey(SingleLiteralClass::class, $built->services);
+
+        $built->set(SingleLiteralClass::class, $o = new SingleLiteralClass('value'));
+        $this->assertSame($o, $built->get(NullableContainerClass::class)->dep);
+    }
 }
 
 function global_function_factory(string $value): SingleLiteralClass

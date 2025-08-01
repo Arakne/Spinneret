@@ -4,6 +4,8 @@ namespace Arakne\Tests\Spinneret\Security\Fixtures;
 
 use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Container\Argument\NewExpression;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Security\SecurityModule;
 use Arakne\Tests\Spinneret\Security\Fixtures\Login\LoginPresenter;
 use Arakne\Tests\Spinneret\Security\Fixtures\Login\LoginRenderer;
@@ -20,8 +22,6 @@ use Override;
 use Psr\Clock\ClockInterface;
 use Random\Engine\Xoshiro256StarStar;
 use Random\Randomizer;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 
 class TestSecurityApplication extends Application
 {
@@ -48,13 +48,13 @@ class TestSecurityApplication extends Application
                     $this->autowire(TestUserHandler::class);
 
                     $this->service(Randomizer::class, [
-                        (new Definition(Xoshiro256StarStar::class))->setArguments([123]),
+                        new NewExpression(Xoshiro256StarStar::class, [123]),
                     ]);
                 }
 
                 protected function configureContainer(ContainerBuilder $containerBuilder): void
                 {
-                    $containerBuilder->register(ClockInterface::class, ClockInterface::class)->setFactory([FixedClock::class, 'instance']);
+                    $containerBuilder->register(ClockInterface::class)->factory(FixedClock::instance(...));
                 }
             },
             new SecurityModule(),

@@ -128,7 +128,7 @@ final class WorkermanBackend
      */
     public function handle(ConnectionInterface $connection, Request $request): void
     {
-        $uri = $this->config->secure ? 'https' : 'http' . '://' . (string) $request->header('host', '127.0.0.1') . $request->uri();
+        $uri = $this->config->secure ? 'https' : 'http://' . (string) $request->header('host', '127.0.0.1') . $request->uri();
 
         // PSR interfaces doesn't allow to easily create the server request
         // So use directly the Nyholm implementation

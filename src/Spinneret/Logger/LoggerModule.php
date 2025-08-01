@@ -3,15 +3,21 @@
 namespace Arakne\Spinneret\Logger;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
+use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\Argument\Literal;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Logger\Driver\FileLogger;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Closure;
 use InvalidArgumentException;
 use Override;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Reference;
+
+use function assert;
+use function sprintf;
+use function var_export;
 
 /**
  * Module for enabling logging.
@@ -42,16 +48,16 @@ final readonly class LoggerModule implements ConfigurableModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $loggerDispatcher = $containerBuilder->register(LoggerDispatcher::class, LoggerDispatcher::class);
+        $loggerDispatcher = $containerBuilder->register(LoggerDispatcher::class);
 
         foreach ($this->configuration->channels as $id => $channel) {
             $logger = $this->createLogger($channel);
             $filter = $this->createFilter($logger, $id, $channel);
 
-            $loggerDispatcher->addArgument($filter);
+            $loggerDispatcher->arg($filter);
         }
 
-        $containerBuilder->setAlias(LoggerInterface::class, LoggerDispatcher::class);
+        $containerBuilder->alias(LoggerInterface::class, LoggerDispatcher::class);
     }
 
     #[Override]
@@ -60,52 +66,67 @@ final readonly class LoggerModule implements ConfigurableModuleInterface
         // No-op
     }
 
-    private function createLogger(LogChannel $channel): Definition|Reference
+    private function createLogger(LogChannel $channel): ArgumentInterface
     {
         if ($channel->service !== null) {
             return new Reference($channel->service);
         }
 
+        // @todo allow runtime configuration of the logger (i.e. use property accessor)
         if ($channel->file !== null) {
-            $logger = new Definition(FileLogger::class);
-            $logger->addArgument($channel->file);
-
-            if ($channel->bufferSize !== null) {
-                $logger->addArgument($channel->bufferSize);
-            }
-
-            return $logger;
+            return new Literal(
+                new FileLogger(
+                    $channel->file,
+                    $channel->bufferSize ?? FileLogger::DEFAULT_BUFFER_SIZE
+                )
+            );
         }
 
         throw new InvalidArgumentException('Either file or service must be set');
     }
 
-    private function createFilter(Definition|Reference $logger, string|int $id, LogChannel $channel): Definition
+    private function createFilter(ArgumentInterface $logger, string|int $id, LogChannel $channel): ArgumentInterface
     {
-        $filter = new Definition(LoggerFilter::class);
-        $filter->setArgument('$logger', $logger);
+        return new class($logger, $id) implements ArgumentInterface {
+            public function __construct(
+                private readonly ArgumentInterface $logger,
+                private readonly string|int $id,
+            ) {}
 
-        if ($channel->minLevel !== null) {
-            $filter->setArgument('$levelMin', LoggerFilter::levelToInt($channel->minLevel));
-        }
+            #[Override]
+            public function resolve(ContainerInterface $container): mixed
+            {
+                $config = $container->get(LoggerConfiguration::class)->channels[$this->id];
+                assert($config instanceof LogChannel);
 
-        if ($channel->maxLevel !== null) {
-            $filter->setArgument('$levelMax', LoggerFilter::levelToInt($channel->maxLevel));
-        }
+                return new LoggerFilter(
+                    $this->logger->resolve($container),
+                    LoggerFilter::levelToInt($config->minLevel),
+                    LoggerFilter::levelToInt($config->maxLevel),
+                    $config->contextKeys,
+                    $config->filter,
+                );
+            }
 
-        if ($channel->contextKeys) {
-            $filter->setArgument('$contextKeys', $channel->contextKeys);
-        }
+            #[Override]
+            public function compile(): string
+            {
+                // @todo optimize to get config once
+                return sprintf('new \%s(%s, %s, %s, %s, %s)',
+                    LoggerFilter::class,
+                    $this->logger->compile(),
+                    sprintf('\%s::levelToInt($this->get(%s)->channels[%s]->minLevel)', LoggerFilter::class, var_export(LoggerConfiguration::class, true), var_export($this->id, true)),
+                    sprintf('\%s::levelToInt($this->get(%s)->channels[%s]->maxLevel)', LoggerFilter::class, var_export(LoggerConfiguration::class, true), var_export($this->id, true)),
+                    sprintf('$this->get(%s)->channels[%s]->contextKeys', var_export(LoggerConfiguration::class, true), var_export($this->id, true)),
+                    sprintf('$this->get(%s)->channels[%s]->filter', var_export(LoggerConfiguration::class, true), var_export($this->id, true)),
+                );
+            }
 
-        if ($channel->filter !== null) {
-            $filter->setArgument(
-                '$filter',
-                (new Definition(Closure::class))
-                    ->setFactory([new Reference(LoggerConfiguration::class), 'getFilter'])
-                    ->setArguments([$id])
-            );
-        }
-
-        return $filter;
+            #[Override]
+            public function type(): ?string
+            {
+                return LoggerFilter::class;
+            }
+        };
     }
 }

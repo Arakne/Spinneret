@@ -3,16 +3,15 @@
 namespace Arakne\Spinneret\View;
 
 use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
-use Arakne\Spinneret\View\Compiler\RegisterViewRenderersCompilerPass;
+use Arakne\Spinneret\View\Processor\RegisterViewRenderersProcessor;
 use Override;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -35,28 +34,24 @@ final class ViewModule implements ModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->addCompilerPass(new RegisterViewRenderersCompilerPass());
+        $containerBuilder->processor(new RegisterViewRenderersProcessor());
 
-        $containerBuilder->register(Engine::class, Engine::class)
-            ->setArguments([
-                new Reference('service_container'),
-                new Reference(ResponseFactoryInterface::class),
-                new Reference(StreamFactoryInterface::class),
-                new Reference(TranslatorInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                new Reference(ViewLocaleResolverInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                new AbstractArgument('Defined by ' . RegisterViewRenderersCompilerPass::class),
-            ])
-        ;
+        $containerBuilder->register(Engine::class, [
+            new Reference(ContainerInterface::class),
+            new Reference(ResponseFactoryInterface::class),
+            new Reference(StreamFactoryInterface::class),
+            new Reference(TranslatorInterface::class, nullOnInvalid: true),
+            new Reference(ViewLocaleResolverInterface::class, nullOnInvalid: true),
+            [],
+        ]);
 
-        $containerBuilder->register(DispatcherForwarder::class, DispatcherForwarder::class)
-            ->setArguments([
-                new Reference(PresenterDispatcherInterface::class),
-                new Reference(ViewEngineInterface::class),
-            ])
-        ;
+        $containerBuilder->register(DispatcherForwarder::class, [
+            new Reference(PresenterDispatcherInterface::class),
+            new Reference(ViewEngineInterface::class),
+        ]);
 
-        $containerBuilder->setAlias(ViewEngineInterface::class, Engine::class);
-        $containerBuilder->setAlias(ForwarderInterface::class, DispatcherForwarder::class);
+        $containerBuilder->alias(ViewEngineInterface::class, Engine::class);
+        $containerBuilder->alias(ForwarderInterface::class, DispatcherForwarder::class);
     }
 
     #[Override]

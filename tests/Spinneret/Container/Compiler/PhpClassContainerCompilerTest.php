@@ -13,6 +13,7 @@ use Arakne\Spinneret\Container\Compiler\PhpClassContainerCompiler;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\Exception\ServiceNotFoundException;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments;
 use Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\InstanceFactory;
@@ -35,6 +36,8 @@ use Psr\Container\NotFoundExceptionInterface;
 
 use SplPriorityQueue;
 
+use stdClass;
+
 use function bin2hex;
 use function class_exists;
 use function iterator_to_array;
@@ -51,7 +54,7 @@ class PhpClassContainerCompilerTest extends TestCase
 
         $compiled = $container->compile(new PhpClassContainerCompiler('SimpleContainerTest'));
 
-        $this->assertStringContainsString('final class SimpleContainerTest implements \Psr\Container\ContainerInterface', $compiled);
+        $this->assertStringContainsString('final class SimpleContainerTest implements \Arakne\Spinneret\Container\SpinneretContainerInterface', $compiled);
         $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SimpleClass' => new \Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass(),", $compiled);
 
         eval($compiled);
@@ -60,6 +63,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $compiledContainer = new \SimpleContainerTest();
 
         $this->assertInstanceOf(ContainerInterface::class, $compiledContainer);
+        $this->assertInstanceOf(SpinneretContainerInterface::class, $compiledContainer);
 
         $this->assertTrue($compiledContainer->has(SimpleClass::class));
         $this->assertFalse($compiledContainer->has('other'));
@@ -87,7 +91,7 @@ class PhpClassContainerCompilerTest extends TestCase
 
         $compiled = $container->compile(new PhpClassContainerCompiler('LiteralArgContainerTest'));
 
-        $this->assertStringContainsString('final class LiteralArgContainerTest implements \Psr\Container\ContainerInterface', $compiled);
+        $this->assertStringContainsString('final class LiteralArgContainerTest implements \Arakne\Spinneret\Container\SpinneretContainerInterface', $compiled);
         $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments' => new \Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments('foo', 45),", $compiled);
 
         eval($compiled);
@@ -404,9 +408,36 @@ class PhpClassContainerCompilerTest extends TestCase
         $container = $this->compileContainer(new ContainerBuilder());
         $this->assertTrue($container->has(ContainerInterface::class));
         $this->assertSame($container, $container->get(ContainerInterface::class));
+        $this->assertTrue($container->has(SpinneretContainerInterface::class));
+        $this->assertSame($container, $container->get(SpinneretContainerInterface::class));
     }
 
-    private function compileContainer(ContainerBuilder $builder): ContainerInterface
+    #[Test]
+    public function set()
+    {
+        $container = $this->compileContainer(new ContainerBuilder());
+
+        $container->set('foo', $o = new stdClass());
+        $this->assertTrue($container->has('foo'));
+        $this->assertSame($o, $container->get('foo'));
+    }
+
+
+    #[Test]
+    public function runtimeService()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SingleLiteralClass::class)->runtime();
+        $builder->register(NullableContainerClass::class);
+
+        $built = $this->compileContainer($builder);
+
+        $this->assertFalse($built->has(SingleLiteralClass::class));
+        $built->set(SingleLiteralClass::class, $o = new SingleLiteralClass('value'));
+        $this->assertSame($o, $built->get(NullableContainerClass::class)->dep);
+    }
+
+    private function compileContainer(ContainerBuilder $builder): SpinneretContainerInterface
     {
         $built = $builder->build();
         $compiled = $built->compile(new PhpClassContainerCompiler($className = 'CompiledContainer'.bin2hex(random_bytes(8))));

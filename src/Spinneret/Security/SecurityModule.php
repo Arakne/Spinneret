@@ -3,6 +3,8 @@
 namespace Arakne\Spinneret\Security;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Security\Serializer\CookieSerializerInterface;
 use Arakne\Spinneret\Security\Serializer\HmacCookieSerializer;
@@ -12,9 +14,6 @@ use Override;
 use Psr\Clock\ClockInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Random\Randomizer;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Module for enable simple session system and user storage.
@@ -56,38 +55,32 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
             return;
         }
 
-        $containerBuilder->register(ObjectUserHandler::class, ObjectUserHandler::class);
+        $containerBuilder->register(ObjectUserHandler::class);
 
-        $containerBuilder->setAlias(UserHandlerInterface::class, $this->configuration->userHandler);
-        $containerBuilder->setAlias(CookieSerializerInterface::class, $this->configuration->serializer);
+        $containerBuilder->alias(UserHandlerInterface::class, $this->configuration->userHandler);
+        $containerBuilder->alias(CookieSerializerInterface::class, $this->configuration->serializer);
 
-        $containerBuilder->register(LoadSessionMiddleware::class, LoadSessionMiddleware::class)
-            ->setFactory([self::class, 'createUserMiddleware'])
-            ->setArguments([
-                new Reference(CookieSerializerInterface::class),
-                new Reference(AuthenticationCookieHelper::class),
-                new Reference(SecurityConfig::class),
-            ])
-            ->addTag(MiddlewareInterface::class)
+        $containerBuilder->register(LoadSessionMiddleware::class)
+            ->factory(self::createUserMiddleware(...))
+            ->arg(new Reference(CookieSerializerInterface::class))
+            ->arg(new Reference(AuthenticationCookieHelper::class))
+            ->arg(new Reference(SecurityConfig::class))
+            ->tag(MiddlewareInterface::class)
         ;
 
-        $containerBuilder->register(HmacCookieSerializer::class, HmacCookieSerializer::class)
-            ->setFactory([self::class, 'createHmacCookieSerializer'])
-            ->setArguments([
-                new Reference(UserHandlerInterface::class),
-                new Reference(ClockInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                new Reference(SecurityConfig::class),
-            ])
+        $containerBuilder->register(HmacCookieSerializer::class)
+            ->factory(self::createHmacCookieSerializer(...))
+            ->arg(new Reference(UserHandlerInterface::class))
+            ->arg(new Reference(ClockInterface::class, nullOnInvalid: true))
+            ->arg(new Reference(SecurityConfig::class))
         ;
 
-        $containerBuilder->register(AuthenticationCookieHelper::class, AuthenticationCookieHelper::class)
-            ->setArguments([
-                new Reference(SecurityConfig::class),
-                new Reference(CookieSerializerInterface::class),
-                new Reference(Randomizer::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                new Reference(ClockInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            ])
-        ;
+        $containerBuilder->register(AuthenticationCookieHelper::class, [
+            new Reference(SecurityConfig::class),
+            new Reference(CookieSerializerInterface::class),
+            new Reference(Randomizer::class, nullOnInvalid: true),
+            new Reference(ClockInterface::class, nullOnInvalid: true),
+        ]);
     }
 
     #[Override]

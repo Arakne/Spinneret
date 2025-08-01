@@ -7,6 +7,8 @@ use Psr\Container\ContainerInterface;
 /**
  * Store an argument value for a service factory or constructor.
  * All arguments must be compilable to a PHP string.
+ *
+ * @todo rename to ValueInterface
  */
 interface ArgumentInterface
 {

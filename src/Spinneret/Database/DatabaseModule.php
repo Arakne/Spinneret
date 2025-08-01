@@ -3,7 +3,13 @@
 namespace Arakne\Spinneret\Database;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Database\Compiler\SetConnectionCompilerPass;
+use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\Argument\ClosureArgument;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ServiceBuilder;
+use Arakne\Spinneret\Database\Argument\DatabaseConnection as DatabaseConnectionArgument;
 use Arakne\Spinneret\Database\Migration\Console\MigrationDownCommand;
 use Arakne\Spinneret\Database\Migration\Console\MigrationStatusCommand;
 use Arakne\Spinneret\Database\Migration\Console\MigrationUpCommand;
@@ -16,13 +22,6 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
-use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Reference;
 use UnitEnum;
 
 /**
@@ -64,16 +63,12 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->addCompilerPass(new SetConnectionCompilerPass());
+        $containerBuilder->register(DatabaseConnectionManager::class, [
+            new Reference(DatabaseConfig::class),
+            new Reference(LoggerInterface::class, nullOnInvalid: true),
+        ]);
 
-        $containerBuilder->register(DatabaseConnectionManager::class, DatabaseConnectionManager::class)
-            ->setArguments([
-                new Reference(DatabaseConfig::class),
-                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            ])
-        ;
-
-        $containerBuilder->setAlias(DatabaseConnectionManagerInterface::class, DatabaseConnectionManager::class);
+        $containerBuilder->alias(DatabaseConnectionManagerInterface::class, DatabaseConnectionManager::class);
 
         if ($this->config->useMigration) {
             $this->registerMigration($containerBuilder);
@@ -88,14 +83,12 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
 
     private function registerMigration(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->register(MigrationManager::class, MigrationManager::class)
-            ->setArguments([
-                new Reference(MigrationRepositoryInterface::class),
-                new Reference(DatabaseConnectionManagerInterface::class),
-                new ServiceClosureArgument(new TaggedIteratorArgument(tag: MigrationInterface::class)),
-                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            ])
-        ;
+        $containerBuilder->register(MigrationManager::class, [
+            new Reference(MigrationRepositoryInterface::class),
+            new Reference(DatabaseConnectionManagerInterface::class),
+            new ClosureArgument(new TaggedServiceIterator(MigrationInterface::class)),
+            new Reference(LoggerInterface::class, nullOnInvalid: true),
+        ]);
 
         if ($this->config->migrationConnection !== null) {
             $connection = $this->config->migrationConnection;
@@ -105,42 +98,25 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
             }
 
             $containerBuilder
-                ->register(SqlMigrationRepository::class, SqlMigrationRepository::class)
-                ->setArguments([
-                    (new Definition(DatabaseConnectionInterface::class))
-                        ->setFactory([new Reference(DatabaseConnectionManagerInterface::class), 'get'])
-                        ->setArguments([$connection]),
-                    new Reference(ClockInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ->register(SqlMigrationRepository::class, [
+                    new DatabaseConnectionArgument($connection),
+                    new Reference(ClockInterface::class, nullOnInvalid: true),
                 ])
             ;
 
-            $containerBuilder->setAlias(MigrationRepositoryInterface::class, SqlMigrationRepository::class);
+            $containerBuilder->alias(MigrationRepositoryInterface::class, SqlMigrationRepository::class);
         } else {
-            $containerBuilder->register(NullMigrationRepository::class, NullMigrationRepository::class);
-            $containerBuilder->setAlias(MigrationRepositoryInterface::class, NullMigrationRepository::class);
+            $containerBuilder->register(NullMigrationRepository::class);
+            $containerBuilder->alias(MigrationRepositoryInterface::class, NullMigrationRepository::class);
         }
 
-        $containerBuilder->registerForAutoconfiguration(MigrationInterface::class)
-            ->addTag(MigrationInterface::class)
-        ;
+        $containerBuilder->configureInstanceOf(MigrationInterface::class, static function (ServiceBuilder $service) {
+            $service->tag(MigrationInterface::class);
+        });
 
-        $containerBuilder->register(MigrationStatusCommand::class, MigrationStatusCommand::class)
-            ->setArguments([new Reference(MigrationManager::class)])
-            ->addTag(Command::class)
-            ->setPublic(true)
-        ;
-
-        $containerBuilder->register(MigrationUpCommand::class, MigrationUpCommand::class)
-            ->setArguments([new Reference(MigrationManager::class)])
-            ->addTag(Command::class)
-            ->setPublic(true)
-        ;
-
-        $containerBuilder->register(MigrationDownCommand::class, MigrationDownCommand::class)
-            ->setArguments([new Reference(MigrationManager::class)])
-            ->addTag(Command::class)
-            ->setPublic(true)
-        ;
+        $containerBuilder->register(MigrationStatusCommand::class, [new Reference(MigrationManager::class)]);
+        $containerBuilder->register(MigrationUpCommand::class, [new Reference(MigrationManager::class)]);
+        $containerBuilder->register(MigrationDownCommand::class, [new Reference(MigrationManager::class)]);
     }
 }
 
@@ -148,12 +124,9 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
  * Get an inline service for inject a database connection
  *
  * @param string|UnitEnum $name The connection name
- * @return Definition
+ * @return ArgumentInterface
  */
-function database_connection(string|UnitEnum $name): Definition
+function database_connection(string|UnitEnum $name): ArgumentInterface
 {
-    return (new Definition(DatabaseConnectionInterface::class))
-        ->setFactory([new Reference(DatabaseConnectionManagerInterface::class), 'get'])
-        ->setArguments([$name])
-    ;
+    return new DatabaseConnectionArgument($name);
 }

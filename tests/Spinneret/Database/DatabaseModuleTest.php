@@ -5,6 +5,7 @@ namespace Arakne\Tests\Spinneret\Database;
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Console\Console;
 use Arakne\Spinneret\Console\ConsoleModule;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Database\ConnectionConfig;
 use Arakne\Spinneret\Database\DatabaseConfig;
 use Arakne\Spinneret\Database\DatabaseConnection;
@@ -30,7 +31,6 @@ use Arakne\Tests\Spinneret\Database\Migration\Fixtures\SkippedMigration;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RouteCollection;
 
 class DatabaseModuleTest extends TestCase
@@ -50,13 +50,15 @@ class DatabaseModuleTest extends TestCase
     public function register()
     {
         $container = new ContainerBuilder();
-        $container->set(DatabaseConfig::class, $config = new DatabaseConfig(
+        $config = new DatabaseConfig(
             connections: [new ConnectionConfig('test', 'sqlite::memory:')],
             useMigration: false,
-        ));
+        );
 
         $databaseModule = new DatabaseModule();
         $databaseModule->withConfiguration($config)->register($container);
+        $container = $container->build();
+        $container->set(DatabaseConfig::class, $config);
 
         $this->assertInstanceOf(DatabaseConnectionManager::class, $container->get(DatabaseConnectionManagerInterface::class));
         $this->assertInstanceOf(DatabaseConnection::class, $container->get(DatabaseConnectionManager::class)->get('test'));
@@ -67,13 +69,15 @@ class DatabaseModuleTest extends TestCase
     public function registerWithMigrationWithoutMigrationRepository()
     {
         $container = new ContainerBuilder();
-        $container->set(DatabaseConfig::class, $config = new DatabaseConfig(
+        $config = new DatabaseConfig(
             connections: [new ConnectionConfig('test', 'sqlite::memory:')],
             useMigration: true,
-        ));
+        );
 
         $databaseModule = new DatabaseModule();
         $databaseModule->withConfiguration($config)->register($container);
+        $container = $container->build();
+        $container->set(DatabaseConfig::class, $config);
 
         $this->assertInstanceOf(DatabaseConnectionManager::class, $container->get(DatabaseConnectionManagerInterface::class));
         $this->assertInstanceOf(DatabaseConnection::class, $container->get(DatabaseConnectionManager::class)->get('test'));
@@ -85,14 +89,16 @@ class DatabaseModuleTest extends TestCase
     public function registerWithMigrationWithMigrationRepository()
     {
         $container = new ContainerBuilder();
-        $container->set(DatabaseConfig::class, $config = new DatabaseConfig(
+        $config = new DatabaseConfig(
             connections: [new ConnectionConfig('test', 'sqlite::memory:')],
             useMigration: true,
             migrationConnection: 'test',
-        ));
+        );
 
         $databaseModule = new DatabaseModule();
         $databaseModule->withConfiguration($config)->register($container);
+        $container = $container->build();
+        $container->set(DatabaseConfig::class, $config);
 
         $this->assertInstanceOf(DatabaseConnectionManager::class, $container->get(DatabaseConnectionManagerInterface::class));
         $this->assertInstanceOf(DatabaseConnection::class, $container->get(DatabaseConnectionManager::class)->get('test'));
@@ -104,21 +110,22 @@ class DatabaseModuleTest extends TestCase
     public function registerWithMigrationShouldResolveMigrationFromInterface()
     {
         $container = new ContainerBuilder();
-        $container->set(DatabaseConfig::class, $config = new DatabaseConfig(
+        $config = new DatabaseConfig(
             connections: [new ConnectionConfig('test', 'sqlite::memory:')],
             useMigration: true,
             migrationConnection: 'test',
-        ));
+        );
 
         $databaseModule = new DatabaseModule();
         $databaseModule->withConfiguration($config)->register($container);
 
-        $container->register(AddEntitiesMigration::class)->setAutoconfigured(true);
-        $container->register(CreateStructureMigration::class)->setAutoconfigured(true);
-        $container->register(SeparateNameColumnsMigration::class)->setAutoconfigured(true);
-        $container->register(SkippedMigration::class)->setAutoconfigured(true);
+        $container->register(AddEntitiesMigration::class);
+        $container->register(CreateStructureMigration::class);
+        $container->register(SeparateNameColumnsMigration::class);
+        $container->register(SkippedMigration::class);
 
-        $container->findDefinition(MigrationManager::class)->setPublic(true);
+        $container = $container->build();
+        $container->set(DatabaseConfig::class, $config);
 
         $container->compile();
 
@@ -138,13 +145,14 @@ class DatabaseModuleTest extends TestCase
     public function registerWithLogger()
     {
         $container = new ContainerBuilder();
-        $container->set(DatabaseConfig::class, new DatabaseConfig(
-            connections: [new ConnectionConfig('test', 'sqlite::memory:')]
-        ));
-        $container->set(LoggerInterface::class, $logger = new ArrayLogger());
 
         $databaseModule = new DatabaseModule();
         $databaseModule->register($container);
+        $container = $container->build();
+        $container->set(LoggerInterface::class, $logger = new ArrayLogger());
+        $container->set(DatabaseConfig::class, new DatabaseConfig(
+            connections: [new ConnectionConfig('test', 'sqlite::memory:')]
+        ));
 
         $this->assertInstanceOf(DatabaseConnectionManager::class, $container->get(DatabaseConnectionManagerInterface::class));
         $this->assertInstanceOf(DatabaseConnection::class, $container->get(DatabaseConnectionManager::class)->get('test'));

@@ -4,12 +4,12 @@ namespace Arakne\Tests\Spinneret\Application\Compiler;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\Compiler\ContainerCompiler;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Arakne\Spinneret\Util\Files;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
+use stdClass;
 
 class ContainerCompilerTest extends TestCase
 {
@@ -53,15 +53,15 @@ class ContainerCompilerTest extends TestCase
         $this->assertNull($compiler->load($this->app));
 
         $container = new ContainerBuilder();
-        $container->setDefinition('service', new Definition('stdClass'))->setPublic(true);
-        $container->compile();
+        $container->register('service')->class(stdClass::class)->public = true;
+        $container = $container->build();
 
         $compiler->compile($this->app, $container);
 
         $this->assertDirectoryExists($this->cacheDir);
 
         $compiledContainer = $compiler->load($this->app);
-        $this->assertInstanceOf(Container::class, $compiledContainer);
+        $this->assertInstanceOf(SpinneretContainerInterface::class, $compiledContainer);
 
         $this->assertInstanceOf(\stdClass::class, $compiledContainer->get('service'));
     }
@@ -74,15 +74,15 @@ class ContainerCompilerTest extends TestCase
         $this->assertNull($compiler->load($this->app));
 
         $container = new ContainerBuilder();
-        $container->setDefinition('service', new Definition('stdClass'))->setPublic(true);
-        $container->compile();
+        $container->register('service')->class('stdClass')->public = true;
+        $container = $container->build();
 
         $compiler->compile($this->app, $container);
 
         $this->assertDirectoryExists($this->cacheDir.'/foo');
 
         $compiledContainer = $compiler->load($this->app);
-        $this->assertInstanceOf(Container::class, $compiledContainer);
+        $this->assertInstanceOf(SpinneretContainerInterface::class, $compiledContainer);
 
         $this->assertInstanceOf(\stdClass::class, $compiledContainer->get('service'));
     }
@@ -93,7 +93,7 @@ class ContainerCompilerTest extends TestCase
         $compiler = new ContainerCompiler();
 
         $container = new ContainerBuilder();
-        $container->compile();
+        $container = $container->build();
         $compiler->compile($this->app, $container);
 
         foreach (scandir($this->cacheDir) as $file) {

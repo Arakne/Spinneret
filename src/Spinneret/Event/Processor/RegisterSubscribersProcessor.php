@@ -1,7 +1,9 @@
 <?php
 
-namespace Arakne\Spinneret\Event\Compiler;
+namespace Arakne\Spinneret\Event\Processor;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
 use Arakne\Spinneret\Event\EventDispatcher;
 use Arakne\Spinneret\Event\EventSubscriberInterface;
 use Closure;
@@ -10,44 +12,42 @@ use Override;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
 
 use function class_exists;
 use function count;
 use function is_int;
-use function var_dump;
 
 /**
  * Register event subscribers tagged with the EventSubscriberInterface::class tag.
+ *
+ * @todo migrate
  */
-final readonly class RegisterSubscribersCompilerPass implements CompilerPassInterface
+final readonly class RegisterSubscribersProcessor implements ContainerBuilderProcessorInterface
 {
     #[Override]
-    public function process(ContainerBuilder $container): void
+    public function process(ContainerBuilder $builder): void
     {
-        $definition = $container->getDefinition(EventDispatcher::class);
-
-        /** @var array<string, list<string>> $listeners */
-        $listeners = $definition->getArgument(1);
-
-        foreach ($container->findTaggedServiceIds(EventSubscriberInterface::class) as $id => $tags) {
-            foreach ($this->resolveListeners($container, $id) as $event => $methods) {
-                foreach ($methods as $method) {
-                    $listeners[$event][] = $this->createListenerService($container, $id, $method);
-                }
-            }
-        }
-
-        $definition->setArgument(1, $listeners);
+        //$definition = $builder->getDefinition(EventDispatcher::class);
+        //
+        ///** @var array<string, list<string>> $listeners */
+        //$listeners = $definition->getArgument(1);
+        //
+        //foreach ($builder->findTaggedServiceIds(EventSubscriberInterface::class) as $id => $tags) {
+        //    foreach ($this->resolveListeners($builder, $id) as $event => $methods) {
+        //        foreach ($methods as $method) {
+        //            $listeners[$event][] = $this->createListenerService($builder, $id, $method);
+        //        }
+        //    }
+        //}
+        //
+        //$definition->setArgument(1, $listeners);
     }
 
-    public function createListenerService(ContainerBuilder $container, string $subscriberClass, string $method): string
+    public function createListenerService(ContainerBuilder $builder, string $subscriberClass, string $method): string
     {
         $id = 'spinneret.event.listener.' . $subscriberClass . '::' . $method;
 
-        $container->register($id, Closure::class)
+        $builder->register($id, Closure::class)
             ->setFactory([Closure::class, 'fromCallable'])
             ->setArguments([[new Reference($subscriberClass), $method]])
             ->setPublic(true)
@@ -57,15 +57,15 @@ final readonly class RegisterSubscribersCompilerPass implements CompilerPassInte
     }
 
     /**
-     * @param ContainerBuilder $container
+     * @param ContainerBuilder $builder
      * @param string $id
      * @return array<class-string, list<string>>
      * @throws ReflectionException
      */
-    public function resolveListeners(ContainerBuilder $container, string $id): array
+    public function resolveListeners(ContainerBuilder $builder, string $id): array
     {
         /** @var class-string<EventSubscriberInterface> $subscriberClass */
-        $subscriberClass = $container->getDefinition($id)->getClass() ?? $id;
+        $subscriberClass = $builder->getDefinition($id)->getClass() ?? $id;
 
         $methods = $subscriberClass::getListenerMethods();
         $listeners = [];

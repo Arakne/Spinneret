@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\View;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RoutedRequest;
@@ -15,7 +16,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RouteCollection;
 
 class ViewModuleTest extends TestCase
@@ -34,6 +34,11 @@ class ViewModuleTest extends TestCase
     public function register()
     {
         $container = new ContainerBuilder();
+
+        $routerModule = new ViewModule();
+        $routerModule->register($container);
+        $container = $container->build();
+
         $container->set(ResponseFactoryInterface::class, new Psr17Factory());
         $container->set(StreamFactoryInterface::class, new Psr17Factory());
         $container->set(PresenterDispatcherInterface::class, new class implements PresenterDispatcherInterface
@@ -43,19 +48,6 @@ class ViewModuleTest extends TestCase
                 return new \stdClass();
             }
         });
-
-        $routerModule = new ViewModule();
-        $routerModule->register($container);
-
-        foreach ($container->getDefinitions() as $definition) {
-            $definition->setPublic(true);
-        }
-
-        foreach ($container->getAliases() as $alias) {
-            $alias->setPublic(true);
-        }
-
-        $container->compile();
 
         $this->assertInstanceOf(Engine::class, $container->get(ViewEngineInterface::class));
         $this->assertInstanceOf(DispatcherForwarder::class, $container->get(ForwarderInterface::class));

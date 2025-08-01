@@ -3,10 +3,13 @@
 namespace Arakne\Spinneret\Container\Argument;
 
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
+use DateTimeZone;
 use Override;
 use Psr\Container\ContainerInterface;
 use ReflectionObject;
 use stdClass;
+
+use UnitEnum;
 
 use function array_is_list;
 use function array_map;
@@ -121,6 +124,15 @@ final readonly class Literal implements ArgumentInterface
     {
         if ($obj instanceof stdClass) {
             return sprintf('((object) %s)', self::dump((array)$obj));
+        }
+
+        // @todo test enum
+        if ($obj instanceof UnitEnum) {
+            return sprintf('\%s::%s', $obj::class, $obj->name);
+        }
+
+        if ($obj instanceof DateTimeZone) {
+            return sprintf('new \%s(%s)', $obj::class, var_export($obj->getName(), true));
         }
 
         $reflection = new ReflectionObject($obj);

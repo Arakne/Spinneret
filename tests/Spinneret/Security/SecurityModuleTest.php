@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Security;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Security\AuthenticationCookieHelper;
 use Arakne\Spinneret\Security\LoadSessionMiddleware;
@@ -16,7 +17,6 @@ use Arakne\Spinneret\Security\User\UserHandlerInterface;
 use Arakne\Tests\Spinneret\Security\Fixtures\TestUserHandler;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RouteCollection;
 
 class SecurityModuleTest extends TestCase
@@ -37,11 +37,12 @@ class SecurityModuleTest extends TestCase
         $app = new Application(true, env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
-        $container->set(SecurityConfig::class, new SecurityConfig());
-
         $routerModule = new SecurityModule();
         $routerModule->register($container);
+        $container = $container->build();
+
+        $container->set(Application::class, $app);
+        $container->set(SecurityConfig::class, new SecurityConfig());
 
         $this->assertInstanceOf(ObjectUserHandler::class, $container->get(UserHandlerInterface::class));
         $this->assertInstanceOf(HmacCookieSerializer::class, $container->get(CookieSerializerInterface::class));
@@ -55,11 +56,13 @@ class SecurityModuleTest extends TestCase
         $app = new Application(true, env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
-        $container->set(SecurityConfig::class, new SecurityConfig(enabled: false));
 
         $routerModule = (new SecurityModule())->withConfiguration(new SecurityConfig(enabled: false));
         $routerModule->register($container);
+        $container = $container->build();
+
+        $container->set(Application::class, $app);
+        $container->set(SecurityConfig::class, new SecurityConfig(enabled: false));
 
         $this->assertFalse($container->has(UserHandlerInterface::class));
         $this->assertFalse($container->has(CookieSerializerInterface::class));
@@ -72,13 +75,14 @@ class SecurityModuleTest extends TestCase
     {
         $app = new Application(true, env: 'test');
         $container = new ContainerBuilder();
+        $config = new SecurityConfig(userHandler: TestUserHandler::class);
+        $routerModule = (new SecurityModule())->withConfiguration($config);
+        $routerModule->register($container);
+        $container = $container->build();
 
         $container->set(Application::class, $app);
         $container->set(TestUserHandler::class, new TestUserHandler());
-        $container->set(SecurityConfig::class, $config = new SecurityConfig(userHandler: TestUserHandler::class));
-
-        $routerModule = (new SecurityModule())->withConfiguration($config);
-        $routerModule->register($container);
+        $container->set(SecurityConfig::class, $config);
 
         $this->assertInstanceOf(TestUserHandler::class, $container->get(UserHandlerInterface::class));
         $this->assertInstanceOf(HmacCookieSerializer::class, $container->get(CookieSerializerInterface::class));
@@ -91,13 +95,15 @@ class SecurityModuleTest extends TestCase
     {
         $app = new Application(true, env: 'test');
         $container = new ContainerBuilder();
-
-        $container->set(Application::class, $app);
-        $container->set(MyCustomSerializer::class, new MyCustomSerializer());
-        $container->set(SecurityConfig::class, $config = new SecurityConfig(serializer: MyCustomSerializer::class));
+        $config = new SecurityConfig(serializer: MyCustomSerializer::class);
 
         $routerModule = (new SecurityModule())->withConfiguration($config);
         $routerModule->register($container);
+        $container = $container->build();
+
+        $container->set(Application::class, $app);
+        $container->set(MyCustomSerializer::class, new MyCustomSerializer());
+        $container->set(SecurityConfig::class, $config);
 
         $this->assertInstanceOf(ObjectUserHandler::class, $container->get(UserHandlerInterface::class));
         $this->assertInstanceOf(MyCustomSerializer::class, $container->get(CookieSerializerInterface::class));

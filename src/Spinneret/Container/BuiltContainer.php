@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Container;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Compiler\ContainerCompilerInterface;
 use Arakne\Spinneret\Container\Compiler\PhpClassContainerCompiler;
 use Arakne\Spinneret\Container\Exception\ServiceNotFoundException;
@@ -12,8 +13,11 @@ use Psr\Container\ContainerInterface;
 use function assert;
 use function sprintf;
 
-// @todo use custom ContainerInterface with custom methods
-final class BuiltContainer implements ContainerInterface
+/**
+ * Container built by {@see ContainerBuilder::build()}.
+ * Service definitions and aliases cannot be modified on this container.
+ */
+final class BuiltContainer implements SpinneretContainerInterface
 {
     /**
      * @var array<string, mixed>
@@ -21,6 +25,8 @@ final class BuiltContainer implements ContainerInterface
     private array $instances = [];
 
     /**
+     * Map of tags to service IDs.
+     *
      * @var array<string, list<string>>|null
      */
     private ?array $servicesByTag = null;
@@ -34,29 +40,36 @@ final class BuiltContainer implements ContainerInterface
     ) {}
 
     #[Override]
-    public function get(string $id)
+    public function get(string $id): mixed
     {
         $id = $this->resolveAlias($id);
 
-        if ($id === ContainerInterface::class) {
+        if ($id === ContainerInterface::class || $id === SpinneretContainerInterface::class) {
             return $this;
         }
 
+        /** @psalm-suppress MixedReturnStatement */
         return $this->instances[$id] ??= $this->instantiate($id);
     }
 
     #[Override]
     public function has(string $id): bool
     {
-        return $id === ContainerInterface::class || isset($this->services[$id]) || isset($this->aliases[$id]);
+        return $id === ContainerInterface::class
+            || $id === SpinneretContainerInterface::class
+            || isset($this->instances[$id])
+            || isset($this->services[$id])
+            || isset($this->aliases[$id])
+        ;
     }
 
-    /**
-     * @param string $tag
-     * @return iterable<mixed>
-     *
-     * @todo declare on interface instead
-     */
+    #[Override]
+    public function set(string $id, mixed $value): void
+    {
+        $this->instances[$id] = $value;
+    }
+
+    #[Override]
     public function findByTag(string $tag): iterable
     {
         $servicesByTag = $this->servicesByTag ??= $this->loadTags();

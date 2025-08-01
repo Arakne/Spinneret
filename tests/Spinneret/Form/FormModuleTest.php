@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Form;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Form\Csrf\CsrfHelper;
 use Arakne\Spinneret\Form\FormModule;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
@@ -16,7 +17,6 @@ use Quatrevieux\Form\FormFactoryInterface;
 use Quatrevieux\Form\FormInterface;
 use Quatrevieux\Form\RegistryInterface;
 use Quatrevieux\Form\Transformer\RuntimeFormTransformer;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RouteCollection;
 
 class FormModuleTest extends TestCase
@@ -37,10 +37,11 @@ class FormModuleTest extends TestCase
         $app = new Application(isDev: false, env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
 
         $routerModule = new FormModule();
         $routerModule->register($container);
+        $container = $container->build();
+        $container->set(Application::class, $app);
 
         $this->assertInstanceOf(DefaultFormFactory::class, $container->get(FormFactoryInterface::class));
         $this->assertInstanceOf(CsrfHelper::class, $container->get(CsrfHelper::class));
@@ -49,7 +50,6 @@ class FormModuleTest extends TestCase
         /** @var FormInterface $form */
         $form = $container->get(FormFactoryInterface::class)->create(SimpleForm::class);
         $p = new \ReflectionProperty(Form::class, 'transformer');
-        $p->setAccessible(true);
         $this->assertSame('Arakne_Tests_Spinneret_Form_Fixtures_SimpleFormTransformer', $p->getValue($form)::class);
     }
 
@@ -59,10 +59,10 @@ class FormModuleTest extends TestCase
         $app = new Application(isDev: true, env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
-
         $routerModule = new FormModule();
         $routerModule->register($container);
+        $container = $container->build();
+        $container->set(Application::class, $app);
 
         $this->assertInstanceOf(DefaultFormFactory::class, $container->get(FormFactoryInterface::class));
         $this->assertInstanceOf(CsrfHelper::class, $container->get(CsrfHelper::class));
@@ -71,7 +71,6 @@ class FormModuleTest extends TestCase
         /** @var FormInterface $form */
         $form = $container->get(FormFactoryInterface::class)->create(SimpleForm::class);
         $p = new \ReflectionProperty(Form::class, 'transformer');
-        $p->setAccessible(true);
         $this->assertSame(RuntimeFormTransformer::class, $p->getValue($form)::class);
     }
 }

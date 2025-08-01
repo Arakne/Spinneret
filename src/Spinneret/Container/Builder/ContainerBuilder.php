@@ -14,7 +14,6 @@ use Arakne\Spinneret\Container\Builder\Processor\ResolveAliasesProcessor;
 use Arakne\Spinneret\Container\BuiltContainer;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Closure;
-use Generator;
 use Throwable;
 
 use function class_exists;
@@ -354,11 +353,11 @@ final class ContainerBuilder
      * ```
      *
      * @param string|class-string<T> $tag The tag to search for.
-     * @return Generator<ServiceBuilder, list<T>>
+     * @return iterable<ServiceBuilder, list<T>>
      *
      * @template T
      */
-    public function findByTag(string $tag): Generator
+    public function findByTag(string $tag): iterable
     {
         foreach ($this->services as $service) {
             $tags = [];
@@ -408,7 +407,13 @@ final class ContainerBuilder
 
         foreach ($this->services as $id => $service) {
             try {
-                $services[$id] = $service->build();
+                $metadata = $service->build();
+
+                if ($metadata === null) {
+                    continue; // Skip ignored services
+                }
+
+                $services[$id] = $metadata;
             } catch (Throwable $e) {
                 throw new ContainerBuildException(
                     sprintf('Error building service "%s": %s', $id, $e->getMessage()),

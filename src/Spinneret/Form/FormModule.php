@@ -4,14 +4,15 @@ namespace Arakne\Spinneret\Form;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Form\Csrf\CsrfHelper;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
+use Psr\Container\ContainerInterface;
 use Quatrevieux\Form\ContainerRegistry;
 use Quatrevieux\Form\FormFactoryInterface;
 use Quatrevieux\Form\RegistryInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Module for provide "vincent4vx/form" services
@@ -28,30 +29,22 @@ final class FormModule implements ModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->register(FormFactoryLoader::class, FormFactoryLoader::class)
-            ->setArguments([
-                new Reference(RegistryInterface::class),
-            ])
-        ;
+        $containerBuilder->register(FormFactoryLoader::class, [
+            new Reference(RegistryInterface::class),
+        ]);
 
         $containerBuilder->register(FormFactoryInterface::class)
-            ->setFactory([new Reference(FormFactoryLoader::class), 'load'])
-            ->setArguments([
-                new Reference(Application::class),
-            ])
+            ->factory(new Reference(FormFactoryLoader::class)->method('load'))
+            ->arg(new Reference(Application::class))
         ;
 
-        $containerBuilder->register(ContainerRegistry::class, ContainerRegistry::class)
-            ->setArguments([
-                new Reference('service_container'),
-            ])
-        ;
+        $containerBuilder->register(ContainerRegistry::class, [
+            new Reference(ContainerInterface::class),
+        ]);
 
-        $containerBuilder->register(CsrfHelper::class, CsrfHelper::class)
-            ->setArguments([new Reference(FormFactoryInterface::class)])
-        ;
+        $containerBuilder->register(CsrfHelper::class, [new Reference(FormFactoryInterface::class)]);
 
-        $containerBuilder->setAlias(RegistryInterface::class, ContainerRegistry::class);
+        $containerBuilder->alias(RegistryInterface::class, ContainerRegistry::class);
     }
 
     #[Override]

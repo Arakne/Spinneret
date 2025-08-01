@@ -6,6 +6,7 @@ use Arakne\Spinneret\Container\Argument\ArgumentInterface;
 use Arakne\Spinneret\Container\BuiltContainer;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Override;
 
 use Psr\Container\ContainerInterface;
@@ -33,7 +34,7 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
     {
         return <<<PHP
 namespace {$this->namespace} {
-    final class {$this->className} implements \Psr\Container\ContainerInterface
+    final class {$this->className} implements \Arakne\Spinneret\Container\SpinneretContainerInterface
     {
         private array \$instances = [];
         private array \$aliases = {$this->buildAliases($container)};
@@ -45,7 +46,7 @@ namespace {$this->namespace} {
         {
             \$id = \$this->aliases[\$id] ?? \$id;
             
-            if (\$id === \Psr\Container\ContainerInterface::class) {
+            if (\$id === \Psr\Container\ContainerInterface::class || \$id === \Arakne\Spinneret\Container\SpinneretContainerInterface::class) {
                 return \$this;
             }
 
@@ -55,9 +56,16 @@ namespace {$this->namespace} {
         #[\Override]
         public function has(string \$id): bool
         {
-            return isset(\$this->serviceIds[\$id]);
+            return isset(\$this->serviceIds[\$id]) || isset(\$this->instances[\$id]);
         }
 
+        #[\Override]
+        public function set(string \$id, mixed \$value): void
+        {
+            \$this->instances[\$id] = \$value;
+        }
+
+        #[\Override]
         public function findByTag(string \$tag): iterable
         {
             foreach (\$this->servicesByTag[\$tag] ?? [] as \$id) {
@@ -69,7 +77,7 @@ namespace {$this->namespace} {
         {
             \$id = \$this->aliases[\$id] ?? \$id;
 
-            if (\$id === \Psr\Container\ContainerInterface::class) {
+            if (\$id === \Psr\Container\ContainerInterface::class || \$id === \Arakne\Spinneret\Container\SpinneretContainerInterface::class) {
                 return \$this;
             }
 
@@ -133,6 +141,7 @@ PHP;
         }
 
         $ids[ContainerInterface::class] = 1;
+        $ids[SpinneretContainerInterface::class] = 1;
 
         return var_export($ids, true);
     }

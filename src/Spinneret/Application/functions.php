@@ -2,10 +2,13 @@
 
 namespace Arakne\Spinneret\Application;
 
-use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
-use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Reference;
+use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
+use Closure;
+use Psr\Container\ContainerInterface;
+
+use function sprintf;
 
 /**
  * Helper function to create a new service reference.
@@ -26,27 +29,49 @@ function service(string $id): Reference
  */
 function service_nullable(string $id): Reference
 {
-    return new Reference($id, ContainerInterface::NULL_ON_INVALID_REFERENCE);
+    return new Reference($id, nullOnInvalid: true);
 }
 
 /**
  * Inject to service parameter an iterable of services with a specific tag.
  *
  * @param string $tag The tag name
- * @return TaggedIteratorArgument
+ * @return TaggedServiceIterator
  */
-function tagged_services(string $tag): TaggedIteratorArgument
+function tagged_services(string $tag): TaggedServiceIterator
 {
-    return new TaggedIteratorArgument($tag);
+    return new TaggedServiceIterator($tag);
 }
 
 /**
  * Helper function to create a service resolver closure.
  *
  * @param string $id The service identifier
- * @return ServiceClosureArgument
+ * @return ArgumentInterface
  */
-function service_closure(string $id): ServiceClosureArgument
+function service_closure(string $id): ArgumentInterface
 {
-    return new ServiceClosureArgument(service($id));
+    // @todo refactor & test
+    return new class(service($id)) implements ArgumentInterface
+    {
+        public function __construct(
+            private readonly ArgumentInterface $argument,
+        ) {}
+
+        #[\Override]
+        public function resolve(ContainerInterface $container): mixed
+        {
+            return fn () => $this->argument->resolve($container);
+        }
+
+        #[\Override] public function compile(): string
+        {
+            return sprintf('(fn () => %s)', $this->argument->compile());
+        }
+
+        #[\Override] public function type(): ?string
+        {
+            return Closure::class;
+        }
+    };
 }

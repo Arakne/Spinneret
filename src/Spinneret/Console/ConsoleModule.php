@@ -4,13 +4,11 @@ namespace Arakne\Spinneret\Console;
 
 use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Application\Application;
-use Arakne\Spinneret\Console\Compiler\RegisterConsoleCommandCompilerPass;
+use Arakne\Spinneret\Console\Processor\RegisterConsoleCommandProcessor;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ServiceBuilder;
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
-use Symfony\Component\DependencyInjection\ChildDefinition;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 use function Arakne\Spinneret\Application\service;
 
@@ -35,27 +33,20 @@ final class ConsoleModule extends AbstractModule
     {
         $this->service(Console::class, [
             service(Application::class),
-            new AbstractArgument('Command map should be register by RegisterConsoleCommandCompilerPass'),
+            [],
         ], public: true);
     }
 
     #[Override]
     protected function configureContainer(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->addCompilerPass(new RegisterConsoleCommandCompilerPass());
-        $containerBuilder->registerAttributeForAutoconfiguration(AsCommand::class, function (ChildDefinition $definition, AsCommand $attribute, \Reflector $reflector): void {
-            $definition->addTag(Command::class, ['command' => $attribute->name]);
-            $definition->setPublic(true);
+        $containerBuilder->processor(new RegisterConsoleCommandProcessor());
+        $containerBuilder->configureAttribute(AsCommand::class, static function (ServiceBuilder $service, ContainerBuilder $builder, AsCommand $attribute): void {
+            $service->tag($attribute);
+            $service->public = true;
         });
 
-        $containerBuilder->register(CacheClearCommand::class, CacheClearCommand::class)
-            ->setAutoconfigured(true)
-            ->setArguments([service(Application::class)])
-        ;
-
-        $containerBuilder->register(DebugConfigCommand::class, DebugConfigCommand::class)
-            ->setAutoconfigured(true)
-            ->setArguments([service(Application::class)])
-        ;
+        $containerBuilder->register(CacheClearCommand::class, [service(Application::class)]);
+        $containerBuilder->register(DebugConfigCommand::class, [service(Application::class)]);
     }
 }

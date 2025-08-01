@@ -2,8 +2,8 @@
 
 namespace Arakne\Spinneret\Application;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * Base type for register routes, presenters, renderers and services on the application

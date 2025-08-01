@@ -3,21 +3,12 @@
 namespace Arakne\Tests\Spinneret\Bus;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Bus\Attribute\MessageHandler;
 use Arakne\Spinneret\Bus\BusDispatcher;
 use Arakne\Spinneret\Bus\BusDispatcherInterface;
 use Arakne\Spinneret\Bus\BusModule;
-use Arakne\Spinneret\Bus\Compiler\RegisterHandlersCompilerPass;
-use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
-use Arakne\Spinneret\Router\Compiler\UrlMatcherCompilerInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
-use Arakne\Spinneret\Router\RouteCollectionLoader;
-use Arakne\Spinneret\Router\RouteCollectionLoaderInterface;
-use Arakne\Spinneret\Router\Router;
-use Arakne\Spinneret\Router\RouterConfig;
-use Arakne\Spinneret\Router\RouterInterface;
-use Arakne\Spinneret\Router\RouterModule;
-use Arakne\Spinneret\Router\UrlMatcherLoader;
-use Arakne\Spinneret\Router\UrlMatcherLoaderInterface;
 use Arakne\Tests\Spinneret\Bus\Fixtures\FooCommand;
 use Arakne\Tests\Spinneret\Bus\Fixtures\FooCommandHandler;
 use Arakne\Tests\Spinneret\Bus\Fixtures\GenericHandler;
@@ -28,10 +19,6 @@ use Arakne\Tests\Spinneret\Bus\Fixtures\InvalidHandlerWithoutParameters;
 use ArrayObject;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Quatrevieux\Form\DefaultFormFactory;
-use Quatrevieux\Form\FormFactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 
 class BusModuleTest extends TestCase
@@ -52,13 +39,11 @@ class BusModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
-
         $routerModule = new BusModule();
         $routerModule->register($container);
+        $container = $container->build();
 
-        $container->getAlias(BusDispatcherInterface::class)->setPublic(true);
-        $container->compile();
+        $container->set(Application::class, $app);
 
         $this->assertInstanceOf(BusDispatcher::class, $container->get(BusDispatcherInterface::class));
     }
@@ -69,21 +54,18 @@ class BusModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
         $container->register(FooCommandHandler::class)
-            ->setAutowired(true)
-            ->addTag(RegisterHandlersCompilerPass::TAG)
+            ->tag(MessageHandler::class)
         ;
         $container->register(GenericHandler::class)
-            ->setAutowired(true)
-            ->addTag(RegisterHandlersCompilerPass::TAG, ['message' => ArrayObject::class])
+            ->tag(new MessageHandler(ArrayObject::class))
         ;
 
         $routerModule = new BusModule();
         $routerModule->register($container);
 
-        $container->getAlias(BusDispatcherInterface::class)->setPublic(true);
-        $container->compile();
+        $container = $container->build();
+        $container->set(Application::class, $app);
 
         $this->assertInstanceOf(BusDispatcher::class, $container->get(BusDispatcherInterface::class));
         $this->assertSame(84, $container->get(BusDispatcherInterface::class)->process(new FooCommand(42), fn ($value) => $value));
@@ -99,17 +81,14 @@ class BusModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
         $container->register(FooCommand::class)
-            ->setAutowired(true)
-            ->addTag(RegisterHandlersCompilerPass::TAG)
+            ->tag(MessageHandler::class)
         ;
 
         $routerModule = new BusModule();
         $routerModule->register($container);
 
-        $container->getAlias(BusDispatcherInterface::class)->setPublic(true);
-        $container->compile();
+        $container->build();
     }
 
     #[Test]
@@ -121,17 +100,13 @@ class BusModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
         $container->register(InvalidHandlerWithoutParameters::class)
-            ->setAutowired(true)
-            ->addTag(RegisterHandlersCompilerPass::TAG)
+            ->tag(MessageHandler::class)
         ;
 
         $routerModule = new BusModule();
         $routerModule->register($container);
-
-        $container->getAlias(BusDispatcherInterface::class)->setPublic(true);
-        $container->compile();
+        $container->build();
     }
 
     #[Test]
@@ -143,17 +118,13 @@ class BusModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
         $container->register(InvalidHandlerTooManyParameters::class)
-            ->setAutowired(true)
-            ->addTag(RegisterHandlersCompilerPass::TAG)
+            ->tag(MessageHandler::class)
         ;
 
         $routerModule = new BusModule();
         $routerModule->register($container);
-
-        $container->getAlias(BusDispatcherInterface::class)->setPublic(true);
-        $container->compile();
+        $container->build();
     }
 
     #[Test]
@@ -165,17 +136,13 @@ class BusModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
         $container->register(InvalidHandlerMissingType::class)
-            ->setAutowired(true)
-            ->addTag(RegisterHandlersCompilerPass::TAG)
+            ->tag(MessageHandler::class)
         ;
 
         $routerModule = new BusModule();
         $routerModule->register($container);
-
-        $container->getAlias(BusDispatcherInterface::class)->setPublic(true);
-        $container->compile();
+        $container->build();
     }
 
     #[Test]
@@ -187,16 +154,12 @@ class BusModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
         $container->register(InvalidHandlerTypeNotClass::class)
-            ->setAutowired(true)
-            ->addTag(RegisterHandlersCompilerPass::TAG)
+            ->tag(MessageHandler::class)
         ;
 
         $routerModule = new BusModule();
         $routerModule->register($container);
-
-        $container->getAlias(BusDispatcherInterface::class)->setPublic(true);
-        $container->compile();
+        $container->build();
     }
 }

@@ -3,8 +3,11 @@
 namespace Arakne\Spinneret\Application;
 
 use Arakne\Spinneret\Application\Attribute\ModuleAttributeInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Presenter\Attribute\Presenter;
 use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\View\Attribute\Renderer;
 use Arakne\Spinneret\View\ViewRendererInterface;
 use FilesystemIterator;
 use Override;
@@ -13,14 +16,10 @@ use RecursiveIteratorIterator;
 use ReflectionAttribute;
 use ReflectionClass;
 use SplFileInfo;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-use function array_is_list;
 use function array_merge_recursive;
 use function assert;
 use function class_exists;
-use function interface_exists;
-use function is_array;
 use function ltrim;
 use function str_replace;
 use function strlen;
@@ -84,7 +83,7 @@ abstract class AbstractModule implements ModuleInterface
      *     params: list<mixed>,
      *     autowire: bool,
      *     public: bool,
-     *     tags: array<array-key, string|array<string, scalar>|list<array<string, scalar>>>,
+     *     tags: list<string|object>,
      *     aliases: list<class-string>,
      * }>
      */
@@ -122,68 +121,44 @@ abstract class AbstractModule implements ModuleInterface
         $this->callConfigure();
 
         foreach ($this->services as $class => $arguments) {
-            if ($containerBuilder->hasDefinition($class)) {
-                $definition = $containerBuilder->getDefinition($class);
-                $definition
-                    ->setArguments($arguments['params'] + $definition->getArguments())
-                    ->setPublic($definition->isPublic() || $arguments['public'])
-                    ->setAutowired($definition->isAutowired() || $arguments['autowire'])
-                ;
+            if ($containerBuilder->defined($class)) {
+                $definition = $containerBuilder->services[$class];
+                $definition->arguments = $arguments['params'] + $definition->arguments;
+                $definition->public = $definition->public || $arguments['public'];
             } else {
-                $definition = $containerBuilder->register($class, $class)
-                    ->setArguments($arguments['params'])
-                    ->setPublic($arguments['public'])
-                    ->setAutowired($arguments['autowire'])
-                    ->setAutoconfigured(true)
-                ;
+                $definition = $containerBuilder->register($class);
+                $definition->arguments = $arguments['params'];
+                $definition->public = $arguments['public'];
             }
 
-            foreach ($arguments['tags'] as $name => $attributes) {
-                if (is_array($attributes)) {
-                    if (!array_is_list($attributes)) {
-                        $attributes = [$attributes];
-                    }
-
-                    foreach ($attributes as $tagAttributes) {
-                        /** @psalm-suppress PossiblyInvalidArgument */
-                        $definition->addTag((string) $name, $tagAttributes);
-                    }
-                } else {
-                    $definition->addTag($attributes);
-                }
+            foreach ($arguments['tags'] as $tag) {
+                $definition->tag($tag);
             }
 
             foreach ($arguments['aliases'] as $alias) {
-                $containerBuilder
-                    ->setAlias($alias, $class)
-                    ->setPublic($arguments['public'])
-                ;
+                $containerBuilder->alias($alias, $class);
             }
         }
 
         foreach ($this->aliases as $alias => $target) {
-            $containerBuilder->setAlias($alias, $target);
+            $containerBuilder->alias($alias, $target);
         }
 
         foreach ($this->presenters as $requestClass => $presenterClass) {
-            if (!$containerBuilder->hasDefinition($presenterClass)) {
-                $definition = $containerBuilder->autowire($presenterClass, $presenterClass);
+            if (!$containerBuilder->defined($presenterClass)) {
+                $definition = $containerBuilder->register($presenterClass);
             } else {
-                $definition = $containerBuilder->getDefinition($presenterClass);
+                $definition = $containerBuilder->services[$presenterClass];
             }
 
-            $definition
-                ->setPublic(true)
-                ->addTag(PresenterInterface::class, ['request' => $requestClass])
-            ;
+            $definition->public = true;
+            $definition->tag(new Presenter($requestClass));
         }
 
         foreach ($this->renderers as $responseClass => $rendererClass) {
-            $containerBuilder
-                ->autowire($rendererClass, $rendererClass)
-                ->addTag(ViewRendererInterface::class, ['response' => $responseClass])
-                ->setPublic(true)
-            ;
+            $definition = $containerBuilder->register($rendererClass);
+            $definition->public = true;
+            $definition->tag(new Renderer($responseClass));
         }
 
         $this->configureContainer($containerBuilder);
@@ -199,6 +174,7 @@ abstract class AbstractModule implements ModuleInterface
         }
     }
 
+    // @todo remove: use directly container->import()
     final public function path(string $path, string $namespace): void
     {
         if ($namespace !== '' && $namespace[-1] !== '\\') {
@@ -316,7 +292,7 @@ abstract class AbstractModule implements ModuleInterface
      */
     final public function presenter(string $request, string $presenter): void
     {
-        $this->autowire($presenter, public: true, tags: [PresenterInterface::class => [['request' => $request]]]);
+        $this->autowire($presenter, public: true, tags: [new Presenter($request)]);
     }
 
     /**
@@ -329,7 +305,7 @@ abstract class AbstractModule implements ModuleInterface
      * @param list<mixed> $parameters The service arguments
      * @param bool $autowire Whether the service should be autowired
      * @param bool $public Whether the service should be public
-     * @param array<array-key, string|array<string, scalar>|list<array<string, scalar>>> $tags The service tags
+     * @param list<string|object> $tags The service tags
      * @param list<class-string> $aliases The service aliases
      *
      * @return void
@@ -355,7 +331,7 @@ abstract class AbstractModule implements ModuleInterface
         $this->services[$class]['params'] = $parameters + $this->services[$class]['params'];
         $this->services[$class]['autowire'] = $autowire || $this->services[$class]['autowire'];
         $this->services[$class]['public'] = $public || $this->services[$class]['public'];
-        $this->services[$class]['tags'] = array_merge_recursive($this->services[$class]['tags'], $tags);
+        $this->services[$class]['tags'] = [...$this->services[$class]['tags'], ...$tags];
         $this->services[$class]['aliases'] = [...$this->services[$class]['aliases'], ...$aliases];
     }
 
@@ -367,12 +343,13 @@ abstract class AbstractModule implements ModuleInterface
      *
      * @param class-string $class The service class name
      * @param bool $public Whether the service should be public
-     * @param array<array-key, string|array<string, scalar>|list<array<string, scalar>>> $tags The service tags
+     * @param list<string|object> $tags The service tags
      * @param list<class-string> $aliases The service aliases
      *
      * @return void
      *
      * @see ContainerBuilder::register()
+     * @todo remove: autowire is always enabled
      */
     final public function autowire(string $class, bool $public = false, array $tags = [], array $aliases = []): void
     {

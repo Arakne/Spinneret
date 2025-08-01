@@ -17,6 +17,8 @@ use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionFunction;
 
+use Throwable;
+
 use function array_is_list;
 use function array_values;
 use function count;
@@ -27,6 +29,8 @@ use function method_exists;
 
 /**
  * Builder for service metadata.
+ *
+ * @todo add fluent setters for all properties + handle "value" service (i.e. use constant value instead of class or factory).
  */
 final class ServiceBuilder
 {
@@ -85,6 +89,17 @@ final class ServiceBuilder
      * @todo: not implemented yet.
      */
     public bool $inline = false;
+
+    /**
+     * Indicates whether the service is only defined at runtime.
+     *
+     * If true, the service will not be instantiated by the container, but must be manually instantiated
+     * and set to the container after build.
+     * This allows to define services that are not available at compile time, without the compiler to complain about it.
+     *
+     * @var bool
+     */
+    public bool $runtime = false;
 
     /**
      * Ignore the service if it is invalid.
@@ -169,6 +184,20 @@ final class ServiceBuilder
     }
 
     /**
+     * Define the service as runtime.
+     * Runtime services are not instantiated by the container, but manually set after the container is built.
+     *
+     * @param bool $runtime
+     * @return $this
+     */
+    public function runtime(bool $runtime = true): self
+    {
+        $this->runtime = $runtime;
+
+        return $this;
+    }
+
+    /**
      * @return ServiceFactoryInterface|null
      * @psalm-suppress DocblockTypeContradiction
      */
@@ -238,18 +267,31 @@ final class ServiceBuilder
     /**
      * Build the service metadata.
      *
+     * @return ServiceMetadata|null The service metadata, or null if the service is ignored.
      * @throws ContainerBuildException When the service cannot be built.
      */
-    public function build(): ServiceMetadata
+    public function build(): ?ServiceMetadata
     {
-        // @todo handle ignoreIfInvalid
-        return new ServiceMetadata(
-            class: $this->class,
-            arguments: $this->buildArguments(),
-            factory: $this->resolveFactory(),
-            tags: $this->buildTags(),
-            ignoreIfInvalid: $this->ignoreIfInvalid,
-        );
+        if ($this->runtime) {
+            return null;
+        }
+
+        try {
+            // @todo handle ignoreIfInvalid
+            return new ServiceMetadata(
+                class: $this->class,
+                arguments: $this->buildArguments(),
+                factory: $this->resolveFactory(),
+                tags: $this->buildTags(),
+                ignoreIfInvalid: $this->ignoreIfInvalid,
+            );
+        } catch (Throwable $e) {
+            if ($this->ignoreIfInvalid) {
+                return null; // Ignore the service if it is invalid
+            }
+
+            throw $e;
+        }
     }
 
     /**

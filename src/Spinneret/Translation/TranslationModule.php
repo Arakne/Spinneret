@@ -4,11 +4,11 @@ namespace Arakne\Spinneret\Translation;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Locale;
 use Override;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Translation\Loader\PhpFileLoader;
 use Symfony\Component\Translation\PseudoLocalizationTranslator;
 use Symfony\Component\Translation\Translator;
@@ -42,38 +42,32 @@ final readonly class TranslationModule implements ConfigurableModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->register(Translator::class, Translator::class)
-            ->setFactory([self::class, 'createTranslator'])
-            ->setArguments([
-                new Reference(TranslationConfig::class),
-            ])
+        $containerBuilder->register(Translator::class)
+            ->factory(self::createTranslator(...))
+            ->arg(new Reference(TranslationConfig::class))
         ;
 
-        $containerBuilder->register(CollectorTranslator::class, CollectorTranslator::class)
-            ->setArguments([
-                new Reference(Translator::class),
-                $this->config->collectedLocales ?? $this->config->availableLocales,
-                $this->config->collectorOutputFile ?? $this->config->translationDir . '/{locale}.missing.php',
-            ])
-        ;
+        $containerBuilder->register(CollectorTranslator::class, [
+            new Reference(Translator::class),
+            $this->config->collectedLocales ?? $this->config->availableLocales,
+            $this->config->collectorOutputFile ?? $this->config->translationDir . '/{locale}.missing.php',
+        ]);
 
-        $containerBuilder->register(PseudoLocalizationTranslator::class, PseudoLocalizationTranslator::class)
-            ->setArguments([
-                new Reference(Translator::class),
-                [
-                    'expansion_factor' => $this->config->pseudoLocalizationExpansionFactor,
-                    'accents' => $this->config->pseudoLocalizationAccents,
-                    'brackets' => $this->config->pseudoLocalizationBrackets,
-                ],
-            ])
-        ;
+        $containerBuilder->register(PseudoLocalizationTranslator::class, [
+            new Reference(Translator::class),
+            [
+                'expansion_factor' => $this->config->pseudoLocalizationExpansionFactor,
+                'accents' => $this->config->pseudoLocalizationAccents,
+                'brackets' => $this->config->pseudoLocalizationBrackets,
+            ],
+        ]);
 
         if ($this->config->collectTranslations) {
-            $containerBuilder->setAlias(TranslatorInterface::class, CollectorTranslator::class);
+            $containerBuilder->alias(TranslatorInterface::class, CollectorTranslator::class);
         } elseif ($this->config->pseudoLocalization) {
-            $containerBuilder->setAlias(TranslatorInterface::class, PseudoLocalizationTranslator::class);
+            $containerBuilder->alias(TranslatorInterface::class, PseudoLocalizationTranslator::class);
         } else {
-            $containerBuilder->setAlias(TranslatorInterface::class, Translator::class);
+            $containerBuilder->alias(TranslatorInterface::class, Translator::class);
         }
     }
 

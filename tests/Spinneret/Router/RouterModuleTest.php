@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Router;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
@@ -22,7 +23,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
 use Quatrevieux\Form\FormFactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 
@@ -44,12 +44,13 @@ class RouterModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
+        $routerModule = new RouterModule();
+        $routerModule->register($container);
+        $container = $container->build();
+
         $container->set(Application::class, $app);
         $container->set(FormFactoryInterface::class, DefaultFormFactory::runtime());
         $container->set(RouterConfig::class, new RouterConfig());
-
-        $routerModule = new RouterModule();
-        $routerModule->register($container);
 
         $this->assertInstanceOf(Router::class, $container->get(RouterInterface::class));
         $this->assertInstanceOf(UrlMatcherLoader::class, $container->get(UrlMatcherLoaderInterface::class));
@@ -71,13 +72,13 @@ class RouterModuleTest extends TestCase
             }
         };
         $container = new ContainerBuilder();
+        $routerModule = new RouterModule();
+        $routerModule->register($container);
+        $container = $container->build();
 
         $container->set(Application::class, $app);
         $container->set(FormFactoryInterface::class, DefaultFormFactory::runtime());
         $container->set(RouterConfig::class, $app->config()[RouterConfig::class]);
-
-        $routerModule = new RouterModule();
-        $routerModule->register($container);
 
         $this->assertInstanceOf(Router::class, $container->get(RouterInterface::class));
         $this->assertInstanceOf(UrlMatcherLoader::class, $container->get(UrlMatcherLoaderInterface::class));

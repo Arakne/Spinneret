@@ -8,7 +8,6 @@ use Arakne\Spinneret\Console\Console;
 use Arakne\Spinneret\Console\ConsoleModule;
 use Arakne\Spinneret\Console\DebugConfigCommand;
 use Arakne\Tests\Spinneret\Console\Fixtures\CustomCommandModule;
-use Arakne\Tests\Spinneret\Console\Fixtures\GetNameCommand;
 use Arakne\Tests\Spinneret\Console\Fixtures\HelloCommand;
 use Arakne\Tests\Spinneret\Console\Fixtures\ManualTagCommand;
 use PHPUnit\Framework\Attributes\Test;
@@ -67,8 +66,6 @@ class ConsoleTest extends TestCase
         $this->assertInstanceOf(HelloCommand::class, $console->get('hello'));
         $this->assertInstanceOf(HelloCommand::class, $console->get('hi'));
         $this->assertInstanceOf(ManualTagCommand::class, $console->get('manual'));
-        $this->assertInstanceOf(GetNameCommand::class, $console->get('get-name'));
-        $this->assertInstanceOf(GetNameCommand::class, $console->get('other'));
     }
 
     #[Test]

@@ -4,6 +4,8 @@ namespace Arakne\Spinneret\Runner;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RouterInterface;
@@ -11,7 +13,7 @@ use Arakne\Spinneret\Runner\Backend\Httpd\HttpdBackend;
 use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanBackend;
 use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanConfig;
 use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanStartCommand;
-use Arakne\Spinneret\Runner\CompilerPass\RegisterMiddlewareCompilerPass;
+use Arakne\Spinneret\Runner\Processor\RegisterMiddlewareProcessor;
 use Arakne\Spinneret\View\ViewEngineInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
@@ -23,11 +25,6 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Module for register Runner and backend services
@@ -67,26 +64,24 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->addCompilerPass(new RegisterMiddlewareCompilerPass(Runner::class));
+        $containerBuilder->processor(new RegisterMiddlewareProcessor(Runner::class));
 
-        $containerBuilder->register(Runner::class, Runner::class)
-            ->setArguments([
-                new Reference(RouterInterface::class),
-                new Reference(PresenterDispatcherInterface::class),
-                new Reference(ViewEngineInterface::class),
-                new AbstractArgument('Should be defined by RegisterMiddlewareCompilerPass'),
-                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            ])
-        ;
+        $containerBuilder->register(Runner::class, [
+            new Reference(RouterInterface::class),
+            new Reference(PresenterDispatcherInterface::class),
+            new Reference(ViewEngineInterface::class),
+            [],
+            new Reference(LoggerInterface::class, nullOnInvalid: true),
+        ]);
 
-        $containerBuilder->setAlias(RunnerInterface::class, Runner::class)->setPublic(true);
+        $containerBuilder->alias(RunnerInterface::class, Runner::class);
 
-        $containerBuilder->register(Psr17Factory::class, Psr17Factory::class);
-        $containerBuilder->setAlias(ResponseFactoryInterface::class, Psr17Factory::class);
-        $containerBuilder->setAlias(StreamFactoryInterface::class, Psr17Factory::class);
-        $containerBuilder->setAlias(ServerRequestFactoryInterface::class, Psr17Factory::class);
-        $containerBuilder->setAlias(UriFactoryInterface::class, Psr17Factory::class);
-        $containerBuilder->setAlias(UploadedFileFactoryInterface::class, Psr17Factory::class);
+        $containerBuilder->register(Psr17Factory::class);
+        $containerBuilder->alias(ResponseFactoryInterface::class, Psr17Factory::class);
+        $containerBuilder->alias(StreamFactoryInterface::class, Psr17Factory::class);
+        $containerBuilder->alias(ServerRequestFactoryInterface::class, Psr17Factory::class);
+        $containerBuilder->alias(UriFactoryInterface::class, Psr17Factory::class);
+        $containerBuilder->alias(UploadedFileFactoryInterface::class, Psr17Factory::class);
 
         if ($this->config->httpd) {
             $this->registerHttpdBackend($containerBuilder);
@@ -105,45 +100,36 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
 
     private function registerHttpdBackend(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->register(ServerRequestCreator::class, ServerRequestCreator::class)
-            ->setArguments([
-                new Reference(ServerRequestFactoryInterface::class),
-                new Reference(UriFactoryInterface::class),
-                new Reference(UploadedFileFactoryInterface::class),
-                new Reference(StreamFactoryInterface::class),
-            ])
-        ;
+        $containerBuilder->register(ServerRequestCreator::class, [
+            new Reference(ServerRequestFactoryInterface::class),
+            new Reference(UriFactoryInterface::class),
+            new Reference(UploadedFileFactoryInterface::class),
+            new Reference(StreamFactoryInterface::class),
+        ]);
 
-        $containerBuilder->setAlias(ServerRequestCreatorInterface::class, ServerRequestCreator::class);
+        $containerBuilder->alias(ServerRequestCreatorInterface::class, ServerRequestCreator::class);
 
-        $containerBuilder->register(HttpdBackend::class, HttpdBackend::class)
-            ->setArguments([
+        $containerBuilder->register(
+            HttpdBackend::class,
+            [
                 new Reference(Application::class),
                 new Reference(ServerRequestCreatorInterface::class),
-            ])
-            ->setPublic(true)
-        ;
+            ]
+        )->public = true;
     }
 
     private function registerWorkermanBackend(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->register(WorkermanConfig::class, WorkermanConfig::class)
-            ->setFactory([new Reference(RunnerConfig::class), 'workerman'])
+        // @todo use value with ObjectProperty when available
+        $containerBuilder->register(WorkermanConfig::class)
+            ->factory(new Reference(RunnerConfig::class)->method('workerman'))
         ;
 
-        $containerBuilder->register(WorkermanBackend::class, WorkermanBackend::class)
-            ->setArguments([
-                new Reference(Application::class),
-                new Reference(WorkermanConfig::class),
-            ])
-            ->setPublic(true)
-        ;
+        $containerBuilder->register(WorkermanBackend::class, [
+            new Reference(Application::class),
+            new Reference(WorkermanConfig::class),
+        ])->public = true;
 
-        $containerBuilder->register(WorkermanStartCommand::class, WorkermanStartCommand::class)
-            ->setArguments([
-                new Reference(WorkermanBackend::class),
-            ])
-            ->addTag(Command::class)
-        ;
+        $containerBuilder->register(WorkermanStartCommand::class, [new Reference(WorkermanBackend::class)]);
     }
 }

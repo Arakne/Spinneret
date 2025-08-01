@@ -3,8 +3,8 @@
 namespace Arakne\Spinneret\Application\Compiler;
 
 use Arakne\Spinneret\Application\Application;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Arakne\Spinneret\Container\BuiltContainer;
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 
 /**
  * Interface for load and compile the container
@@ -17,9 +17,9 @@ interface ContainerCompilerInterface
      *
      * @param Application $application The application
      *
-     * @return ContainerInterface|null The compiled container or null if it is not found, or cannot be loaded
+     * @return SpinneretContainerInterface|null The compiled container or null if it is not found, or cannot be loaded
      */
-    public function load(Application $application): ?ContainerInterface;
+    public function load(Application $application): ?SpinneretContainerInterface;
 
     /**
      * Compile and save the given container
@@ -28,9 +28,9 @@ interface ContainerCompilerInterface
      * If a compiled container already exists, it should be replaced by the new one.
      *
      * @param Application $application The application
-     * @param ContainerBuilder $container The built container
+     * @param BuiltContainer $container The built container
      *
      * @return void
      */
-    public function compile(Application $application, ContainerBuilder $container): void;
+    public function compile(Application $application, BuiltContainer $container): void;
 }

@@ -3,20 +3,20 @@
 namespace Arakne\Spinneret\Event;
 
 use Arakne\Spinneret\Application\ModuleInterface;
-use Arakne\Spinneret\Event\Compiler\RegisterListenersCompilerPass;
-use Arakne\Spinneret\Event\Compiler\RegisterSubscribersCompilerPass;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ServiceBuilder;
+use Arakne\Spinneret\Event\Processor\RegisterListenersProcessor;
+use Arakne\Spinneret\Event\Processor\RegisterSubscribersProcessor;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Module for register the event dispatcher.
  *
- * This module will resolve the listeners from the container, using the tag "spinneret.event?listener" (cf: {@see RegisterListenersCompilerPass::TAG}).
+ * This module will resolve the listeners from the container, using the tag "spinneret.event?listener" (cf: {@see RegisterListenersProcessor::TAG}).
  * To handled message can be explicitly defined using the "event" attribute on the tag, or it will be resolved from the argument of the listener.
  *
  * Optional services:
@@ -30,21 +30,19 @@ final readonly class EventModule implements ModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->addCompilerPass(new RegisterListenersCompilerPass());
-        $containerBuilder->addCompilerPass(new RegisterSubscribersCompilerPass());
-        $containerBuilder->registerForAutoconfiguration(EventSubscriberInterface::class)
-            ->addTag(EventSubscriberInterface::class)
-        ;
+        $containerBuilder->processor(new RegisterListenersProcessor());
+        $containerBuilder->processor(new RegisterSubscribersProcessor());
+        $containerBuilder->configureInstanceOf(EventSubscriberInterface::class, function (ServiceBuilder $service) {
+            $service->tag(EventSubscriberInterface::class);
+        });
 
-        $containerBuilder->register(EventDispatcher::class, EventDispatcher::class)
-            ->setArguments([
-                new Reference('service_container'),
-                [], // Listeners are resolved by the compiler pass
-                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            ])
-        ;
+        $containerBuilder->register(EventDispatcher::class, [
+            new Reference(ContainerInterface::class),
+            [], // Listeners are resolved by the compiler pass
+            new Reference(LoggerInterface::class, nullOnInvalid: true),
+        ]);
 
-        $containerBuilder->setAlias(EventDispatcherInterface::class, EventDispatcher::class);
+        $containerBuilder->alias(EventDispatcherInterface::class, EventDispatcher::class);
     }
 
     #[Override]

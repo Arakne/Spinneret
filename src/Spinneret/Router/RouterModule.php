@@ -4,15 +4,14 @@ namespace Arakne\Spinneret\Router;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
+use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompilerInterface;
 use Override;
 use Quatrevieux\Form\FormFactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
 
@@ -60,58 +59,48 @@ final readonly class RouterModule implements ConfigurableModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->register(Router::class, Router::class)
-            ->setArguments([
-                new Reference(UrlMatcherInterface::class),
-                new Reference(FormFactoryInterface::class),
-            ])
+        $containerBuilder->register(Router::class)
+            ->arg(new Reference(UrlMatcherInterface::class))
+            ->arg(new Reference(FormFactoryInterface::class))
         ;
 
-        $containerBuilder->setAlias(RouterInterface::class, Router::class);
+        $containerBuilder->alias(RouterInterface::class, Router::class);
 
         $containerBuilder->register(UrlMatcherInterface::class)
-            ->setFactory([new Reference(UrlMatcherLoaderInterface::class), 'load'])
-            ->setArguments([
-                new Reference(Application::class),
-            ])
+            ->factory(new Reference(UrlMatcherLoaderInterface::class)->method('load'))
+            ->arg(new Reference(Application::class))
         ;
 
-        $containerBuilder->register(UrlMatcherLoader::class, UrlMatcherLoader::class)
-            ->setArguments([
-                new Reference(RouteCollectionLoaderInterface::class),
-                new Reference(RequestContext::class),
-                new Reference(UrlMatcherCompilerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            ])
+        $containerBuilder->register(UrlMatcherLoader::class)
+            ->arg(new Reference(RouteCollectionLoaderInterface::class))
+            ->arg(new Reference(RequestContext::class))
+            ->arg(new Reference(UrlMatcherCompilerInterface::class, nullOnInvalid: true))
         ;
-        $containerBuilder->setAlias(UrlMatcherLoaderInterface::class, UrlMatcherLoader::class);
+        $containerBuilder->alias(UrlMatcherLoaderInterface::class, UrlMatcherLoader::class);
 
-        $containerBuilder->register(UrlGeneratorInterface::class, UrlGeneratorInterface::class)
-            ->setFactory([new Reference(UrlGeneratorLoaderInterface::class), 'load'])
-            ->setArguments([
-                new Reference(Application::class),
-            ])
+        $containerBuilder->register(UrlGeneratorInterface::class)
+            ->factory(new Reference(UrlGeneratorLoaderInterface::class)->method('load'))
+            ->arg(new Reference(Application::class))
         ;
-        $containerBuilder->register(UrlGeneratorLoader::class, UrlGeneratorLoader::class)
-            ->setArguments([
-                new Reference(RouteCollectionLoaderInterface::class),
-                new Reference(RequestContext::class),
-                new Reference(UrlGeneratorCompilerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            ])
+        $containerBuilder->register(UrlGeneratorLoader::class)
+            ->arg(new Reference(RouteCollectionLoaderInterface::class))
+            ->arg(new Reference(RequestContext::class))
+            ->arg(new Reference(UrlGeneratorCompilerInterface::class, nullOnInvalid: true))
         ;
-        $containerBuilder->setAlias(UrlGeneratorLoaderInterface::class, UrlGeneratorLoader::class);
+        $containerBuilder->alias(UrlGeneratorLoaderInterface::class, UrlGeneratorLoader::class);
 
-        $containerBuilder->register(UrlMatcherCompiler::class, UrlMatcherCompiler::class); // @todo configure file name ?
-        $containerBuilder->setAlias(UrlMatcherCompilerInterface::class, UrlMatcherCompiler::class);
+        $containerBuilder->register(UrlMatcherCompiler::class); // @todo configure file name ?
+        $containerBuilder->alias(UrlMatcherCompilerInterface::class, UrlMatcherCompiler::class);
 
-        $containerBuilder->register(UrlGeneratorCompiler::class, UrlGeneratorCompiler::class); // @todo configure file name ?
-        $containerBuilder->setAlias(UrlGeneratorCompilerInterface::class, UrlGeneratorCompiler::class);
+        $containerBuilder->register(UrlGeneratorCompiler::class); // @todo configure file name ?
+        $containerBuilder->alias(UrlGeneratorCompilerInterface::class, UrlGeneratorCompiler::class);
 
-        $containerBuilder->register(RouteCollectionLoader::class, RouteCollectionLoader::class);
-        $containerBuilder->setAlias(RouteCollectionLoaderInterface::class, RouteCollectionLoader::class);
+        $containerBuilder->register(RouteCollectionLoader::class);
+        $containerBuilder->alias(RouteCollectionLoaderInterface::class, RouteCollectionLoader::class);
 
-        $containerBuilder->register(RequestContext::class, RequestContext::class)
-            ->setFactory([self::class, 'createRequestContext'])
-            ->setArguments([new Reference(RouterConfig::class)])
+        $containerBuilder->register(RequestContext::class)
+            ->factory(self::createRequestContext(...))
+            ->arg(new Reference(RouterConfig::class))
         ;
     }
 

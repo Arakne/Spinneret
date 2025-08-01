@@ -3,6 +3,7 @@
 namespace Arakne\Spinneret\Container\Builder\Processor;
 
 use Arakne\Spinneret\Container\Argument\Autowire;
+use Arakne\Spinneret\Container\Argument\Literal;
 use Arakne\Spinneret\Container\Argument\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
@@ -25,6 +26,11 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                 }
 
                 $resolved[$id] = true;
+
+                if ($service->runtime) {
+                    continue;
+                }
+
                 $factory = $service->resolveFactory();
 
                 if ($factory !== null) {
@@ -52,6 +58,10 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
 
                 // Mark all missing parameters as autowired.
                 foreach ($parameters as $index => $parameter) {
+                    if ($parameter->isVariadic()) {
+                        break;
+                    }
+
                     if (!isset($service->arguments[$index])) {
                         /** @psalm-suppress PropertyTypeCoercion */
                         $service->arguments[$index] = new Autowire($id, $parameter->getName());
@@ -69,6 +79,10 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
 
                     // Only atomic object type can be autowired.
                     if (!$parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
+                        if ($parameter->isDefaultValueAvailable()) {
+                            $service->arguments[$index] = new Literal($parameter->getDefaultValue());
+                        }
+
                         continue;
                     }
 
@@ -80,7 +94,11 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                     }
 
                     /** @psalm-suppress PropertyTypeCoercion */
-                    $service->arguments[$index] = new Reference($parameterType->getName(), $parameterType->allowsNull());
+                    $service->arguments[$index] = new Reference(
+                        $parameterType->getName(),
+                        $parameterType->allowsNull(),
+                        $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
+                    );
                 }
             }
         } while (count($resolved) < count($builder->services)); // Repeat until no new service is added

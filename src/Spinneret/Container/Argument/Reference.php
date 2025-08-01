@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Argument;
 
+use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Override;
 use Psr\Container\ContainerInterface;
 use Throwable;
@@ -19,6 +20,7 @@ final readonly class Reference implements ArgumentInterface
     public function __construct(
         public string $id,
         public bool $nullOnInvalid = false,
+        public mixed $defaultValueOnInvalid = null,
     ) {}
 
     #[Override]
@@ -31,6 +33,10 @@ final readonly class Reference implements ArgumentInterface
                 return null;
             }
 
+            if ($this->defaultValueOnInvalid !== null) {
+                return $this->defaultValueOnInvalid;
+            }
+
             throw $e;
         }
     }
@@ -40,6 +46,8 @@ final readonly class Reference implements ArgumentInterface
     {
         if ($this->nullOnInvalid) {
             return sprintf('$this->getOrNull(%s)', var_export($this->id, true));
+        } elseif ($this->defaultValueOnInvalid !== null) {
+            return sprintf('($this->getOrNull(%s) ?? %s)', var_export($this->id, true), Literal::dump($this->defaultValueOnInvalid));
         } else {
             return sprintf('$this->get(%s)', var_export($this->id, true));
         }
@@ -49,5 +57,21 @@ final readonly class Reference implements ArgumentInterface
     public function type(): ?string
     {
         return class_exists($this->id) ? $this->id : null;
+    }
+
+    public function withId(string $id): self
+    {
+        return new self($id, $this->nullOnInvalid, $this->defaultValueOnInvalid);
+    }
+
+    // @todo test + document + define in trait
+    public function method(string $name): MethodServiceFactory
+    {
+        return new MethodServiceFactory($this, $name);
+    }
+
+    public function property(string $property): PropertyAccess
+    {
+        return new PropertyAccess($this->id, $property);
     }
 }

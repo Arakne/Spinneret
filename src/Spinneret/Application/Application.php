@@ -6,6 +6,8 @@ use Arakne\Spinneret\Application\Compiler\ContainerCompiler;
 use Arakne\Spinneret\Application\Compiler\ContainerCompilerInterface;
 use Arakne\Spinneret\Application\Config\ConfigLoaderInterface;
 use Arakne\Spinneret\Application\Config\PhpConfigLoader;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Arakne\Spinneret\Error\ErrorModule;
 use Arakne\Spinneret\Form\FormModule;
 use Arakne\Spinneret\Presenter\PresenterModule;
@@ -19,8 +21,6 @@ use Override;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainer;
 
 /**
  * Base class for a Spinneret application
@@ -259,25 +259,25 @@ class Application implements RunnerInterface, ContainerInterface
     /**
      * Create the container, and compile it
      *
-     * @return SymfonyContainer
+     * @return SpinneretContainerInterface
      */
-    private function buildContainer(): SymfonyContainer
+    private function buildContainer(): SpinneretContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
-        $containerBuilder->register(Application::class)->setPublic(true)->setSynthetic(true);
+        $containerBuilder->register(Application::class)->runtime = true;
 
         foreach ($this->modules() as $module) {
             $module->register($containerBuilder);
 
             if ($module instanceof ConfigurableModuleInterface) {
                 $config = $module->configuration();
-                $containerBuilder->register($config::class)->setSynthetic(true);
+                $containerBuilder->register($config::class)->runtime = true;
             }
         }
 
-        $containerBuilder->compile();
-        $this->containerCompiler?->compile($this, $containerBuilder);
+        $built = $containerBuilder->build();
+        $this->containerCompiler?->compile($this, $built);
 
-        return $containerBuilder;
+        return $built;
     }
 }

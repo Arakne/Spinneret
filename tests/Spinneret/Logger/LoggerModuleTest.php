@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Logger;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use Arakne\Spinneret\Logger\Driver\FileLogger;
 use Arakne\Spinneret\Logger\LoggerConfiguration;
@@ -13,7 +14,6 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\RouteCollection;
 
 class LoggerModuleTest extends TestCase
@@ -34,11 +34,12 @@ class LoggerModuleTest extends TestCase
         $app = new Application(env: 'test');
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
-        $container->set(LoggerConfiguration::class, new LoggerConfiguration());
-
         $module = new LoggerModule();
         $module->register($container);
+        $container = $container->build();
+
+        $container->set(Application::class, $app);
+        $container->set(LoggerConfiguration::class, new LoggerConfiguration());
 
         $this->assertInstanceOf(LoggerDispatcher::class, $container->get(LoggerInterface::class));
     }
@@ -54,14 +55,14 @@ class LoggerModuleTest extends TestCase
         };
         $container = new ContainerBuilder();
 
-        $container->set(Application::class, $app);
-        $container->set(LoggerConfiguration::class, $app->config()[LoggerConfiguration::class]);
-        $container->set(ArrayLogger::class, $arrayLogger = new ArrayLogger());
-        $container->setParameter('app.log_dir', $app->logDir());
-
         $module = new LoggerModule();
         $module = $module->withConfiguration($app->config()[LoggerConfiguration::class]);
         $module->register($container);
+        $container = $container->build();
+
+        $container->set(Application::class, $app);
+        $container->set(LoggerConfiguration::class, $app->config()[LoggerConfiguration::class]);
+        $container->set(ArrayLogger::class, $arrayLogger = new ArrayLogger());
 
         $this->assertInstanceOf(LoggerDispatcher::class, $container->get(LoggerInterface::class));
         $this->assertNull($module->configuration()->getFilter('not-exists'));

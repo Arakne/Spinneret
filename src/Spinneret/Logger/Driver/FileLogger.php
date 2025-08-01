@@ -25,6 +25,8 @@ final class FileLogger implements LoggerInterface
 {
     use LoggerTrait;
 
+    public const int DEFAULT_BUFFER_SIZE = 2048;
+
     /**
      * @var resource|null
      */
@@ -46,7 +48,7 @@ final class FileLogger implements LoggerInterface
          * It's advisable to set a value slightly lower than the filesystem block size
          * to ensure atomic writes
          */
-        private readonly int $bufferSize = 2048,
+        private readonly int $bufferSize = self::DEFAULT_BUFFER_SIZE,
     ) {
         $this->lastFlush = time();
     }
