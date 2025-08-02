@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
 
@@ -15,6 +16,7 @@ use function sprintf;
  * Unlike {@see Literal} with an object, arguments are resolved dynamically,
  * and do not depend on promoted properties.
  */
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class NewExpression implements ValueInterface
 {
     use ValueHelperTrait;

@@ -8,6 +8,7 @@ use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
+use Arakne\Spinneret\Container\Value\ValueInterface;
 use Override;
 use ReflectionNamedType;
 
@@ -100,12 +101,16 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                 continue;
             }
 
+            if ($this->processParameterAttribute($builder, $service, $parameter, $index)) {
+                continue;
+            }
+
             $parameterType = $parameter->getType();
 
             // Only atomic object type can be autowired.
             if (!$parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
                 if ($parameter->isDefaultValueAvailable()) {
-                    $service->arguments[$index] = new Literal($parameter->getDefaultValue());
+                    $service->set($index, new Literal($parameter->getDefaultValue()));
                 }
 
                 continue;
@@ -120,12 +125,11 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                 $toProcess[] = $newService;
             }
 
-            /** @psalm-suppress PropertyTypeCoercion */
-            $service->arguments[$index] = new Reference(
+            $service->set($index, new Reference(
                 $parameterType->getName(),
                 $parameterType->allowsNull(),
                 $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
-            );
+            ));
         }
 
         return $toProcess;
@@ -149,5 +153,25 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                 $service->arguments[$index] = new Autowire($service->id, $parameter->getName());
             }
         }
+    }
+
+    /**
+     * Process attributes of tye {@see ValueInterface} on the parameter.
+     *
+     * @param ContainerBuilder $builder
+     * @param ServiceBuilder $service
+     * @param ReflectionParameter $parameter
+     * @param non-negative-int $index The argument index in the service arguments.
+     *
+     * @return bool true if the parameter was processed, false otherwise.
+     */
+    private function processParameterAttribute(ContainerBuilder $builder, ServiceBuilder $service, ReflectionParameter $parameter, int $index): bool
+    {
+        foreach ($parameter->getAttributes(ValueInterface::class, \ReflectionAttribute::IS_INSTANCEOF) as $ra) {
+            $service->set($index, $ra->newInstance());
+            return true;
+        }
+
+        return false;
     }
 }

@@ -7,6 +7,9 @@ use Psr\Container\ContainerInterface;
 /**
  * Store a value for a service factory or constructor.
  * All values must be compilable to a PHP string.
+ *
+ * If this type is used as an attribute on a parameter of the constructor or factory method,
+ * it will be handled by the autowire processor.
  */
 interface ValueInterface
 {

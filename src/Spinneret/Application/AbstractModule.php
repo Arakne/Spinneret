@@ -17,14 +17,12 @@ use ReflectionAttribute;
 use ReflectionClass;
 use SplFileInfo;
 
-use function array_merge_recursive;
 use function assert;
 use function class_exists;
 use function ltrim;
 use function str_replace;
 use function strlen;
 use function substr;
-use function var_dump;
 
 /**
  * Simple module implementation
@@ -100,6 +98,13 @@ abstract class AbstractModule implements ModuleInterface
     private bool $configured = false;
 
     /**
+     * List of paths to import in the container.
+     *
+     * @var list<list{string, string}>
+     */
+    private array $paths = [];
+
+    /**
      * Must be implemented by the child class to register
      */
     abstract protected function configure(): void;
@@ -119,6 +124,10 @@ abstract class AbstractModule implements ModuleInterface
     final public function register(ContainerBuilder $containerBuilder): void
     {
         $this->callConfigure();
+
+        foreach ($this->paths as [$path, $namespace]) {
+            $containerBuilder->import($path, $namespace);
+        }
 
         foreach ($this->services as $class => $arguments) {
             if ($containerBuilder->defined($class)) {
@@ -182,6 +191,7 @@ abstract class AbstractModule implements ModuleInterface
     // @todo remove: use directly container->import()
     final public function path(string $path, string $namespace): void
     {
+        $this->paths[] = [$path, $namespace];
         if ($namespace !== '' && $namespace[-1] !== '\\') {
             $namespace .= '\\';
         }

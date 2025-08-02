@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
 
@@ -9,6 +10,7 @@ use function array_is_list;
 use function is_array;
 use function var_export;
 
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class DynamicArray implements ValueInterface
 {
     use ValueHelperTrait;

@@ -8,7 +8,7 @@ use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\ServiceBuilder;
-use Arakne\Spinneret\Database\Argument\DatabaseConnection as DatabaseConnectionArgument;
+use Arakne\Spinneret\Database\Argument\UseConnection as DatabaseConnectionArgument;
 use Arakne\Spinneret\Database\Migration\Console\MigrationDownCommand;
 use Arakne\Spinneret\Database\Migration\Console\MigrationStatusCommand;
 use Arakne\Spinneret\Database\Migration\Console\MigrationUpCommand;

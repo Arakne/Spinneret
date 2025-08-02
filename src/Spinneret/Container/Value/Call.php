@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
+use Attribute;
 use Closure;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -17,6 +18,7 @@ use function is_array;
  * Resolves the value by calling a function or method with the given arguments.
  * This type is equivalent to an inlined service created by a factory.
  */
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class Call implements ValueInterface
 {
     use ValueHelperTrait;

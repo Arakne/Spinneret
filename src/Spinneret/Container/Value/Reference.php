@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
 use Throwable;
@@ -14,6 +15,7 @@ use function var_export;
  * Represents a reference to an object stored in the container.
  * The object is retrieved using its ID, which must be a valid service ID.
  */
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class Reference implements ValueInterface
 {
     use ValueHelperTrait;
@@ -44,12 +46,12 @@ final readonly class Reference implements ValueInterface
         try {
             return $container->get($this->id);
         } catch (Throwable $e) {
-            if ($this->nullOnInvalid) {
-                return null;
-            }
-
             if ($this->defaultValueOnInvalid !== null) {
                 return $this->defaultValueOnInvalid;
+            }
+
+            if ($this->nullOnInvalid) {
+                return null;
             }
 
             throw $e;
@@ -59,10 +61,10 @@ final readonly class Reference implements ValueInterface
     #[Override]
     public function compile(): string
     {
-        if ($this->nullOnInvalid) {
-            return sprintf('$this->getOrNull(%s)', var_export($this->id, true));
-        } elseif ($this->defaultValueOnInvalid !== null) {
+        if ($this->defaultValueOnInvalid !== null) {
             return sprintf('($this->getOrNull(%s) ?? %s)', var_export($this->id, true), Literal::dump($this->defaultValueOnInvalid));
+        } elseif ($this->nullOnInvalid) {
+            return sprintf('$this->getOrNull(%s)', var_export($this->id, true));
         } else {
             return sprintf('$this->get(%s)', var_export($this->id, true));
         }

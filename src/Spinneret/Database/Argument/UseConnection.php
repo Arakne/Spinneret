@@ -6,6 +6,7 @@ use Arakne\Spinneret\Container\Value\ValueInterface;
 use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Database\DatabaseConnectionInterface;
 use Arakne\Spinneret\Database\DatabaseConnectionManagerInterface;
+use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
 use UnitEnum;
@@ -14,7 +15,8 @@ use function sprintf;
 use function var_export;
 
 // @todo test + doc
-final readonly class DatabaseConnection implements ValueInterface
+#[Attribute(Attribute::TARGET_PARAMETER)]
+final readonly class UseConnection implements ValueInterface
 {
     public function __construct(
         /**

@@ -25,6 +25,7 @@ use Arakne\Tests\Spinneret\Container\Fixtures\Controller\ControllerInterface;
 use Arakne\Tests\Spinneret\Container\Fixtures\Controller\ControllerTag;
 use Arakne\Tests\Spinneret\Container\Fixtures\Controller\FooController;
 use Arakne\Tests\Spinneret\Container\Fixtures\Controller\FrontController;
+use Arakne\Tests\Spinneret\Container\Fixtures\InjectUsingParameterAttribute;
 use Arakne\Tests\Spinneret\Container\Fixtures\InstanceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\NullableContainerClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass;
@@ -41,6 +42,7 @@ use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoAHandler;
 use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoB;
 use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoBHandler;
 use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\SimpleDep;
+use Closure;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -559,6 +561,23 @@ class ContainerBuilderTest extends TestCase
 
         $built->set(SingleLiteralClass::class, $o = new SingleLiteralClass('value'));
         $this->assertSame($o, $built->get(NullableContainerClass::class)->dep);
+    }
+
+    #[Test]
+    public function parameterAttributes()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(ClassWithLiteralArguments::class, ['test', 42]);
+        $builder->register(SimpleClass::class);
+        $builder->register(InjectUsingParameterAttribute::class);
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(InjectUsingParameterAttribute::class));
+        $this->assertSame('Hello world!', $container->get(InjectUsingParameterAttribute::class)->value);
+        $this->assertSame(42, $container->get(InjectUsingParameterAttribute::class)->number);
+        $this->assertInstanceOf(Closure::class, $container->get(InjectUsingParameterAttribute::class)->lazy);
+        $this->assertSame($container->get(SimpleClass::class), ($container->get(InjectUsingParameterAttribute::class)->lazy)());
     }
 }
 

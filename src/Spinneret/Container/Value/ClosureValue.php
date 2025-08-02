@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Attribute;
 use Closure;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -14,6 +15,7 @@ use function sprintf;
  * This type allows to defer the resolution of the value until it is actually needed,
  * which can be useful for performance optimization or to avoid circular dependencies.
  */
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class ClosureValue implements ValueInterface
 {
     use ValueHelperTrait;

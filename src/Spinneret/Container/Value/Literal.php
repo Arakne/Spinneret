@@ -3,6 +3,7 @@
 namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
+use Attribute;
 use DateTimeZone;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -27,6 +28,7 @@ use function var_export;
  *
  * Note: if the value is an object, it must have a public constructor, and use only promoted properties.
  */
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class Literal implements ValueInterface
 {
     use ValueHelperTrait;

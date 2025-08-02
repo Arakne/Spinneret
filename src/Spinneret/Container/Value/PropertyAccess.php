@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -15,6 +16,7 @@ use function sprintf;
  * Represents access to a property of an object stored in the container.
  * The object is retrieved using its ID, and the property is accessed directly.
  */
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class PropertyAccess implements ValueInterface
 {
     use ValueHelperTrait;

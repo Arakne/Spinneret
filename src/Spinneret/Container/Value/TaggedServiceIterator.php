@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\SpinneretContainerInterface;
+use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
 
@@ -16,6 +17,7 @@ use function var_export;
  *
  * The parameter must allow iterable, and not only an array.
  */
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class TaggedServiceIterator implements ValueInterface
 {
     use ValueHelperTrait;

@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
 
@@ -12,6 +13,7 @@ use function var_export;
  * Access to an array offset from a dynamic value.
  * This is equivalent of {@see PropertyAccess} but for arrays with `[]` operator.
  */
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class ArrayOffset implements ValueInterface
 {
     use ValueHelperTrait;

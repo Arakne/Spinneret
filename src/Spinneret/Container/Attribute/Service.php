@@ -37,6 +37,11 @@ readonly class Service implements ServiceConfiguratorAttributeInterface
          * @var list<string>
          */
         public array $aliases = [],
+
+        /**
+         * Automatically register all implemented interfaces as aliases for this service.
+         */
+        public bool $useInterfacesAsAliases = false,
     ) {}
 
     #[Override]
@@ -50,6 +55,13 @@ readonly class Service implements ServiceConfiguratorAttributeInterface
 
         foreach ($this->aliases as $alias) {
             $container->alias($alias, $service->id);
+        }
+
+        // @todo test
+        if ($this->useInterfacesAsAliases) {
+            foreach ($service->reflection()?->getInterfaceNames() ?? [] as $interface) {
+                $container->alias($interface, $service->id);
+            }
         }
     }
 }
