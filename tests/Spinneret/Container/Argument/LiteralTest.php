@@ -2,7 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Argument;
 
-use Arakne\Spinneret\Container\Argument\Literal;
+use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments;
 use Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass;

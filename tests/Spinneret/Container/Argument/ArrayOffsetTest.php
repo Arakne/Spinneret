@@ -2,8 +2,8 @@
 
 namespace Arakne\Tests\Spinneret\Container\Argument;
 
-use Arakne\Spinneret\Container\Argument\ArrayOffset;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\ArrayOffset;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use ArrayObject;
 use PHPUnit\Framework\Attributes\Test;

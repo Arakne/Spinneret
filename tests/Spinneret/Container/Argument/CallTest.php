@@ -2,9 +2,9 @@
 
 namespace Arakne\Tests\Spinneret\Container\Argument;
 
-use Arakne\Spinneret\Container\Argument\Call;
-use Arakne\Spinneret\Container\Argument\Literal;
-use Arakne\Spinneret\Container\Argument\PropertyAccess;
+use Arakne\Spinneret\Container\Value\Call;
+use Arakne\Spinneret\Container\Value\Literal;
+use Arakne\Spinneret\Container\Value\PropertyAccess;
 use Arakne\Tests\Spinneret\Container\Fixtures\InstanceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass;
 use PHPUnit\Framework\Attributes\Test;

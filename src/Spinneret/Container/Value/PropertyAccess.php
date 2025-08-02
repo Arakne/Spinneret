@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Override;
 use Psr\Container\ContainerInterface;
@@ -15,7 +15,7 @@ use function sprintf;
  * Represents access to a property of an object stored in the container.
  * The object is retrieved using its ID, and the property is accessed directly.
  */
-final readonly class PropertyAccess implements ArgumentInterface
+final readonly class PropertyAccess implements ValueInterface
 {
     use ValueHelperTrait;
 
@@ -23,7 +23,7 @@ final readonly class PropertyAccess implements ArgumentInterface
         /**
          * The object from which the property will be accessed.
          */
-        public ArgumentInterface $object,
+        public ValueInterface $object,
 
         /**
          * The name of the property to access.

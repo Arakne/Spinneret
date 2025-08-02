@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Exception\MissingArgumentException;
 use Override;
@@ -12,7 +12,7 @@ use function sprintf;
  * Explicitly announces that the argument should be autowired.
  * Autowired argument cannot be resolved nor compiled, it must be replaced by a processor.
  */
-final readonly class Autowire implements ArgumentInterface
+final readonly class Autowire implements ValueInterface
 {
     public function __construct(
         /**

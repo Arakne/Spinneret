@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Closure;
 use Override;
@@ -14,7 +14,7 @@ use function sprintf;
  * This type allows to defer the resolution of the value until it is actually needed,
  * which can be useful for performance optimization or to avoid circular dependencies.
  */
-final readonly class ClosureArgument implements ArgumentInterface
+final readonly class ClosureValue implements ValueInterface
 {
     use ValueHelperTrait;
 
@@ -22,7 +22,7 @@ final readonly class ClosureArgument implements ArgumentInterface
         /**
          * The value which will be resolved lazily as a Closure.
          */
-        private ArgumentInterface $argument,
+        private ValueInterface $argument,
     ) {}
 
     #[Override]

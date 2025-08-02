@@ -2,9 +2,9 @@
 
 namespace Arakne\Spinneret\Container\Builder\Processor;
 
-use Arakne\Spinneret\Container\Argument\Autowire;
-use Arakne\Spinneret\Container\Argument\Literal;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\Autowire;
+use Arakne\Spinneret\Container\Value\Literal;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Override;

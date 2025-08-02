@@ -3,10 +3,10 @@
 namespace Arakne\Spinneret\Logger;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Argument\ArgumentInterface;
-use Arakne\Spinneret\Container\Argument\Call;
-use Arakne\Spinneret\Container\Argument\Literal;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\ValueInterface;
+use Arakne\Spinneret\Container\Value\Call;
+use Arakne\Spinneret\Container\Value\Literal;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Logger\Driver\FileLogger;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
@@ -61,7 +61,7 @@ final readonly class LoggerModule implements ConfigurableModuleInterface
         // No-op
     }
 
-    private function createLogger(LogChannel $channel): ArgumentInterface
+    private function createLogger(LogChannel $channel): ValueInterface
     {
         if ($channel->service !== null) {
             return new Reference($channel->service);
@@ -79,7 +79,7 @@ final readonly class LoggerModule implements ConfigurableModuleInterface
         throw new InvalidArgumentException('Either file or service must be set');
     }
 
-    private function createFilter(ArgumentInterface $logger, string|int $id): ArgumentInterface
+    private function createFilter(ValueInterface $logger, string|int $id): ValueInterface
     {
         $channelConfig = new Reference(LoggerConfiguration::class)->property('channels')->offset($id);
 

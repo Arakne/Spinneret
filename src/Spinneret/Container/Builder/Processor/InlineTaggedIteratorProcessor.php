@@ -2,9 +2,9 @@
 
 namespace Arakne\Spinneret\Container\Builder\Processor;
 
-use Arakne\Spinneret\Container\Argument\DynamicArray;
-use Arakne\Spinneret\Container\Argument\Reference;
-use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
+use Arakne\Spinneret\Container\Value\DynamicArray;
+use Arakne\Spinneret\Container\Value\Reference;
+use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Override;
 

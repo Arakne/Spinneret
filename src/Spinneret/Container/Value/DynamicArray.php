@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Override;
 use Psr\Container\ContainerInterface;
@@ -9,7 +9,7 @@ use function array_is_list;
 use function is_array;
 use function var_export;
 
-final readonly class DynamicArray implements ArgumentInterface
+final readonly class DynamicArray implements ValueInterface
 {
     use ValueHelperTrait;
 
@@ -34,7 +34,7 @@ final readonly class DynamicArray implements ArgumentInterface
                 $value = new self($value);
             }
 
-            if ($value instanceof ArgumentInterface) {
+            if ($value instanceof ValueInterface) {
                 /** @var mixed $value */
                 $value = $value->resolve($container);
             }
@@ -58,7 +58,7 @@ final readonly class DynamicArray implements ArgumentInterface
                 $value = new self($value);
             }
 
-            if ($value instanceof ArgumentInterface) {
+            if ($value instanceof ValueInterface) {
                 $value = $value->compile();
             } else {
                 $value = Literal::dump($value);

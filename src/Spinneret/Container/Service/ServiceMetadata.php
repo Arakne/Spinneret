@@ -2,7 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Service;
 
-use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\Value\ValueInterface;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 
 final readonly class ServiceMetadata
@@ -12,7 +12,7 @@ final readonly class ServiceMetadata
         /** @var class-string|null */
         public ?string $class,
 
-        /** @var list<ArgumentInterface> */
+        /** @var list<ValueInterface> */
         public array $arguments = [],
         public ?ServiceFactoryInterface $factory = null,
 

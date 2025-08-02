@@ -4,7 +4,7 @@ namespace Arakne\Spinneret\Form;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ModuleInterface;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Form\Csrf\CsrfHelper;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;

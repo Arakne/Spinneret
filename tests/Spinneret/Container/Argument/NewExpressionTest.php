@@ -2,7 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Argument;
 
-use Arakne\Spinneret\Container\Argument\NewExpression;
+use Arakne\Spinneret\Container\Value\NewExpression;
 use Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;

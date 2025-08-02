@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Override;
 use Psr\Container\ContainerInterface;
@@ -14,7 +14,7 @@ use function var_export;
  * Represents a reference to an object stored in the container.
  * The object is retrieved using its ID, which must be a valid service ID.
  */
-final readonly class Reference implements ArgumentInterface
+final readonly class Reference implements ValueInterface
 {
     use ValueHelperTrait;
 

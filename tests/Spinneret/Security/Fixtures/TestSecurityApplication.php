@@ -4,7 +4,7 @@ namespace Arakne\Tests\Spinneret\Security\Fixtures;
 
 use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Application\Application;
-use Arakne\Spinneret\Container\Argument\NewExpression;
+use Arakne\Spinneret\Container\Value\NewExpression;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Security\SecurityModule;
 use Arakne\Tests\Spinneret\Security\Fixtures\Login\LoginPresenter;

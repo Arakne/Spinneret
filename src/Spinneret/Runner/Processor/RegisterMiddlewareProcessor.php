@@ -2,7 +2,7 @@
 
 namespace Arakne\Spinneret\Runner\Processor;
 
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
 use Arakne\Spinneret\Runner\Runner;

@@ -3,9 +3,9 @@
 namespace Arakne\Spinneret\Database;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Argument\ArgumentInterface;
-use Arakne\Spinneret\Container\Argument\Reference;
-use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
+use Arakne\Spinneret\Container\Value\ValueInterface;
+use Arakne\Spinneret\Container\Value\Reference;
+use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\ServiceBuilder;
 use Arakne\Spinneret\Database\Argument\DatabaseConnection as DatabaseConnectionArgument;
@@ -123,9 +123,9 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
  * Get an inline service for inject a database connection
  *
  * @param string|UnitEnum $name The connection name
- * @return ArgumentInterface
+ * @return ValueInterface
  */
-function database_connection(string|UnitEnum $name): ArgumentInterface
+function database_connection(string|UnitEnum $name): ValueInterface
 {
     return new DatabaseConnectionArgument($name);
 }

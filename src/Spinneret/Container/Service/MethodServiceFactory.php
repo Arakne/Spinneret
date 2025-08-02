@@ -2,7 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Service;
 
-use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\Value\ValueInterface;
 use Override;
 use Psr\Container\ContainerInterface;
 use ReflectionException;
@@ -19,7 +19,7 @@ final readonly class MethodServiceFactory implements ServiceFactoryInterface
     use FactoryHelperTrait;
 
     public function __construct(
-        public ArgumentInterface $object,
+        public ValueInterface $object,
         public string $method,
     ) {}
 

@@ -1,16 +1,14 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Psr\Container\ContainerInterface;
 
 /**
- * Store an argument value for a service factory or constructor.
- * All arguments must be compilable to a PHP string.
- *
- * @todo rename to ValueInterface
+ * Store a value for a service factory or constructor.
+ * All values must be compilable to a PHP string.
  */
-interface ArgumentInterface
+interface ValueInterface
 {
     /**
      * Resolve the argument value using the provided container.

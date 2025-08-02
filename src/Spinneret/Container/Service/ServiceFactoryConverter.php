@@ -2,7 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Service;
 
-use Arakne\Spinneret\Container\Argument\Literal;
+use Arakne\Spinneret\Container\Value\Literal;
 use Closure;
 use ReflectionFunction;
 

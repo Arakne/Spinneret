@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use DateTimeZone;
@@ -27,7 +27,7 @@ use function var_export;
  *
  * Note: if the value is an object, it must have a public constructor, and use only promoted properties.
  */
-final readonly class Literal implements ArgumentInterface
+final readonly class Literal implements ValueInterface
 {
     use ValueHelperTrait;
 

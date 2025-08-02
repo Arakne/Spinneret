@@ -4,7 +4,7 @@ namespace Arakne\Spinneret\Bus;
 
 use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Bus\Processor\RegisterHandlersProcessor;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;

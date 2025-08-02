@@ -2,8 +2,8 @@
 
 namespace Arakne\Tests\Spinneret\Container\Argument;
 
-use Arakne\Spinneret\Container\Argument\DynamicArray;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\DynamicArray;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass;
 use PHPUnit\Framework\Attributes\Test;

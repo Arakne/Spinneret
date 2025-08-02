@@ -2,7 +2,7 @@
 
 namespace Arakne\Spinneret\Container\Compiler;
 
-use Arakne\Spinneret\Container\Argument\ArgumentInterface;
+use Arakne\Spinneret\Container\Value\ValueInterface;
 use Arakne\Spinneret\Container\BuiltContainer;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
@@ -190,7 +190,7 @@ PHP;
         return implode(', ', array_map($this->buildArgument(...), $arguments));
     }
 
-    private function buildArgument(ArgumentInterface $argument): string
+    private function buildArgument(ValueInterface $argument): string
     {
         return $argument->compile();
     }

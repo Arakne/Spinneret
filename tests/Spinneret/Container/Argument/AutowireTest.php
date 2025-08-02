@@ -2,7 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Argument;
 
-use Arakne\Spinneret\Container\Argument\Autowire;
+use Arakne\Spinneret\Container\Value\Autowire;
 use Arakne\Spinneret\Container\Exception\MissingArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Override;
 use Psr\Container\ContainerInterface;
@@ -12,7 +12,7 @@ use function var_export;
  * Access to an array offset from a dynamic value.
  * This is equivalent of {@see PropertyAccess} but for arrays with `[]` operator.
  */
-final readonly class ArrayOffset implements ArgumentInterface
+final readonly class ArrayOffset implements ValueInterface
 {
     use ValueHelperTrait;
 
@@ -21,7 +21,7 @@ final readonly class ArrayOffset implements ArgumentInterface
          * The array to access.
          * The resolved value must be an array or an object implementing `ArrayAccess`.
          */
-        public ArgumentInterface $array,
+        public ValueInterface $array,
 
         /**
          * The offset to access.

@@ -1,14 +1,14 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 
 /**
  * Add utilities to create derived arguments from a value.
  *
- * @phpstan-require-implements ArgumentInterface
- * @psalm-require-implements ArgumentInterface
+ * @phpstan-require-implements ValueInterface
+ * @psalm-require-implements ValueInterface
  */
 trait ValueHelperTrait
 {
@@ -48,10 +48,10 @@ trait ValueHelperTrait
     /**
      * Wrap the current value in a Closure to defer its resolution.
      *
-     * @return ClosureArgument
+     * @return ClosureValue
      */
-    public function asClosure(): ClosureArgument
+    public function asClosure(): ClosureValue
     {
-        return new ClosureArgument($this);
+        return new ClosureValue($this);
     }
 }

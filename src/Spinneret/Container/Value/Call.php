@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
@@ -17,7 +17,7 @@ use function is_array;
  * Resolves the value by calling a function or method with the given arguments.
  * This type is equivalent to an inlined service created by a factory.
  */
-final readonly class Call implements ArgumentInterface
+final readonly class Call implements ValueInterface
 {
     use ValueHelperTrait;
 
@@ -32,7 +32,7 @@ final readonly class Call implements ArgumentInterface
 
         /**
          * List of arguments to pass to the function or method.
-         * If an argument is a {@see ArgumentInterface}, it will be resolved by the container.
+         * If an argument is a {@see ValueInterface}, it will be resolved by the container.
          *
          * @var list<mixed>
          */
@@ -59,7 +59,7 @@ final readonly class Call implements ArgumentInterface
                 $argument = new DynamicArray($argument);
             }
 
-            if ($argument instanceof ArgumentInterface) {
+            if ($argument instanceof ValueInterface) {
                 $argument = $argument->compile();
             } else {
                 $argument = Literal::dump($argument);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\SpinneretContainerInterface;
@@ -16,7 +16,7 @@ use function var_export;
  *
  * The parameter must allow iterable, and not only an array.
  */
-final readonly class TaggedServiceIterator implements ArgumentInterface
+final readonly class TaggedServiceIterator implements ValueInterface
 {
     use ValueHelperTrait;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Spinneret\Container\Argument;
+namespace Arakne\Spinneret\Container\Value;
 
 use Override;
 use Psr\Container\ContainerInterface;
@@ -15,7 +15,7 @@ use function sprintf;
  * Unlike {@see Literal} with an object, arguments are resolved dynamically,
  * and do not depend on promoted properties.
  */
-final readonly class NewExpression implements ArgumentInterface
+final readonly class NewExpression implements ValueInterface
 {
     use ValueHelperTrait;
 
@@ -58,7 +58,7 @@ final readonly class NewExpression implements ArgumentInterface
                 $value = new DynamicArray($value);
             }
 
-            if ($value instanceof ArgumentInterface) {
+            if ($value instanceof ValueInterface) {
                 $value = $value->compile();
             } else {
                 $value = Literal::dump($value);

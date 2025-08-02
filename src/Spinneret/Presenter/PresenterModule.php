@@ -3,7 +3,7 @@
 namespace Arakne\Spinneret\Presenter;
 
 use Arakne\Spinneret\Application\ModuleInterface;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\Processor\RegisterPresentersProcessor;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;

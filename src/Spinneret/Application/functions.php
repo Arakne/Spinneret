@@ -2,10 +2,10 @@
 
 namespace Arakne\Spinneret\Application;
 
-use Arakne\Spinneret\Container\Argument\ArgumentInterface;
-use Arakne\Spinneret\Container\Argument\ClosureArgument;
-use Arakne\Spinneret\Container\Argument\Reference;
-use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
+use Arakne\Spinneret\Container\Value\ValueInterface;
+use Arakne\Spinneret\Container\Value\ClosureValue;
+use Arakne\Spinneret\Container\Value\Reference;
+use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 
 /**
  * Helper function to create a new service reference.
@@ -44,9 +44,9 @@ function tagged_services(string $tag): TaggedServiceIterator
  * Helper function to create a service resolver closure.
  *
  * @param string $id The service identifier
- * @return ArgumentInterface
+ * @return ValueInterface
  */
-function service_closure(string $id): ArgumentInterface
+function service_closure(string $id): ValueInterface
 {
-    return new ClosureArgument(new Reference($id));
+    return new ClosureValue(new Reference($id));
 }

@@ -2,8 +2,8 @@
 
 namespace Arakne\Tests\Spinneret\Container\Service;
 
-use Arakne\Spinneret\Container\Argument\Literal;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\Literal;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Service\FunctionServiceFactory;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;

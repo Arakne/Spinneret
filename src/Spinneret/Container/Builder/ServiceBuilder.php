@@ -2,9 +2,9 @@
 
 namespace Arakne\Spinneret\Container\Builder;
 
-use Arakne\Spinneret\Container\Argument\ArgumentInterface;
-use Arakne\Spinneret\Container\Argument\DynamicArray;
-use Arakne\Spinneret\Container\Argument\Literal;
+use Arakne\Spinneret\Container\Value\ValueInterface;
+use Arakne\Spinneret\Container\Value\DynamicArray;
+use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
@@ -146,7 +146,7 @@ final class ServiceBuilder
 
     /**
      * Add a new argument to the service constructor or factory.
-     * Use {@see ArgumentInterface} to provide a dynamic argument.
+     * Use {@see ValueInterface} to provide a dynamic argument.
      *
      * Note: to modify an existing argument, directly modify the `arguments` property.
      *
@@ -283,7 +283,7 @@ final class ServiceBuilder
     }
 
     /**
-     * @return list<ArgumentInterface>
+     * @return list<ValueInterface>
      */
     private function buildArguments(): array
     {
@@ -291,7 +291,7 @@ final class ServiceBuilder
 
         /** @var mixed $argument */
         foreach ($this->arguments as $argument) {
-            if ($argument instanceof ArgumentInterface) {
+            if ($argument instanceof ValueInterface) {
                 $arguments[] = $argument;
             } elseif (is_array($argument)) {
                 $arguments[] = new DynamicArray($argument);

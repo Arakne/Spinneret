@@ -3,7 +3,7 @@
 namespace Arakne\Spinneret\Event;
 
 use Arakne\Spinneret\Application\ModuleInterface;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\ServiceBuilder;
 use Arakne\Spinneret\Event\Processor\RegisterListenersProcessor;

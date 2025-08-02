@@ -2,8 +2,8 @@
 
 namespace Arakne\Spinneret\Database\Argument;
 
-use Arakne\Spinneret\Container\Argument\ArgumentInterface;
-use Arakne\Spinneret\Container\Argument\Literal;
+use Arakne\Spinneret\Container\Value\ValueInterface;
+use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Database\DatabaseConnectionInterface;
 use Arakne\Spinneret\Database\DatabaseConnectionManagerInterface;
 use Override;
@@ -14,7 +14,7 @@ use function sprintf;
 use function var_export;
 
 // @todo test + doc
-final readonly class DatabaseConnection implements ArgumentInterface
+final readonly class DatabaseConnection implements ValueInterface
 {
     public function __construct(
         /**

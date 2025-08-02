@@ -3,7 +3,7 @@
 namespace Arakne\Spinneret\Security;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Argument\Reference;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Security\Serializer\CookieSerializerInterface;

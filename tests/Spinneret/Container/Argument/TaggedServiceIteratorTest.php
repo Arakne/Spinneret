@@ -2,7 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Argument;
 
-use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
+use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\MyTagInterface;

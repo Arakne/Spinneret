@@ -2,11 +2,11 @@
 
 namespace Arakne\Tests\Spinneret\Container\Compiler;
 
-use Arakne\Spinneret\Container\Argument\DynamicArray;
-use Arakne\Spinneret\Container\Argument\Literal;
-use Arakne\Spinneret\Container\Argument\PropertyAccess;
-use Arakne\Spinneret\Container\Argument\Reference;
-use Arakne\Spinneret\Container\Argument\TaggedServiceIterator;
+use Arakne\Spinneret\Container\Value\DynamicArray;
+use Arakne\Spinneret\Container\Value\Literal;
+use Arakne\Spinneret\Container\Value\PropertyAccess;
+use Arakne\Spinneret\Container\Value\Reference;
+use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
 use Arakne\Spinneret\Container\Compiler\PhpClassContainerCompiler;

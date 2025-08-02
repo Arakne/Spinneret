@@ -2,7 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Service;
 
-use Arakne\Spinneret\Container\Argument\Call;
+use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory;
