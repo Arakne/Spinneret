@@ -3,15 +3,21 @@
 namespace Arakne\Spinneret\Container\Value;
 
 use Attribute;
+use Generator;
 use Override;
 use Psr\Container\ContainerInterface;
 
 use function array_is_list;
+use function assert;
 use function is_array;
 use function var_export;
 
+/**
+ * Represents an array, with inner values that can be resolved.
+ * If you want to represent a constant array, use {@see Literal} instead.
+ */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class DynamicArray implements ValueInterface
+final readonly class DynamicArray implements NestedValueInterface
 {
     use ValueHelperTrait;
 
@@ -80,5 +86,31 @@ final readonly class DynamicArray implements ValueInterface
     public function type(): ?string
     {
         return 'array';
+    }
+
+    #[Override]
+    public function traverse(): Generator
+    {
+        $values = [];
+
+        /** @var mixed $value */
+        foreach ($this->values as $key => $value) {
+            if (is_array($value)) {
+                $value = new self($value);
+            }
+
+            if ($value instanceof ValueInterface) {
+                $newValue = yield $value;
+                assert($newValue instanceof ValueInterface || $newValue === null);
+            } else {
+                /** @var mixed */
+                $newValue = $value;
+            }
+
+            /** @var mixed */
+            $values[$key] = $newValue ?? $value;
+        }
+
+        return new self($values);
     }
 }

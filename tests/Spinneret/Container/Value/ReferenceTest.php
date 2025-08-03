@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Container\Argument;
+namespace Arakne\Tests\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Value\PropertyAccess;
 use Arakne\Spinneret\Container\Value\Reference;

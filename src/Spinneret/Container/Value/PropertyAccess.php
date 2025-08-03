@@ -3,12 +3,14 @@
 namespace Arakne\Spinneret\Container\Value;
 
 use Attribute;
+use Generator;
 use Override;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
 
+use function assert;
 use function class_exists;
 use function sprintf;
 
@@ -17,7 +19,7 @@ use function sprintf;
  * The object is retrieved using its ID, and the property is accessed directly.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class PropertyAccess implements ValueInterface
+final readonly class PropertyAccess implements NestedValueInterface
 {
     use ValueHelperTrait;
 
@@ -68,5 +70,18 @@ final readonly class PropertyAccess implements ValueInterface
         } catch (ReflectionException) {
             return null;
         }
+    }
+
+    #[Override]
+    public function traverse(): Generator
+    {
+        $object = yield $this->object;
+        assert($object instanceof ValueInterface || $object === null);
+
+        if ($object === null || $object === $this->object) {
+            return $this;
+        }
+
+        return new self($object, $this->property);
     }
 }

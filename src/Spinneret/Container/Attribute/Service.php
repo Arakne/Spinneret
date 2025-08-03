@@ -57,7 +57,6 @@ readonly class Service implements ServiceConfiguratorAttributeInterface
             $container->alias($alias, $service->id);
         }
 
-        // @todo test
         if ($this->useInterfacesAsAliases) {
             foreach ($service->reflection()?->getInterfaceNames() ?? [] as $interface) {
                 $container->alias($interface, $service->id);

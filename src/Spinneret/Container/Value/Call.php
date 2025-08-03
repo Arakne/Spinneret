@@ -2,10 +2,12 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
 use Attribute;
 use Closure;
+use Generator;
 use Override;
 use Psr\Container\ContainerInterface;
 
@@ -19,7 +21,7 @@ use function is_array;
  * This type is equivalent to an inlined service created by a factory.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class Call implements ValueInterface
+final readonly class Call implements NestedValueInterface
 {
     use ValueHelperTrait;
 
@@ -77,5 +79,40 @@ final readonly class Call implements ValueInterface
     public function type(): ?string
     {
         return null;
+    }
+
+    #[Override]
+    public function traverse(): Generator
+    {
+        $function = ServiceFactoryConverter::convert($this->function);
+
+        if ($function instanceof MethodServiceFactory) {
+            $object = yield $function->object;
+            assert($object instanceof ValueInterface || $object === null);
+
+            if ($object !== null && $object !== $function->object) {
+                $function = new MethodServiceFactory($object, $function->method);
+            }
+        }
+
+        $arguments = [];
+
+        /** @var mixed $argument */
+        foreach ($this->arguments as $argument) {
+            if (is_array($argument)) {
+                $argument = new DynamicArray($argument);
+            }
+
+            if ($argument instanceof ValueInterface) {
+                /** @psalm-suppress InvalidArgument, MixedAssignment */
+                $argument = (yield $argument) ?? $argument;
+                assert($argument instanceof ValueInterface || $argument === null);
+            }
+
+            /** @var mixed */
+            $arguments[] = $argument;
+        }
+
+        return new self($function, $arguments);
     }
 }

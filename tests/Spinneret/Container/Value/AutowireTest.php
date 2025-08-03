@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Container\Argument;
+namespace Arakne\Tests\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Value\Autowire;
 use Arakne\Spinneret\Container\Exception\MissingArgumentException;
@@ -14,7 +14,7 @@ class AutowireTest extends TestCase
     public function resolve()
     {
         $this->expectException(MissingArgumentException::class);
-        $this->expectExceptionMessage('Autowire argument cannot be resolved. Please provide a service ID or a parameter name. Given: serviceId=Arakne\Tests\Spinneret\Container\Argument\AutowireTest, parameterName=resolve');
+        $this->expectExceptionMessage('Autowire argument cannot be resolved. Please provide a service ID or a parameter name. Given: serviceId=Arakne\Tests\Spinneret\Container\Value\AutowireTest, parameterName=resolve');
 
         new Autowire(AutowireTest::class, 'resolve')->resolve($this->createMock(ContainerInterface::class));
     }
@@ -23,7 +23,7 @@ class AutowireTest extends TestCase
     public function compile()
     {
         $this->expectException(MissingArgumentException::class);
-        $this->expectExceptionMessage('Autowire argument cannot be resolved. Please provide a service ID or a parameter name. Given: serviceId=Arakne\Tests\Spinneret\Container\Argument\AutowireTest, parameterName=resolve');
+        $this->expectExceptionMessage('Autowire argument cannot be resolved. Please provide a service ID or a parameter name. Given: serviceId=Arakne\Tests\Spinneret\Container\Value\AutowireTest, parameterName=resolve');
 
         new Autowire(AutowireTest::class, 'resolve')->compile();
     }

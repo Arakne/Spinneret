@@ -42,78 +42,78 @@ final readonly class RegisterSubscribersProcessor implements ContainerBuilderPro
         //
         //$definition->setArgument(1, $listeners);
     }
-
-    public function createListenerService(ContainerBuilder $builder, string $subscriberClass, string $method): string
-    {
-        $id = 'spinneret.event.listener.' . $subscriberClass . '::' . $method;
-
-        $builder->register($id, Closure::class)
-            ->setFactory([Closure::class, 'fromCallable'])
-            ->setArguments([[new Reference($subscriberClass), $method]])
-            ->setPublic(true)
-        ;
-
-        return $id;
-    }
-
-    /**
-     * @param ContainerBuilder $builder
-     * @param string $id
-     * @return array<class-string, list<string>>
-     * @throws ReflectionException
-     */
-    public function resolveListeners(ContainerBuilder $builder, string $id): array
-    {
-        /** @var class-string<EventSubscriberInterface> $subscriberClass */
-        $subscriberClass = $builder->getDefinition($id)->getClass() ?? $id;
-
-        $methods = $subscriberClass::getListenerMethods();
-        $listeners = [];
-
-        foreach ($methods as $event => $method) {
-            if (is_int($event)) {
-                $event = $this->resolveEventClass($subscriberClass, $method);
-            }
-
-            $listeners[$event][] = $method;
-        }
-
-        return $listeners;
-    }
-
-    /**
-     * @param class-string<EventSubscriberInterface> $subscriberClass
-     * @param string $method
-     *
-     * @return class-string
-     *
-     * @throws ReflectionException
-     */
-    public function resolveEventClass(string $subscriberClass, string $method): string
-    {
-        if (!method_exists($subscriberClass, $method)) {
-            throw new LogicException("Method $method does not exist on $subscriberClass");
-        }
-
-        $reflection = new ReflectionMethod($subscriberClass, $method);
-        $parameters = $reflection->getParameters();
-
-        if (count($parameters) !== 1) {
-            throw new LogicException("Listener {$subscriberClass}::{$method} must have exactly one parameter");
-        }
-
-        $type = $parameters[0]->getType();
-
-        if (!$type instanceof ReflectionNamedType) {
-            throw new LogicException("Listener {$subscriberClass}::{$method} must have a typed parameter, or use the event attribute to explicitly define the event class");
-        }
-
-        $type = $type->getName();
-
-        if (!class_exists($type)) {
-            throw new LogicException("The type $type is not a valid event class");
-        }
-
-        return $type;
-    }
+    //
+    //public function createListenerService(ContainerBuilder $builder, string $subscriberClass, string $method): string
+    //{
+    //    $id = 'spinneret.event.listener.' . $subscriberClass . '::' . $method;
+    //
+    //    $builder->register($id, Closure::class)
+    //        ->setFactory([Closure::class, 'fromCallable'])
+    //        ->setArguments([[new Reference($subscriberClass), $method]])
+    //        ->setPublic(true)
+    //    ;
+    //
+    //    return $id;
+    //}
+    //
+    ///**
+    // * @param ContainerBuilder $builder
+    // * @param string $id
+    // * @return array<class-string, list<string>>
+    // * @throws ReflectionException
+    // */
+    //public function resolveListeners(ContainerBuilder $builder, string $id): array
+    //{
+    //    /** @var class-string<EventSubscriberInterface> $subscriberClass */
+    //    $subscriberClass = $builder->getDefinition($id)->getClass() ?? $id;
+    //
+    //    $methods = $subscriberClass::getListenerMethods();
+    //    $listeners = [];
+    //
+    //    foreach ($methods as $event => $method) {
+    //        if (is_int($event)) {
+    //            $event = $this->resolveEventClass($subscriberClass, $method);
+    //        }
+    //
+    //        $listeners[$event][] = $method;
+    //    }
+    //
+    //    return $listeners;
+    //}
+    //
+    ///**
+    // * @param class-string<EventSubscriberInterface> $subscriberClass
+    // * @param string $method
+    // *
+    // * @return class-string
+    // *
+    // * @throws ReflectionException
+    // */
+    //public function resolveEventClass(string $subscriberClass, string $method): string
+    //{
+    //    if (!method_exists($subscriberClass, $method)) {
+    //        throw new LogicException("Method $method does not exist on $subscriberClass");
+    //    }
+    //
+    //    $reflection = new ReflectionMethod($subscriberClass, $method);
+    //    $parameters = $reflection->getParameters();
+    //
+    //    if (count($parameters) !== 1) {
+    //        throw new LogicException("Listener {$subscriberClass}::{$method} must have exactly one parameter");
+    //    }
+    //
+    //    $type = $parameters[0]->getType();
+    //
+    //    if (!$type instanceof ReflectionNamedType) {
+    //        throw new LogicException("Listener {$subscriberClass}::{$method} must have a typed parameter, or use the event attribute to explicitly define the event class");
+    //    }
+    //
+    //    $type = $type->getName();
+    //
+    //    if (!class_exists($type)) {
+    //        throw new LogicException("The type $type is not a valid event class");
+    //    }
+    //
+    //    return $type;
+    //}
 }

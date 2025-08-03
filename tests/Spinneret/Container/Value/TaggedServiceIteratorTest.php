@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Container\Argument;
+namespace Arakne\Tests\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;

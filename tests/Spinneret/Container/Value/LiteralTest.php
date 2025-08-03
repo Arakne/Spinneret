@@ -1,6 +1,6 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Container\Argument;
+namespace Arakne\Tests\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
@@ -29,8 +29,8 @@ class LiteralTest extends TestCase
         $this->assertSame("((object) ['foo' => 'bar', ])", Literal::dump((object) ['foo' => 'bar']));
         $this->assertSame('new \Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass()', Literal::dump(new SimpleClass()));
         $this->assertSame("new \\Arakne\\Tests\\Spinneret\\Container\\Fixtures\\ClassWithLiteralArguments('test', 42)", Literal::dump(new ClassWithLiteralArguments('test', 42)));
-        $this->assertSame("new \\Arakne\\Tests\\Spinneret\\Container\\Argument\\WithOptionalArguments('foo')", Literal::dump(new WithOptionalArguments('foo', 'bar', 42)));
-        $this->assertSame("new \\Arakne\\Tests\\Spinneret\\Container\\Argument\\NullableRequiredArguments(null, null)", Literal::dump(new NullableRequiredArguments('foo', 42)));
+        $this->assertSame("new \\Arakne\\Tests\\Spinneret\\Container\\Value\\WithOptionalArguments('foo')", Literal::dump(new WithOptionalArguments('foo', 'bar', 42)));
+        $this->assertSame("new \\Arakne\\Tests\\Spinneret\\Container\\Value\\NullableRequiredArguments(null, null)", Literal::dump(new NullableRequiredArguments('foo', 42)));
     }
 
     #[Test]
@@ -46,7 +46,7 @@ class LiteralTest extends TestCase
     public function dumpPrivateConstructor()
     {
         $this->expectException(ContainerBuildException::class);
-        $this->expectExceptionMessage('Cannot dump object of class Arakne\Tests\Spinneret\Container\Argument\PrivateConstructor: constructor is not public.');
+        $this->expectExceptionMessage('Cannot dump object of class Arakne\Tests\Spinneret\Container\Value\PrivateConstructor: constructor is not public.');
 
         Literal::dump(PrivateConstructor::create());
     }
@@ -63,7 +63,7 @@ class LiteralTest extends TestCase
     #[Test]
     public function dumpEnum()
     {
-        $this->assertSame('\Arakne\Tests\Spinneret\Container\Argument\MyEnum::Foo', Literal::dump(MyEnum::Foo));
+        $this->assertSame('\Arakne\Tests\Spinneret\Container\Value\MyEnum::Foo', Literal::dump(MyEnum::Foo));
     }
 
     #[Test]

@@ -22,6 +22,7 @@ final readonly class RegisterViewRenderersProcessor implements ContainerBuilderP
             $service->public();
 
             foreach ($tags as $tag) {
+                /** @psalm-suppress RedundantConditionGivenDocblockType */
                 assert($tag instanceof Renderer);
                 $renderers[$tag->response] = $service->id;
             }

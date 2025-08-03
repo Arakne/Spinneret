@@ -3,9 +3,11 @@
 namespace Arakne\Spinneret\Container\Value;
 
 use Attribute;
+use Generator;
 use Override;
 use Psr\Container\ContainerInterface;
 
+use function assert;
 use function sprintf;
 use function var_export;
 
@@ -14,7 +16,7 @@ use function var_export;
  * This is equivalent of {@see PropertyAccess} but for arrays with `[]` operator.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class ArrayOffset implements ValueInterface
+final readonly class ArrayOffset implements NestedValueInterface
 {
     use ValueHelperTrait;
 
@@ -50,5 +52,18 @@ final readonly class ArrayOffset implements ValueInterface
     {
         // Type cannot be resolved because array is dynamic.
         return null;
+    }
+
+    #[Override]
+    public function traverse(): Generator
+    {
+        $newArray = yield $this->array;
+        assert($newArray instanceof ValueInterface || $newArray === null);
+
+        if ($newArray === null || $newArray === $this->array) {
+            return $this;
+        }
+
+        return new self($newArray, $this->offset);
     }
 }

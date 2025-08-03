@@ -2,6 +2,8 @@
 
 namespace Arakne\Tests\Spinneret\Container\Builder;
 
+use Arakne\Spinneret\Container\Value\Autowire;
+use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Value\DynamicArray;
 use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Value\Reference;
@@ -25,6 +27,7 @@ use Arakne\Tests\Spinneret\Container\Fixtures\Controller\ControllerInterface;
 use Arakne\Tests\Spinneret\Container\Fixtures\Controller\ControllerTag;
 use Arakne\Tests\Spinneret\Container\Fixtures\Controller\FooController;
 use Arakne\Tests\Spinneret\Container\Fixtures\Controller\FrontController;
+use Arakne\Tests\Spinneret\Container\Fixtures\FactoryWithDependency;
 use Arakne\Tests\Spinneret\Container\Fixtures\InjectUsingParameterAttribute;
 use Arakne\Tests\Spinneret\Container\Fixtures\InstanceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\NullableContainerClass;
@@ -42,6 +45,7 @@ use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoAHandler;
 use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoB;
 use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoBHandler;
 use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\SimpleDep;
+use ArrayObject;
 use Closure;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
@@ -578,6 +582,32 @@ class ContainerBuilderTest extends TestCase
         $this->assertSame(42, $container->get(InjectUsingParameterAttribute::class)->number);
         $this->assertInstanceOf(Closure::class, $container->get(InjectUsingParameterAttribute::class)->lazy);
         $this->assertSame($container->get(SimpleClass::class), ($container->get(InjectUsingParameterAttribute::class)->lazy)());
+    }
+
+    #[Test]
+    public function autowireComplexExpression()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(ClassWithLiteralArguments::class, ['test', 42]);
+        $builder->register('a')->class(SingleLiteralClass::class)->arg(new Reference(InjectUsingParameterAttribute::class)->property('value'));
+        $builder->register('b')->class(ArrayObject::class)->arg([
+            new Reference(FactoryWithDependency::class)->method('create')->call([]),
+            [[new Reference(FooController::class)]],
+        ]);
+        $container = $builder->build();
+
+        $this->assertInstanceOf(SingleLiteralClass::class, $container->get('a'));
+        $this->assertSame('Hello world!', $container->get('a')->value);
+        $this->assertInstanceOf(ArrayObject::class, $container->get('b'));
+        $this->assertEquals([
+            new ContainerClass(
+                $container->get(SimpleClass::class),
+                new ClassWithLiteralArguments('literal', 42),
+            ),
+            [[new FooController()]],
+        ], $container->get('b')->getArrayCopy());
+        $this->assertSame($container->get(SimpleClass::class), $container->get('b')[0]->simpleClass);
+        $this->assertSame([[$container->get(FooController::class)]], $container->get('b')[1]);
     }
 }
 

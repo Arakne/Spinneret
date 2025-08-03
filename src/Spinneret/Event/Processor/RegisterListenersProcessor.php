@@ -40,42 +40,42 @@ final readonly class RegisterListenersProcessor implements ContainerBuilderProce
         //
         //$definition->setArgument(1, $listeners);
     }
-
-    /**
-     * @param ContainerBuilder $builder
-     * @param string $id
-     * @return class-string
-     *
-     * @throws ReflectionException
-     */
-    public function resolveEventClass(ContainerBuilder $builder, string $id): string
-    {
-        /** @var class-string $listenerClass */
-        $listenerClass = $builder->getDefinition($id)->getClass() ?? $id;
-
-        if (!method_exists($listenerClass, '__invoke')) {
-            throw new LogicException("Listener $listenerClass must have an __invoke method");
-        }
-
-        $reflection = new ReflectionMethod($listenerClass, '__invoke');
-        $parameters = $reflection->getParameters();
-
-        if (count($parameters) !== 1) {
-            throw new LogicException("Listener $listenerClass must have exactly one parameter");
-        }
-
-        $type = $parameters[0]->getType();
-
-        if (!$type instanceof ReflectionNamedType) {
-            throw new LogicException("Listener $listenerClass must have a typed parameter, or use the event attribute to explicitly define the event class");
-        }
-
-        $type = $type->getName();
-
-        if (!class_exists($type)) {
-            throw new LogicException("The type $type is not a valid event class");
-        }
-
-        return $type;
-    }
+    //
+    ///**
+    // * @param ContainerBuilder $builder
+    // * @param string $id
+    // * @return class-string
+    // *
+    // * @throws ReflectionException
+    // */
+    //public function resolveEventClass(ContainerBuilder $builder, string $id): string
+    //{
+    //    /** @var class-string $listenerClass */
+    //    $listenerClass = $builder->getDefinition($id)->getClass() ?? $id;
+    //
+    //    if (!method_exists($listenerClass, '__invoke')) {
+    //        throw new LogicException("Listener $listenerClass must have an __invoke method");
+    //    }
+    //
+    //    $reflection = new ReflectionMethod($listenerClass, '__invoke');
+    //    $parameters = $reflection->getParameters();
+    //
+    //    if (count($parameters) !== 1) {
+    //        throw new LogicException("Listener $listenerClass must have exactly one parameter");
+    //    }
+    //
+    //    $type = $parameters[0]->getType();
+    //
+    //    if (!$type instanceof ReflectionNamedType) {
+    //        throw new LogicException("Listener $listenerClass must have a typed parameter, or use the event attribute to explicitly define the event class");
+    //    }
+    //
+    //    $type = $type->getName();
+    //
+    //    if (!class_exists($type)) {
+    //        throw new LogicException("The type $type is not a valid event class");
+    //    }
+    //
+    //    return $type;
+    //}
 }
