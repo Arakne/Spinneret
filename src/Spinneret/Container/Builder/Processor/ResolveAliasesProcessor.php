@@ -6,6 +6,9 @@ use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Override;
 
+/**
+ * Replace aliases by their final IDs in service arguments.
+ */
 final readonly class ResolveAliasesProcessor implements ContainerBuilderProcessorInterface
 {
     #[Override]

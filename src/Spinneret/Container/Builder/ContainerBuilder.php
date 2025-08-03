@@ -99,7 +99,7 @@ final class ContainerBuilder
     private array $configurators;
 
     /**
-     * @var list<ContainerBuilderProcessorInterface>
+     * @var array<ContainerBuilderProcessorInterface::STEP_*, list<ContainerBuilderProcessorInterface>>
      */
     private array $processors;
 
@@ -110,9 +110,14 @@ final class ContainerBuilder
         ];
 
         $this->processors = [
-            new AutowireProcessor(),
-            new InlineTaggedIteratorProcessor(),
-            new ResolveAliasesProcessor(),
+            ContainerBuilderProcessorInterface::STEP_PROCESS => [
+                new AutowireProcessor(),
+            ],
+            ContainerBuilderProcessorInterface::STEP_FINALIZE => [
+                new AutowireProcessor(),
+                new InlineTaggedIteratorProcessor(),
+                new ResolveAliasesProcessor(),
+            ],
         ];
     }
 
@@ -237,11 +242,12 @@ final class ContainerBuilder
      * @todo closure processors
      *
      * @param ContainerBuilderProcessorInterface $processor
+     * @param ContainerBuilderProcessorInterface::STEP_* $step The step at which the processor should be applied.
      * @return void
      */
-    public function processor(ContainerBuilderProcessorInterface $processor): void
+    public function processor(ContainerBuilderProcessorInterface $processor, int $step = ContainerBuilderProcessorInterface::STEP_PROCESS): void
     {
-        $this->processors[] = $processor;
+        $this->processors[$step][] = $processor;
     }
 
     /**
@@ -399,8 +405,10 @@ final class ContainerBuilder
             }
         }
 
-        foreach ($this->processors as $processor) {
-            $processor->process($this);
+        foreach ($this->processors as $processors) {
+            foreach ($processors as $processor) {
+                $processor->process($this);
+            }
         }
 
         $services = [];

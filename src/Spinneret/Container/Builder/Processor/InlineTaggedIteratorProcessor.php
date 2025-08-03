@@ -8,6 +8,9 @@ use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Override;
 
+/**
+ * Replace {@see TaggedServiceIterator} by an inline array of {@see Reference} to the tagged services.
+ */
 final readonly class InlineTaggedIteratorProcessor implements ContainerBuilderProcessorInterface
 {
     #[Override]
