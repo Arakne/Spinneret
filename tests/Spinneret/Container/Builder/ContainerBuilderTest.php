@@ -15,6 +15,7 @@ use Arakne\Spinneret\Container\Exception\ServiceNotFoundException;
 use Arakne\Spinneret\Container\Service\FunctionServiceFactory;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
+use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Tests\Spinneret\Container\Fixtures\Attribute\BarListener;
 use Arakne\Tests\Spinneret\Container\Fixtures\Attribute\EventDispatcher;
 use Arakne\Tests\Spinneret\Container\Fixtures\Attribute\EventListener;
@@ -608,6 +609,37 @@ class ContainerBuilderTest extends TestCase
         ], $container->get('b')->getArrayCopy());
         $this->assertSame($container->get(SimpleClass::class), $container->get('b')[0]->simpleClass);
         $this->assertSame([[$container->get(FooController::class)]], $container->get('b')[1]);
+    }
+
+    #[Test]
+    public function shouldInlineTaggedServiceOnNestedValue()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('a')->class(SingleLiteralClass::class)->arg('a')->tag('tag');
+        $builder->register('b')->class(SingleLiteralClass::class)->arg('b')->tag('tag');
+        $builder->register(ArrayObject::class)->arg([[new TaggedServiceIterator('tag')]]);
+
+        $container = $builder->build();
+
+        $this->assertEquals(new DynamicArray([new DynamicArray([new DynamicArray([new Reference('a'), new Reference('b')])])]), $container->services[ArrayObject::class]->arguments[0]);
+        $this->assertEquals([[[new SingleLiteralClass('a'), new SingleLiteralClass('b')]]], $container->get(ArrayObject::class)->getArrayCopy());
+    }
+
+    #[Test]
+    public function shouldResolveAliasOnNestedValue()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('a')->class(SingleLiteralClass::class)->arg('a')->tag('tag');
+        $builder->register('b')->class(SingleLiteralClass::class)->arg('b')->tag('tag');
+        $builder->alias('alias_a', 'a');
+        $builder->alias('alias_b', 'b');
+        $builder->alias('alias_b2', 'alias_b');
+        $builder->register(ArrayObject::class)->arg([new Reference('alias_a'), new Reference('alias_b2')]);
+
+        $container = $builder->build();
+
+        $this->assertEquals(new DynamicArray([new Reference('a'), new Reference('b')]), $container->services[ArrayObject::class]->arguments[0]);
+        $this->assertEquals([new SingleLiteralClass('a'), new SingleLiteralClass('b')], $container->get(ArrayObject::class)->getArrayCopy());
     }
 }
 

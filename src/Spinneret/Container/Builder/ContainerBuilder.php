@@ -135,6 +135,21 @@ final class ContainerBuilder
     }
 
     /**
+     * Find a service by its ID or alias.
+     *
+     * @param string $id The service ID or alias to find.
+     * @return ServiceBuilder|null The service, or null if not found.
+     */
+    public function find(string $id): ?ServiceBuilder
+    {
+        while (($alias = $this->aliases[$id] ?? null) !== null) {
+            $id = $alias;
+        }
+
+        return $this->services[$id] ?? null;
+    }
+
+    /**
      * Register a service in the container.
      *
      * Usage:

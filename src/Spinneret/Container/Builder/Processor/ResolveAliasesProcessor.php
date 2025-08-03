@@ -2,26 +2,23 @@
 
 namespace Arakne\Spinneret\Container\Builder\Processor;
 
-use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
 use Override;
 
 /**
  * Replace aliases by their final IDs in service arguments.
  */
-final readonly class ResolveAliasesProcessor implements ContainerBuilderProcessorInterface
+final readonly class ResolveAliasesProcessor extends AbstractArgumentProcessor
 {
     #[Override]
-    public function process(ContainerBuilder $builder): void
+    protected function processValue(ContainerBuilder $builder, mixed $value): mixed
     {
-        foreach ($builder->services as $service) {
-            /** @var mixed $argument */
-            foreach ($service->arguments as $index => $argument) {
-                if ($argument instanceof Reference) {
-                    $service->arguments[$index] = $argument->withId($this->resolveAlias($builder, $argument->id));
-                }
-            }
+        if ($value instanceof Reference) {
+            return $value->withId($this->resolveAlias($builder, $value->id));
         }
+
+        return $value;
     }
 
     private function resolveAlias(ContainerBuilder $builder, string $id): string
