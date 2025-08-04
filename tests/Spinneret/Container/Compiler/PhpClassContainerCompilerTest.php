@@ -55,7 +55,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $compiled = $container->compile(new PhpClassContainerCompiler('SimpleContainerTest'));
 
         $this->assertStringContainsString('final class SimpleContainerTest implements \Arakne\Spinneret\Container\SpinneretContainerInterface', $compiled);
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SimpleClass' => new \Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass(),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SimpleClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SimpleClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass(),", $compiled);
 
         eval($compiled);
 
@@ -92,7 +92,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $compiled = $container->compile(new PhpClassContainerCompiler('LiteralArgContainerTest'));
 
         $this->assertStringContainsString('final class LiteralArgContainerTest implements \Arakne\Spinneret\Container\SpinneretContainerInterface', $compiled);
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments' => new \Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments('foo', 45),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments'] = new \Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments('foo', 45),", $compiled);
 
         eval($compiled);
 
@@ -126,7 +126,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \ReferenceContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass' => new \Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass(\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SimpleClass'), \$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments')),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass(\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SimpleClass'), \$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments')),", $compiled);
         $instance = $compiledContainer->get(ContainerClass::class);
         $this->assertInstanceOf(ContainerClass::class, $instance);
         $this->assertSame($instance, $compiledContainer->get(ContainerClass::class));
@@ -151,7 +151,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \PropertyAccessContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => new \Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass(\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments')->foo),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass(\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments')->foo),", $compiled);
         $instance = $compiledContainer->get(SingleLiteralClass::class);
         $this->assertInstanceOf(SingleLiteralClass::class, $instance);
         $this->assertSame('a', $instance->value);
@@ -172,7 +172,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \TaggedServiceIteratorContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TagContainer' => new \Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer([\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TaggedA'), \$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TaggedB'), ]),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TagContainer' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TagContainer'] = new \Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer([\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TaggedA'), \$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TaggedB'), ]),", $compiled);
         $instance = $compiledContainer->get(TagContainer::class);
         $this->assertInstanceOf(TagContainer::class, $instance);
         $this->assertInstanceOf(TaggedA::class, $instance->tagged[0]);
@@ -194,7 +194,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \StaticFactoryContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory::create('test'),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass'] = \Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory::create('test'),", $compiled);
         $instance = $compiledContainer->get(SingleLiteralClass::class);
         $this->assertInstanceOf(SingleLiteralClass::class, $instance);
         $this->assertSame('TEST', $instance->value);
@@ -216,7 +216,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \MethodFactoryContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\InstanceFactory')->create('value'),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass'] = \$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\InstanceFactory')->create('value'),", $compiled);
         $instance = $compiledContainer->get(SingleLiteralClass::class);
         $this->assertInstanceOf(SingleLiteralClass::class, $instance);
         $this->assertSame('valueSuffix', $instance->value);
@@ -237,7 +237,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \InlineObjectArgumentsContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass' => new \Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass(new \Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass(), new \Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments('foo', 42)),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass(new \Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass(), new \Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments('foo', 42)),", $compiled);
         $instance = $compiledContainer->get(ContainerClass::class);
         $this->assertInstanceOf(ContainerClass::class, $instance);
         $this->assertInstanceOf(SimpleClass::class, $instance->simpleClass);
@@ -263,7 +263,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \InlineMethodFactoryContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => new \Arakne\Tests\Spinneret\Container\Fixtures\InstanceFactory('Suffix')->create('value'),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\InstanceFactory('Suffix')->create('value'),", $compiled);
         $instance = $compiledContainer->get(SingleLiteralClass::class);
         $this->assertInstanceOf(SingleLiteralClass::class, $instance);
         $this->assertSame('valueSuffix', $instance->value);
@@ -284,7 +284,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \GlobalFunctionFactoryContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \Arakne\Tests\Spinneret\Container\Compiler\global_factory_function('value'),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass'] = \Arakne\Tests\Spinneret\Container\Compiler\global_factory_function('value'),", $compiled);
         $instance = $compiledContainer->get(SingleLiteralClass::class);
         $this->assertInstanceOf(SingleLiteralClass::class, $instance);
         $this->assertSame('value', $instance->value);
@@ -435,6 +435,19 @@ class PhpClassContainerCompilerTest extends TestCase
         $this->assertFalse($built->has(SingleLiteralClass::class));
         $built->set(SingleLiteralClass::class, $o = new SingleLiteralClass('value'));
         $this->assertSame($o, $built->get(NullableContainerClass::class)->dep);
+    }
+
+    #[Test]
+    public function notSharedService()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SimpleClass::class)->shared(false);
+        $container = $this->compileContainer($builder);
+
+        $this->assertTrue($container->has(SimpleClass::class));
+        $this->assertInstanceOf(SimpleClass::class, $container->get(SimpleClass::class));
+        $this->assertEquals($container->get(SimpleClass::class), $container->get(SimpleClass::class));
+        $this->assertNotSame($container->get(SimpleClass::class), $container->get(SimpleClass::class));
     }
 
     private function compileContainer(ContainerBuilder $builder): SpinneretContainerInterface

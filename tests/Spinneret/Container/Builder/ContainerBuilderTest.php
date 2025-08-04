@@ -641,6 +641,19 @@ class ContainerBuilderTest extends TestCase
         $this->assertEquals(new DynamicArray([new Reference('a'), new Reference('b')]), $container->services[ArrayObject::class]->arguments[0]);
         $this->assertEquals([new SingleLiteralClass('a'), new SingleLiteralClass('b')], $container->get(ArrayObject::class)->getArrayCopy());
     }
+
+    #[Test]
+    public function notSharedService()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SimpleClass::class)->shared(false);
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(SimpleClass::class));
+        $this->assertInstanceOf(SimpleClass::class, $container->get(SimpleClass::class));
+        $this->assertEquals($container->get(SimpleClass::class), $container->get(SimpleClass::class));
+        $this->assertNotSame($container->get(SimpleClass::class), $container->get(SimpleClass::class));
+    }
 }
 
 function global_function_factory(string $value): SingleLiteralClass

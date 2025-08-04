@@ -50,7 +50,7 @@ namespace {$this->namespace} {
                 return \$this;
             }
 
-            return \$this->instances[\$id] ??= \$this->instantiate(\$id);
+            return \$this->instances[\$id] ?? \$this->load(\$id);
         }
 
         #[\Override]
@@ -82,13 +82,13 @@ namespace {$this->namespace} {
             }
 
             try {
-                return \$this->instances[\$id] ??= \$this->instantiate(\$id, true);
+                return \$this->instances[\$id] ??= \$this->load(\$id, true);
             } catch (\Throwable) {
                 return null;
             }
         }
 
-        private function instantiate(string \$id, bool \$ignoreInvalid = false): mixed
+        private function load(string \$id, bool \$ignoreInvalid = false): mixed
         {
             return match (\$id) {
                 {$this->buildServiceInstantiations($container)}
@@ -179,10 +179,16 @@ PHP;
 
         if ($factory === null) {
             assert($service->class !== null);
-            return sprintf('new \%s(%s)', $service->class, $arguments);
+            $instantiation = sprintf('new \%s(%s)', $service->class, $arguments);
+        } else {
+            $instantiation = $factory->compile($arguments);
         }
 
-        return $factory->compile($arguments);
+        if ($service->shared) {
+            $instantiation = sprintf('$this->instances[%s] = %s', var_export($service->class, true), $instantiation);
+        }
+
+        return $instantiation;
     }
 
     private function buildArguments(array $arguments): string

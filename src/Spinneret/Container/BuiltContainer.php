@@ -49,7 +49,7 @@ final class BuiltContainer implements SpinneretContainerInterface
         }
 
         /** @psalm-suppress MixedReturnStatement */
-        return $this->instances[$id] ??= $this->instantiate($id);
+        return $this->instances[$id] ?? $this->load($id);
     }
 
     #[Override]
@@ -99,7 +99,7 @@ final class BuiltContainer implements SpinneretContainerInterface
         return $id;
     }
 
-    private function instantiate(string $id): mixed
+    private function load(string $id): mixed
     {
         $service = $this->services[$id] ?? throw new ServiceNotFoundException(sprintf('Service "%s" not found.', $id));
         $arguments = [];
@@ -110,13 +110,20 @@ final class BuiltContainer implements SpinneretContainerInterface
         }
 
         if ($service->factory !== null) {
-            return $service->factory->create($this, $arguments);
+            /** @var mixed $instance */
+            $instance = $service->factory->create($this, $arguments);
+        } else {
+            assert($service->class !== null);
+
+            /** @psalm-suppress MixedMethodCall */
+            $instance = new ($service->class)(...$arguments);
         }
 
-        assert($service->class !== null);
+        if ($service->shared) {
+            $this->instances[$id] = $instance;
+        }
 
-        /** @psalm-suppress MixedMethodCall */
-        return new ($service->class)(...$arguments);
+        return $instance;
     }
 
     /**

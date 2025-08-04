@@ -220,6 +220,20 @@ final class ServiceBuilder
     }
 
     /**
+     * Define the service as shared.
+     * Shared services are singletons, meaning that only one instance of the service will be created on the container.
+     *
+     * @param bool $shared
+     * @return $this
+     */
+    public function shared(bool $shared = true): self
+    {
+        $this->shared = $shared;
+
+        return $this;
+    }
+
+    /**
      * Convert the factory property to a proper ServiceFactoryInterface instance.
      *
      * @return ServiceFactoryInterface|null
@@ -264,14 +278,18 @@ final class ServiceBuilder
             return null;
         }
 
+        if ($this->ignoreIfInvalid && $this->factory === null && $this->class === null) {
+            return null;
+        }
+
         try {
-            // @todo handle ignoreIfInvalid
             return new ServiceMetadata(
                 class: $this->class,
                 arguments: $this->buildArguments(),
                 factory: $this->resolveFactory(),
                 tags: $this->buildTags(),
                 ignoreIfInvalid: $this->ignoreIfInvalid,
+                shared: $this->shared,
             );
         } catch (Throwable $e) {
             if ($this->ignoreIfInvalid) {
