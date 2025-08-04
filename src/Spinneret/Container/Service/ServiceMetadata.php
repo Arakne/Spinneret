@@ -8,7 +8,6 @@ use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 
 final readonly class ServiceMetadata
 {
-
     public function __construct(
         /** @var class-string|null */
         public ?string $class,

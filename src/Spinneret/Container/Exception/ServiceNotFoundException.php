@@ -10,7 +10,4 @@ use Psr\Container\NotFoundExceptionInterface;
  *
  * @api
  */
-class ServiceNotFoundException extends OutOfBoundsException implements NotFoundExceptionInterface, SpinneretContainerExceptionInterface
-{
-
-}
+class ServiceNotFoundException extends OutOfBoundsException implements NotFoundExceptionInterface, SpinneretContainerExceptionInterface {}

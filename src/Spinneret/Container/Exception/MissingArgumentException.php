@@ -9,7 +9,4 @@ use LogicException;
  *
  * @api
  */
-class MissingArgumentException extends LogicException implements SpinneretContainerExceptionInterface
-{
-
-}
+class MissingArgumentException extends LogicException implements SpinneretContainerExceptionInterface {}

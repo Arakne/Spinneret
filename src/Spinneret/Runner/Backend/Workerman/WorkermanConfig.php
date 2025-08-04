@@ -82,8 +82,7 @@ final readonly class WorkermanConfig
         ?int $processes = null,
         ?string $logFile = null,
         ?string $pidFile = null,
-    ): self
-    {
+    ): self {
         return new self(
             enable: $enable ?? $this->enable,
             name: $name ?? $this->name,

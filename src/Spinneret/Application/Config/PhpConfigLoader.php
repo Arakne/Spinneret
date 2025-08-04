@@ -239,7 +239,6 @@ final readonly class ClosureMetadata
          * @var list<self::PARAM_IS_APPLICATION|self::PARAM_IS_CONFIG>
          */
         public array $parameters,
-
         public ?string $expectedReturnType = null,
     ) {}
 

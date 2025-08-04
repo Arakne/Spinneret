@@ -9,7 +9,4 @@ use LogicException;
  *
  * @api
  */
-class ContainerBuildException extends LogicException implements SpinneretContainerExceptionInterface
-{
-
-}
+class ContainerBuildException extends LogicException implements SpinneretContainerExceptionInterface {}
