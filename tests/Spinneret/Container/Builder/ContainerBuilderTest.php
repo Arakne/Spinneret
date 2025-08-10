@@ -6,6 +6,7 @@ use Arakne\Spinneret\Container\Value\Autowire;
 use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Value\DynamicArray;
 use Arakne\Spinneret\Container\Value\Literal;
+use Arakne\Spinneret\Container\Value\NewExpression;
 use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
@@ -54,6 +55,7 @@ use PHPUnit\Framework\TestCase;
 use SplPriorityQueue;
 
 use function iterator_to_array;
+use function var_dump;
 
 class ContainerBuilderTest extends TestCase
 {
@@ -734,6 +736,38 @@ class ContainerBuilderTest extends TestCase
         $this->assertFalse($container->has('a'));
         $this->assertFalse($container->has('alias_a'));
         $this->assertTrue($container->has('b'));
+    }
+
+    #[Test]
+    public function manualInlining()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SimpleClass::class)->inline();
+        $builder->register(ClassWithLiteralArguments::class, ['foo', 42])->inline();
+        $builder->register(SingleLiteralClass::class)->factory(StaticFactory::create(...))->arg('test')->inline();
+        $builder->register(ArrayObject::class, [[
+            new Reference(SimpleClass::class),
+            new Reference(ClassWithLiteralArguments::class),
+            new Reference(SingleLiteralClass::class),
+        ]])->public();
+
+        $container = $builder->build();
+
+        $this->assertFalse($container->has(SimpleClass::class));
+        $this->assertFalse($container->has(ClassWithLiteralArguments::class));
+        $this->assertFalse($container->has(SingleLiteralClass::class));
+        $this->assertTrue($container->has(ArrayObject::class));
+
+        $this->assertEquals([
+            new SimpleClass(),
+            new ClassWithLiteralArguments('foo', 42),
+            new SingleLiteralClass('TEST'),
+        ], $container->get(ArrayObject::class)->getArrayCopy());
+
+        $arg = $container->services[ArrayObject::class]->arguments[0]->values;
+        $this->assertEquals(new NewExpression(SimpleClass::class), $arg[0]);
+        $this->assertEquals(new NewExpression(ClassWithLiteralArguments::class, [new Literal('foo'), new Literal(42)]), $arg[1]);
+        $this->assertEquals(new Call(new StaticMethodServiceFactory(StaticFactory::class, 'create'), [new Literal('test')]), $arg[2]);
     }
 }
 

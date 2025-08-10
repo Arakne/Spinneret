@@ -9,6 +9,7 @@ use Arakne\Spinneret\Container\Builder\Configurator\ServiceConfiguratorAttribute
 use Arakne\Spinneret\Container\Builder\Loader\DirectoryLoader;
 use Arakne\Spinneret\Container\Builder\Processor\AutowireProcessor;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
+use Arakne\Spinneret\Container\Builder\Processor\InlineServicesProcessor;
 use Arakne\Spinneret\Container\Builder\Processor\InlineTaggedIteratorProcessor;
 use Arakne\Spinneret\Container\Builder\Processor\RemoveUnusedServicesProcessor;
 use Arakne\Spinneret\Container\Builder\Processor\ResolveAliasesProcessor;
@@ -125,6 +126,7 @@ final class ContainerBuilder
                 new AutowireProcessor(),
                 new InlineTaggedIteratorProcessor(),
                 new ResolveAliasesProcessor(),
+                new InlineServicesProcessor(),
                 new RemoveUnusedServicesProcessor(),
             ],
         ];

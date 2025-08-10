@@ -2,8 +2,11 @@
 
 namespace Arakne\Tests\Spinneret\Container\Compiler;
 
+use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
+use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Value\DynamicArray;
 use Arakne\Spinneret\Container\Value\Literal;
+use Arakne\Spinneret\Container\Value\NewExpression;
 use Arakne\Spinneret\Container\Value\PropertyAccess;
 use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
@@ -27,6 +30,7 @@ use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\Tagged;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedA;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedB;
+use ArrayObject;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -40,6 +44,7 @@ use stdClass;
 
 use function bin2hex;
 use function class_exists;
+use function file_put_contents;
 use function iterator_to_array;
 use function random_bytes;
 
@@ -455,6 +460,41 @@ class PhpClassContainerCompilerTest extends TestCase
         $this->assertInstanceOf(SimpleClass::class, $container->get(SimpleClass::class));
         $this->assertEquals($container->get(SimpleClass::class), $container->get(SimpleClass::class));
         $this->assertNotSame($container->get(SimpleClass::class), $container->get(SimpleClass::class));
+    }
+
+    #[Test]
+    public function manualInlining()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SimpleClass::class)->inline();
+        $builder->register(ClassWithLiteralArguments::class, ['foo', 42])->inline();
+        $builder->register(SingleLiteralClass::class)->factory(StaticFactory::create(...))->arg('test')->inline();
+        $builder->register(ArrayObject::class, [[
+            new Reference(SimpleClass::class),
+            new Reference(ClassWithLiteralArguments::class),
+            new Reference(SingleLiteralClass::class),
+        ]])->public();
+
+        $builder->build();
+
+        $built = $builder->build();
+        $compiled = $built->compile(new PhpClassContainerCompiler($className = 'CompiledContainerManualInlineTest'));
+        eval($compiled);
+
+        $container = new $className();
+
+        $this->assertFalse($container->has(SimpleClass::class));
+        $this->assertFalse($container->has(ClassWithLiteralArguments::class));
+        $this->assertFalse($container->has(SingleLiteralClass::class));
+        $this->assertTrue($container->has(ArrayObject::class));
+
+        $this->assertEquals([
+            new SimpleClass(),
+            new ClassWithLiteralArguments('foo', 42),
+            new SingleLiteralClass('TEST'),
+        ], $container->get(ArrayObject::class)->getArrayCopy());
+
+        $this->assertStringEqualsFile(__DIR__ . '/Fixtures/manual_inline.php', "<?php\n".$compiled);
     }
 
     private function compileContainer(ContainerBuilder $builder): SpinneretContainerInterface

@@ -2,6 +2,11 @@
 
 namespace Arakne\Spinneret\Container\Builder;
 
+use Arakne\Spinneret\Container\Service\FunctionServiceFactory;
+use Arakne\Spinneret\Container\Service\MethodServiceFactory;
+use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
+use Arakne\Spinneret\Container\Value\Call;
+use Arakne\Spinneret\Container\Value\NewExpression;
 use Arakne\Spinneret\Container\Value\ValueInterface;
 use Arakne\Spinneret\Container\Value\DynamicArray;
 use Arakne\Spinneret\Container\Value\Literal;
@@ -51,8 +56,6 @@ final class ServiceBuilder
      * while a private service can only be accessed by using dependency injection through the container.
      *
      * Note: The container will not enforce this visibility, it's simply a hint allowing the container apply optimizations.
-     *
-     * @todo: not implemented yet.
      */
     public bool $public = false;
 
@@ -61,8 +64,6 @@ final class ServiceBuilder
      *
      * A shared service is a singleton, meaning that only one instance of the service will be created and reused.
      * A non-shared service will create a new instance each time it is requested.
-     *
-     * @todo: not implemented yet.
      */
     public bool $shared = true;
 
@@ -134,6 +135,28 @@ final class ServiceBuilder
     }
 
     /**
+     * Define the service factory.
+     *
+     * The factory can be:
+     * - An instance of {@see ServiceFactoryInterface}
+     * - An FCC closure referencing a global function (e.g. `my_factory(...)`).
+     *   It will be converted to a {@see FunctionServiceFactory} using function name.
+     * - An FCC closure referencing a method of a class (e.g. `new MyFactory()->myFactory(...)`).
+     *   It will be converted to a {@see MethodServiceFactory}, inlining the factory instance into a {@see Literal},
+     *   and using the method name as factory method.
+     * - An FCC closure referencing a static method (e.g. `MyFactory::myFactory(...)`).
+     *   It will be converted to a {@see StaticMethodServiceFactory} using the class name and method name.
+     * - A callable string, which will be converted to a {@see FunctionServiceFactory}.
+     *
+     * Usage:
+     * ```php
+     * $service->factory(new FunctionServiceFactory('my_factory')); // Directly use a service factory instance.
+     * $service->factory(my_factory(...)); // Same as above, but using a FCC
+     * $service->factory(new MyFactory()->create(...)); // Use a method of an instance as factory.
+     * $service->factory(MyFactory::create(...)); // Use a static method as factory.
+     * $service->factory('my_factory'); // Use a callable string as factory.
+     * ```
+     *
      * @param ServiceFactoryInterface|Closure|callable-string|null $factory
      * @return $this
      */
@@ -234,6 +257,26 @@ final class ServiceBuilder
     }
 
     /**
+     * Always inline this service if possible.
+     *
+     * If enabled, all reference to this service will be replaced with direct instantiation,
+     * using the class constructor or the factory method.
+     *
+     * Note: The service will be automatically inlined if it is private and used only once.
+     *       Manually inlining a shared service will make the shared flag useless, as the service will be instantiated
+     *       each time it is requested as dependency.
+     *
+     * @param bool $inline
+     * @return $this
+     */
+    public function inline(bool $inline = true): self
+    {
+        $this->inline = $inline;
+
+        return $this;
+    }
+
+    /**
      * Convert the factory property to a proper ServiceFactoryInterface instance.
      *
      * @return ServiceFactoryInterface|null
@@ -297,6 +340,31 @@ final class ServiceBuilder
             }
 
             throw $e;
+        }
+    }
+
+    /**
+     * Inline the service instantiation as a value.
+     *
+     * @return ValueInterface|null The inline value representing the service instantiation, or null if the service cannot be inlined.
+     */
+    public function asInlineValue(): ?ValueInterface
+    {
+        if ($this->class === null && $this->factory === null) {
+            return null;
+        }
+
+        try {
+            $factory = $this->resolveFactory();
+
+            if ($factory !== null) {
+                return new Call($factory, $this->buildArguments());
+            }
+
+            /** @psalm-suppress PossiblyNullArgument */
+            return new NewExpression($this->class, $this->buildArguments());
+        } catch (Throwable) {
+            return null;
         }
     }
 
