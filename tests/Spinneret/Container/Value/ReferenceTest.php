@@ -17,7 +17,7 @@ class ReferenceTest extends TestCase
     {
         $ref = new Reference(SimpleClass::class);
         $builder = new ContainerBuilder();
-        $builder->register(SimpleClass::class);
+        $builder->register(SimpleClass::class)->public();
         $container = $builder->build();
 
         $this->assertSame($container->get(SimpleClass::class), $ref->resolve($container));

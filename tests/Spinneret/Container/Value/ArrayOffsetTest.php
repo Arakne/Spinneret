@@ -21,6 +21,7 @@ class ArrayOffsetTest extends TestCase
         $builder->register('config')
             ->class(ArrayObject::class)
             ->arg(['foo' => 'bar', 'baz' => 42])
+            ->public()
         ;
         $container = $builder->build();
 

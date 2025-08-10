@@ -44,7 +44,7 @@ class RunnerModuleTest extends TestCase
     public function register()
     {
         $app = new Application(isDev: true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
 
         $runnerModule = new RunnerModule();
         $runnerModule->register($container);
@@ -74,7 +74,7 @@ class RunnerModuleTest extends TestCase
     public function registerDisableHttpd()
     {
         $app = new Application(isDev: true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
 
         $conf = new RunnerConfig(httpd: false);
         $runnerModule = new RunnerModule();
@@ -103,7 +103,7 @@ class RunnerModuleTest extends TestCase
     public function registerEnableWorkerman()
     {
         $app = new Application(isDev: true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $conf = new RunnerConfig(workerman: WorkermanConfig::default($app)->with(enable: true));
         $runnerModule = new RunnerModule();
         $runnerModule = $runnerModule->withConfiguration($conf);

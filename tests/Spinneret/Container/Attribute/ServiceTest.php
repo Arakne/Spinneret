@@ -4,6 +4,8 @@ namespace Arakne\Tests\Spinneret\Container\Attribute;
 
 use Arakne\Spinneret\Container\Attribute\Service;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
+use ArrayObject;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -14,6 +16,7 @@ class ServiceTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->register(DefaultServiceAttribute::class);
+        $builder->register(ArrayObject::class)->arg([new Reference(DefaultServiceAttribute::class)])->public(); // Ensure the service is not optimized out
         $container = $builder->build();
 
         $this->assertFalse($builder->services[DefaultServiceAttribute::class]->public);
@@ -44,6 +47,7 @@ class ServiceTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->register(TaggedService::class);
+        $builder->register(ArrayObject::class)->arg([new Reference(TaggedService::class)])->public(); // Ensure the service is not optimized out
         $container = $builder->build();
 
         $this->assertFalse($builder->services[TaggedService::class]->public);

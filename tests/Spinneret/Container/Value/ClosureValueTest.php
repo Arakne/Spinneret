@@ -19,7 +19,7 @@ class ClosureValueTest extends TestCase
     public function resolve()
     {
         $builder = new ContainerBuilder();
-        $builder->register(SimpleClass::class);
+        $builder->register(SimpleClass::class)->public();
         $container = $builder->build();
 
         $value = new ClosureValue(new Reference(SimpleClass::class));

@@ -49,7 +49,7 @@ class PhpClassContainerCompilerTest extends TestCase
     public function compileSimpleContainer()
     {
         $builder = new ContainerBuilder();
-        $builder->register(SimpleClass::class);
+        $builder->register(SimpleClass::class)->public();
         $container = $builder->build();
 
         $compiled = $container->compile(new PhpClassContainerCompiler('SimpleContainerTest'));
@@ -86,6 +86,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $builder->register(ClassWithLiteralArguments::class)
             ->arg('foo')
             ->arg(45)
+            ->public()
         ;
         $container = $builder->build();
 
@@ -118,7 +119,7 @@ class PhpClassContainerCompilerTest extends TestCase
             ->arg('a')
             ->arg(1)
         ;
-        $builder->register(ContainerClass::class);
+        $builder->register(ContainerClass::class)->public();
 
         $container = $builder->build();
         $compiled = $container->compile(new PhpClassContainerCompiler('ReferenceContainerTest'));
@@ -143,7 +144,7 @@ class PhpClassContainerCompilerTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->register(ClassWithLiteralArguments::class)->arg('a')->arg(1);
-        $builder->register(SingleLiteralClass::class)->arg(new PropertyAccess(new Reference(ClassWithLiteralArguments::class), 'foo'));
+        $builder->register(SingleLiteralClass::class)->arg(new PropertyAccess(new Reference(ClassWithLiteralArguments::class), 'foo'))->public();
 
         $container = $builder->build();
         $compiled = $container->compile(new PhpClassContainerCompiler('PropertyAccessContainerTest'));
@@ -163,7 +164,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $builder = new ContainerBuilder();
         $builder->register(TaggedA::class)->tag(MyTagInterface::class);
         $builder->register(TaggedB::class)->tag(MyTagInterface::class);
-        $builder->register(TagContainer::class)->arg(new TaggedServiceIterator(MyTagInterface::class));
+        $builder->register(TagContainer::class)->arg(new TaggedServiceIterator(MyTagInterface::class))->public();
 
         $container = $builder->build();
 
@@ -186,6 +187,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(StaticFactory::create(...))
             ->arg('test')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -207,6 +209,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(new MethodServiceFactory(new Reference(InstanceFactory::class), 'create'))
             ->arg('value')
+            ->public()
         ;
         $builder->register(InstanceFactory::class)->arg('Suffix');
 
@@ -229,6 +232,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $builder->register(ContainerClass::class)
             ->arg(new SimpleClass())
             ->arg(new ClassWithLiteralArguments('foo', 42))
+            ->public()
         ;
 
         $container = $builder->build();
@@ -255,6 +259,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(new MethodServiceFactory(new Literal(new InstanceFactory('Suffix')), 'create'))
             ->arg('value')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -276,6 +281,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(__NAMESPACE__ . '\global_factory_function')
             ->arg('value')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -323,6 +329,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $builder = new ContainerBuilder();
         $builder->register(SingleLiteralClass::class)
             ->factory(static fn() => new SingleLiteralClass('test'))
+            ->public()
         ;
         $builder->build()->compile();
     }
@@ -331,7 +338,7 @@ class PhpClassContainerCompilerTest extends TestCase
     public function withAnonymousServices()
     {
         $builder = new ContainerBuilder();
-        $builder->register(TagContainer::class);
+        $builder->register(TagContainer::class)->public();
         $builder->anonymous(Tagged::class, ['a'])->tag(new ComplexTag(1));
         $builder->anonymous(Tagged::class, ['b'])->tag(new ComplexTag(5));
         $builder->anonymous(Tagged::class, ['c'])->tag(new ComplexTag(2));
@@ -371,7 +378,7 @@ class PhpClassContainerCompilerTest extends TestCase
     public function autowireNullableShouldIgnoreIfInvalid()
     {
         $builder = new ContainerBuilder();
-        $builder->register(NullableContainerClass::class);
+        $builder->register(NullableContainerClass::class)->public();
 
         $container = $builder->build();
         $compiled = $container->compile(new PhpClassContainerCompiler('NullableContainerTest'));
@@ -392,7 +399,7 @@ class PhpClassContainerCompilerTest extends TestCase
         $this->expectExceptionMessage('Service "Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass" not found.');
 
         $builder = new ContainerBuilder();
-        $builder->register(NullableContainerClass::class)->arg(new Reference(SingleLiteralClass::class));
+        $builder->register(NullableContainerClass::class)->arg(new Reference(SingleLiteralClass::class))->public();
 
         $container = $builder->build();
         $compiled = $container->compile(new PhpClassContainerCompiler('NullableContainerTestWithReference'));
@@ -428,7 +435,7 @@ class PhpClassContainerCompilerTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->register(SingleLiteralClass::class)->runtime();
-        $builder->register(NullableContainerClass::class);
+        $builder->register(NullableContainerClass::class)->public();
 
         $built = $this->compileContainer($builder);
 
@@ -441,7 +448,7 @@ class PhpClassContainerCompilerTest extends TestCase
     public function notSharedService()
     {
         $builder = new ContainerBuilder();
-        $builder->register(SimpleClass::class)->shared(false);
+        $builder->register(SimpleClass::class)->shared(false)->public();
         $container = $this->compileContainer($builder);
 
         $this->assertTrue($container->has(SimpleClass::class));

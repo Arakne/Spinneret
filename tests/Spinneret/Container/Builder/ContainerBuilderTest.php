@@ -61,7 +61,7 @@ class ContainerBuilderTest extends TestCase
     public function withSimpleClass()
     {
         $builder = new ContainerBuilder();
-        $builder->register(SimpleClass::class);
+        $builder->register(SimpleClass::class)->public();
 
         $container = $builder->build();
 
@@ -77,6 +77,7 @@ class ContainerBuilderTest extends TestCase
         $builder->register(ClassWithLiteralArguments::class)
             ->arg('test')
             ->arg(42)
+            ->public()
         ;
 
         $container = $builder->build();
@@ -93,7 +94,7 @@ class ContainerBuilderTest extends TestCase
     public function withLiteralAs2ndParameter()
     {
         $builder = new ContainerBuilder();
-        $builder->register(ClassWithLiteralArguments::class, ['test', 42]);
+        $builder->register(ClassWithLiteralArguments::class, ['test', 42])->public();
 
         $container = $builder->build();
 
@@ -109,14 +110,16 @@ class ContainerBuilderTest extends TestCase
     public function withReference()
     {
         $builder = new ContainerBuilder();
-        $builder->register(SimpleClass::class);
+        $builder->register(SimpleClass::class)->public();
         $builder->register(ClassWithLiteralArguments::class)
             ->arg('test')
             ->arg(42)
+            ->public()
         ;
         $builder->register(ContainerClass::class)
             ->arg(new Reference(SimpleClass::class))
             ->arg(new Reference(ClassWithLiteralArguments::class))
+            ->public()
         ;
 
         $container = $builder->build();
@@ -155,10 +158,12 @@ class ContainerBuilderTest extends TestCase
         $builder->register(ClassWithLiteralArguments::class)
             ->arg('test')
             ->arg(42)
+            ->public()
         ;
         $builder->register(ContainerClass::class)
             ->arg(new Reference('b'))
             ->arg(new Reference(ClassWithLiteralArguments::class))
+            ->public()
         ;
 
         $container = $builder->build();
@@ -178,7 +183,7 @@ class ContainerBuilderTest extends TestCase
             ->arg('test')
             ->arg(42)
         ;
-        $builder->register(ContainerClass::class);
+        $builder->register(ContainerClass::class)->public();
 
         $container = $builder->build();
         $this->assertTrue($container->has(ContainerClass::class));
@@ -196,7 +201,7 @@ class ContainerBuilderTest extends TestCase
             ->arg('test')
             ->arg(42)
         ;
-        $builder->register(ContainerClass::class);
+        $builder->register(ContainerClass::class)->public();
 
         $container = $builder->build();
         $this->assertTrue($container->has(ContainerClass::class));
@@ -213,6 +218,7 @@ class ContainerBuilderTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(StaticFactory::create(...))
             ->arg('test')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -235,6 +241,7 @@ class ContainerBuilderTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(new InstanceFactory('---')->create(...))
             ->arg('test')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -257,6 +264,7 @@ class ContainerBuilderTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(new Reference(InstanceFactory::class)->method('create'))
             ->arg('test')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -278,6 +286,7 @@ class ContainerBuilderTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(fn (string $value) => new SingleLiteralClass($value . '###'))
             ->arg('test')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -297,6 +306,7 @@ class ContainerBuilderTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory('Arakne\Tests\Spinneret\Container\Builder\global_function_factory')
             ->arg('test')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -320,6 +330,7 @@ class ContainerBuilderTest extends TestCase
         $builder->register(SingleLiteralClass::class)
             ->factory(new Reference(AutowireableFactory::class)->method('create'))
             ->arg('test')
+            ->public()
         ;
 
         $container = $builder->build();
@@ -331,7 +342,7 @@ class ContainerBuilderTest extends TestCase
     public function withTagAndProcessor()
     {
         $builder = new ContainerBuilder();
-        $builder->register(TagContainer::class);
+        $builder->register(TagContainer::class)->public();
         $builder->register('a')->class(Tagged::class)->arg('a')->tag(new ComplexTag(1));
         $builder->register('b')->class(Tagged::class)->arg('b')->tag(new ComplexTag(5));
         $builder->register('c')->class(Tagged::class)->arg('c')->tag(new ComplexTag(2));
@@ -366,7 +377,7 @@ class ContainerBuilderTest extends TestCase
     public function anonymousWithTagAndProcessor()
     {
         $builder = new ContainerBuilder();
-        $builder->register(TagContainer::class);
+        $builder->register(TagContainer::class)->public();
         $builder->anonymous(Tagged::class, ['a'])->tag(new ComplexTag(1));
         $builder->anonymous(Tagged::class, ['b'])->tag(new ComplexTag(5));
         $builder->anonymous(Tagged::class, ['c'])->tag(new ComplexTag(2));
@@ -404,7 +415,7 @@ class ContainerBuilderTest extends TestCase
         $this->expectExceptionMessage('Error building service "test": Service must have a class or a factory.');
 
         $builder = new ContainerBuilder();
-        $builder->register('test');
+        $builder->register('test')->public();
         $builder->build();
     }
 
@@ -413,7 +424,7 @@ class ContainerBuilderTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->configureInstanceOf(ControllerInterface::class, function (ServiceBuilder $service) {
-            $service->tag(new ControllerTag($service->class::route()));
+            $service->tag(new ControllerTag($service->class::route()))->public();
         });
         $builder->processor(new class implements ContainerBuilderProcessorInterface {
             #[Override]
@@ -434,7 +445,7 @@ class ContainerBuilderTest extends TestCase
 
         $builder->register(FooController::class);
         $builder->register(BarController::class);
-        $builder->register(FrontController::class)->arg([]);
+        $builder->register(FrontController::class)->arg([])->public();
 
         $container = $builder->build();
         $this->assertTrue($container->has(FrontController::class));
@@ -469,9 +480,9 @@ class ContainerBuilderTest extends TestCase
             }
         });
 
-        $builder->register(EventDispatcher::class)->arg([]);
-        $builder->register(FooListener::class);
-        $builder->register(BarListener::class);
+        $builder->register(EventDispatcher::class)->arg([])->public();
+        $builder->register(FooListener::class)->public();
+        $builder->register(BarListener::class)->public();
 
         $container = $builder->build();
         $this->assertSame([
@@ -484,7 +495,7 @@ class ContainerBuilderTest extends TestCase
     public function autowireNullableShouldIgnoreIfInvalid()
     {
         $builder = new ContainerBuilder();
-        $builder->register(NullableContainerClass::class);
+        $builder->register(NullableContainerClass::class)->public();
 
         $container = $builder->build();
 
@@ -501,7 +512,7 @@ class ContainerBuilderTest extends TestCase
         $this->expectExceptionMessage('Service "Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass" not found.');
 
         $builder = new ContainerBuilder();
-        $builder->register(NullableContainerClass::class)->arg(new Reference(SingleLiteralClass::class));
+        $builder->register(NullableContainerClass::class)->arg(new Reference(SingleLiteralClass::class))->public();
 
         $container = $builder->build();
 
@@ -557,7 +568,7 @@ class ContainerBuilderTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->register(SingleLiteralClass::class)->runtime();
-        $builder->register(NullableContainerClass::class);
+        $builder->register(NullableContainerClass::class)->public();
 
         $built = $builder->build();
 
@@ -573,8 +584,8 @@ class ContainerBuilderTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->register(ClassWithLiteralArguments::class, ['test', 42]);
-        $builder->register(SimpleClass::class);
-        $builder->register(InjectUsingParameterAttribute::class);
+        $builder->register(SimpleClass::class)->public();
+        $builder->register(InjectUsingParameterAttribute::class)->public();
 
         $container = $builder->build();
 
@@ -589,12 +600,12 @@ class ContainerBuilderTest extends TestCase
     public function autowireComplexExpression()
     {
         $builder = new ContainerBuilder();
-        $builder->register(ClassWithLiteralArguments::class, ['test', 42]);
-        $builder->register('a')->class(SingleLiteralClass::class)->arg(new Reference(InjectUsingParameterAttribute::class)->property('value'));
+        $builder->register(ClassWithLiteralArguments::class, ['test', 42])->public();
+        $builder->register('a')->class(SingleLiteralClass::class)->arg(new Reference(InjectUsingParameterAttribute::class)->property('value'))->public();
         $builder->register('b')->class(ArrayObject::class)->arg([
             new Reference(FactoryWithDependency::class)->method('create')->call([]),
             [[new Reference(FooController::class)]],
-        ]);
+        ])->public();
         $container = $builder->build();
 
         $this->assertInstanceOf(SingleLiteralClass::class, $container->get('a'));
@@ -617,7 +628,7 @@ class ContainerBuilderTest extends TestCase
         $builder = new ContainerBuilder();
         $builder->register('a')->class(SingleLiteralClass::class)->arg('a')->tag('tag');
         $builder->register('b')->class(SingleLiteralClass::class)->arg('b')->tag('tag');
-        $builder->register(ArrayObject::class)->arg([[new TaggedServiceIterator('tag')]]);
+        $builder->register(ArrayObject::class)->arg([[new TaggedServiceIterator('tag')]])->public();
 
         $container = $builder->build();
 
@@ -634,7 +645,7 @@ class ContainerBuilderTest extends TestCase
         $builder->alias('alias_a', 'a');
         $builder->alias('alias_b', 'b');
         $builder->alias('alias_b2', 'alias_b');
-        $builder->register(ArrayObject::class)->arg([new Reference('alias_a'), new Reference('alias_b2')]);
+        $builder->register(ArrayObject::class)->arg([new Reference('alias_a'), new Reference('alias_b2')])->public();
 
         $container = $builder->build();
 
@@ -646,13 +657,83 @@ class ContainerBuilderTest extends TestCase
     public function notSharedService()
     {
         $builder = new ContainerBuilder();
-        $builder->register(SimpleClass::class)->shared(false);
+        $builder->register(SimpleClass::class)->shared(false)->public();
         $container = $builder->build();
 
         $this->assertTrue($container->has(SimpleClass::class));
         $this->assertInstanceOf(SimpleClass::class, $container->get(SimpleClass::class));
         $this->assertEquals($container->get(SimpleClass::class), $container->get(SimpleClass::class));
         $this->assertNotSame($container->get(SimpleClass::class), $container->get(SimpleClass::class));
+    }
+
+    #[Test]
+    public function shouldRemoveUnusedServices()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SimpleClass::class);
+        $builder->register(ContainerClass::class);
+        $builder->register(ClassWithLiteralArguments::class, ['test', 42]);
+        $builder->register(InstanceFactory::class)->arg('suffix');
+        $builder->register(SingleLiteralClass::class)->factory(new Reference(InstanceFactory::class)->method('create'))
+            ->arg('test')
+            ->public()
+        ;
+
+        $container = $builder->build();
+
+        $this->assertFalse($container->has(SimpleClass::class));
+        $this->assertFalse($container->has(ClassWithLiteralArguments::class));
+        $this->assertFalse($container->has(ContainerClass::class));
+
+        $this->assertTrue($container->has(SingleLiteralClass::class));
+        $this->assertTrue($container->has(InstanceFactory::class));
+        $this->assertInstanceOf(SingleLiteralClass::class, $container->get(SingleLiteralClass::class));
+        $this->assertSame('testsuffix', $container->get(SingleLiteralClass::class)->value);
+    }
+
+    #[Test]
+    public function registerAsPublicByDefault()
+    {
+        $builder = new ContainerBuilder(registerAsPublic: true);
+        $builder->register(SimpleClass::class);
+        $builder->register(ContainerClass::class);
+        $builder->register(ClassWithLiteralArguments::class, ['test', 42]);
+        $builder->register(InstanceFactory::class)->arg('suffix');
+        $builder->register(SingleLiteralClass::class)->factory(new Reference(InstanceFactory::class)->method('create'))
+            ->arg('test')
+        ;
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(SimpleClass::class));
+        $this->assertTrue($container->has(ClassWithLiteralArguments::class));
+        $this->assertTrue($container->has(ContainerClass::class));
+        $this->assertTrue($container->has(SingleLiteralClass::class));
+        $this->assertTrue($container->has(InstanceFactory::class));
+        $this->assertInstanceOf(SingleLiteralClass::class, $container->get(SingleLiteralClass::class));
+        $this->assertSame('testsuffix', $container->get(SingleLiteralClass::class)->value);
+
+        foreach ($builder->services as $service) {
+            $this->assertTrue($service->public);
+        }
+    }
+
+    #[Test]
+    public function remove()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('a')->class(SimpleClass::class)->public();
+        $builder->register('b')->class(SimpleClass::class)->public();
+        $builder->alias('alias_a', 'a');
+
+        $builder->remove('a');
+        $builder->remove('alias_a');
+
+        $container = $builder->build();
+
+        $this->assertFalse($container->has('a'));
+        $this->assertFalse($container->has('alias_a'));
+        $this->assertTrue($container->has('b'));
     }
 }
 

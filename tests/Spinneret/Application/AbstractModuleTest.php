@@ -28,6 +28,7 @@ use PHPUnit\Framework\TestCase;
 use function Arakne\Spinneret\Application\service;
 use function Arakne\Spinneret\Application\service_closure;
 use function Arakne\Spinneret\Application\tagged_services;
+use function var_dump;
 
 class AbstractModuleTest extends TestCase
 {
@@ -133,17 +134,15 @@ class AbstractModuleTest extends TestCase
         };
 
         $container = new ContainerBuilder();
-
         $module->register($container);
 
-        $this->assertInstanceOf(Foo::class, $container->build()->get(Foo::class));
         $this->assertFalse($container->services[Foo::class]->public);
-        $this->assertSame('Hello', $container->build()->get(Foo::class)->bar);
-
         $this->assertEquals(['test', (object) ['key' => 'value']], $container->services[Baz::class]->tags);
-
-        $this->assertInstanceOf(Bar::class, $container->build()->get(Bar::class));
         $this->assertTrue($container->services[Bar::class]->public);
+
+        $this->assertSame('Hello', $container->build()->get(Foo::class)->bar);
+        $this->assertInstanceOf(Foo::class, $container->build()->get(Foo::class));
+        $this->assertInstanceOf(Bar::class, $container->build()->get(Bar::class));
     }
 
     #[Test]
@@ -173,8 +172,8 @@ class AbstractModuleTest extends TestCase
             #[Override]
             protected function configure(): void
             {
-                $this->service(Foo::class, ['Hello']);
-                $this->service(Bar::class, [service(Foo::class)]);
+                $this->service(Foo::class, ['Hello'], public: true);
+                $this->service(Bar::class, [service(Foo::class)], public: true);
             }
         };
 

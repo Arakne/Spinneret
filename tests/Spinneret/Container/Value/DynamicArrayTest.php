@@ -31,7 +31,7 @@ class DynamicArrayTest extends TestCase
     {
         $arg = new DynamicArray(['foo' => new Reference('bar')]);
         $builder = new ContainerBuilder();
-        $builder->register('bar')->class(SimpleClass::class);
+        $builder->register('bar')->class(SimpleClass::class)->public();
         $container = $builder->build();
 
         $this->assertSame(['foo' => $container->get('bar')], $arg->resolve($container));

@@ -35,7 +35,7 @@ class SecurityModuleTest extends TestCase
     public function register()
     {
         $app = new Application(true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
 
         $routerModule = new SecurityModule();
         $routerModule->register($container);
@@ -54,7 +54,7 @@ class SecurityModuleTest extends TestCase
     public function registerNotEnabledShouldDoNothing()
     {
         $app = new Application(true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
 
 
         $routerModule = (new SecurityModule())->withConfiguration(new SecurityConfig(enabled: false));
@@ -74,7 +74,7 @@ class SecurityModuleTest extends TestCase
     public function registerWithCustomUserHandler()
     {
         $app = new Application(true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $config = new SecurityConfig(userHandler: TestUserHandler::class);
         $routerModule = (new SecurityModule())->withConfiguration($config);
         $routerModule->register($container);
@@ -94,7 +94,7 @@ class SecurityModuleTest extends TestCase
     public function registerWithCustomSerializer()
     {
         $app = new Application(true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $config = new SecurityConfig(serializer: MyCustomSerializer::class);
 
         $routerModule = (new SecurityModule())->withConfiguration($config);

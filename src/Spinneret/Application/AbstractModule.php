@@ -138,7 +138,7 @@ abstract class AbstractModule implements ModuleInterface
             } else {
                 $definition = $containerBuilder->register($class);
                 $definition->arguments = $arguments['params'];
-                $definition->public = $arguments['public'];
+                $definition->public = $definition->public || $arguments['public'];
             }
 
             foreach ($arguments['tags'] as $tag) {

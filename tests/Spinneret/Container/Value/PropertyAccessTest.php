@@ -22,9 +22,11 @@ class PropertyAccessTest extends TestCase
         $builder->register(ClassWithLiteralArguments::class)
             ->arg('test')
             ->arg(42)
+            ->public()
         ;
         $builder->register(SingleLiteralClass::class)
             ->arg(new PropertyAccess(new Reference(ClassWithLiteralArguments::class), 'foo'))
+            ->public()
         ;
 
         $container = $builder->build();

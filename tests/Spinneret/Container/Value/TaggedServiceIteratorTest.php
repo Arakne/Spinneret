@@ -22,7 +22,7 @@ class TaggedServiceIteratorTest extends TestCase
     public function resolveFunctional()
     {
         $builder = new ContainerBuilder();
-        $builder->register(TagContainer::class)->arg(new TaggedServiceIterator(MyTagInterface::class));
+        $builder->register(TagContainer::class)->arg(new TaggedServiceIterator(MyTagInterface::class))->public();
         $builder->register(TaggedA::class)->tag(MyTagInterface::class);
         $builder->register(TaggedB::class)->tag(MyTagInterface::class);
 
@@ -39,8 +39,8 @@ class TaggedServiceIteratorTest extends TestCase
     public function resolve()
     {
         $builder = new ContainerBuilder();
-        $builder->register(TaggedA::class)->tag(MyTagInterface::class);
-        $builder->register(TaggedB::class)->tag(MyTagInterface::class);
+        $builder->register(TaggedA::class)->tag(MyTagInterface::class)->public();
+        $builder->register(TaggedB::class)->tag(MyTagInterface::class)->public();
 
         $container = $builder->build();
 

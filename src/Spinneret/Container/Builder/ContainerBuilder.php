@@ -10,6 +10,7 @@ use Arakne\Spinneret\Container\Builder\Loader\DirectoryLoader;
 use Arakne\Spinneret\Container\Builder\Processor\AutowireProcessor;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
 use Arakne\Spinneret\Container\Builder\Processor\InlineTaggedIteratorProcessor;
+use Arakne\Spinneret\Container\Builder\Processor\RemoveUnusedServicesProcessor;
 use Arakne\Spinneret\Container\Builder\Processor\ResolveAliasesProcessor;
 use Arakne\Spinneret\Container\BuiltContainer;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
@@ -103,8 +104,15 @@ final class ContainerBuilder
      */
     private array $processors;
 
-    public function __construct()
-    {
+    public function __construct(
+        /**
+         * If true, all services will be registered as public by default.
+         *
+         * Note: enabling this flag will disable almost all optimizations,
+         * so use it only in development or for debugging purposes.
+         */
+        public readonly bool $registerAsPublic = false,
+    ) {
         $this->configurators = [
             new ServiceConfiguratorAttributeConfigurator(),
         ];
@@ -117,6 +125,7 @@ final class ContainerBuilder
                 new AutowireProcessor(),
                 new InlineTaggedIteratorProcessor(),
                 new ResolveAliasesProcessor(),
+                new RemoveUnusedServicesProcessor(),
             ],
         ];
     }
@@ -150,6 +159,19 @@ final class ContainerBuilder
     }
 
     /**
+     * Remove the service or alias with the given ID from the container.
+     *
+     * Note: this will not remove aliases that point to this service, so calling this method may lead to broken aliases.
+     *
+     * @param string $id The service ID or alias to remove.
+     */
+    public function remove(string $id): void
+    {
+        unset($this->services[$id]);
+        unset($this->aliases[$id]);
+    }
+
+    /**
      * Register a service in the container.
      *
      * Usage:
@@ -171,6 +193,7 @@ final class ContainerBuilder
     public function register(string $id, ?array $arguments = null): ServiceBuilder
     {
         $builder = $this->services[$id] = new ServiceBuilder($id, class_exists($id) ? $id : null);
+        $builder->public = $this->registerAsPublic;
 
         if ($arguments !== null) {
             $builder->arguments = $arguments;

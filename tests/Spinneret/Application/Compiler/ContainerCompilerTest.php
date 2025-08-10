@@ -74,7 +74,7 @@ class ContainerCompilerTest extends TestCase
         $this->assertNull($compiler->load($this->app));
 
         $container = new ContainerBuilder();
-        $container->register('service')->class('stdClass')->public = true;
+        $container->register('service')->class('stdClass')->public();
         $container = $container->build();
 
         $compiler->compile($this->app, $container);

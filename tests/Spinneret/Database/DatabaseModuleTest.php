@@ -49,7 +49,7 @@ class DatabaseModuleTest extends TestCase
     #[Test]
     public function register()
     {
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $config = new DatabaseConfig(
             connections: [new ConnectionConfig('test', 'sqlite::memory:')],
             useMigration: false,
@@ -68,7 +68,7 @@ class DatabaseModuleTest extends TestCase
     #[Test]
     public function registerWithMigrationWithoutMigrationRepository()
     {
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $config = new DatabaseConfig(
             connections: [new ConnectionConfig('test', 'sqlite::memory:')],
             useMigration: true,
@@ -88,7 +88,7 @@ class DatabaseModuleTest extends TestCase
     #[Test]
     public function registerWithMigrationWithMigrationRepository()
     {
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $config = new DatabaseConfig(
             connections: [new ConnectionConfig('test', 'sqlite::memory:')],
             useMigration: true,
@@ -109,7 +109,7 @@ class DatabaseModuleTest extends TestCase
     #[Test]
     public function registerWithMigrationShouldResolveMigrationFromInterface()
     {
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $config = new DatabaseConfig(
             connections: [new ConnectionConfig('test', 'sqlite::memory:')],
             useMigration: true,
@@ -144,7 +144,7 @@ class DatabaseModuleTest extends TestCase
     #[Test]
     public function registerWithLogger()
     {
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
 
         $databaseModule = new DatabaseModule();
         $databaseModule->register($container);

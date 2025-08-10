@@ -31,7 +31,7 @@ class TranslationModuleTest extends TestCase
     public function register()
     {
         $app = new Application(isDev: true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
 
         $config = TranslationConfig::default($app)->with(
             defaultLocale: 'en',
@@ -57,7 +57,7 @@ class TranslationModuleTest extends TestCase
     public function registerWithCollector()
     {
         $app = new Application(isDev: true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
 
         $config = TranslationConfig::default($app)->with(
             defaultLocale: 'en',
@@ -82,7 +82,7 @@ class TranslationModuleTest extends TestCase
     public function registerWithPseudoLocalization()
     {
         $app = new Application(isDev: true, env: 'test');
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
 
         $config = TranslationConfig::default($app)->with(
             defaultLocale: 'en',
