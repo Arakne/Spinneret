@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ValidatableInterface;
 use Attribute;
 use Generator;
 use Override;
@@ -19,7 +21,7 @@ use function sprintf;
  * The object is retrieved using its ID, and the property is accessed directly.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class PropertyAccess implements NestedValueInterface
+final readonly class PropertyAccess implements NestedValueInterface, ValidatableInterface
 {
     use ValueHelperTrait;
 
@@ -83,5 +85,11 @@ final readonly class PropertyAccess implements NestedValueInterface
         }
 
         return new self($object, $this->property);
+    }
+
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        return !$this->object instanceof ValidatableInterface || $this->object->validate($builder);
     }
 }

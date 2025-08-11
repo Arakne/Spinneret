@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Value\ClosureValue;
+use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Value\NewExpression;
 use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
@@ -63,5 +64,30 @@ class ClosureValueTest extends TestCase
         $this->assertInstanceOf(ClosureValue::class, $newValue);
         $this->assertEquals(new NewExpression(SimpleClass::class), $newValue->value);
         $this->assertNotEquals($value, $newValue);
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfValueIsNotValidatable()
+    {
+        $value = new ClosureValue(new Literal('foo'));
+        $builder = new ContainerBuilder();
+        $this->assertTrue($value->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfValueIsValidatableAndValid()
+    {
+        $value = new ClosureValue(new Reference('a'));
+        $builder = new ContainerBuilder();
+        $builder->register('a')->class(SimpleClass::class);
+        $this->assertTrue($value->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfValueIsValidatableAndInvalid()
+    {
+        $value = new ClosureValue(new Reference('invalid'));
+        $builder = new ContainerBuilder();
+        $this->assertFalse($value->validate($builder));
     }
 }

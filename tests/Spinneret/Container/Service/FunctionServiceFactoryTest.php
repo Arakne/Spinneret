@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Service;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\Service\FunctionServiceFactory;
 use PHPUnit\Framework\Attributes\Test;
@@ -59,5 +60,17 @@ class FunctionServiceFactoryTest extends TestCase
             }
         );
         $factory->compile('"World"');
+    }
+
+    #[Test]
+    public function validateSuccess()
+    {
+        $this->assertTrue(new FunctionServiceFactory(trim(...))->validate(new ContainerBuilder()));
+    }
+
+    #[Test]
+    public function validateNotCallable()
+    {
+        $this->assertFalse(new FunctionServiceFactory('not_a_function')->validate(new ContainerBuilder()));
     }
 }

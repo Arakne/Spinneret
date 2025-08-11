@@ -79,4 +79,38 @@ class DynamicArrayTest extends TestCase
         ], $newValue->values);
         $this->assertNotEquals($value, $newValue);
     }
+
+    #[Test]
+    public function validateReturnsTrueIfAllValuesAreValid()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('foo')->class(SimpleClass::class);
+        $array = new DynamicArray([new Reference('foo'), 42]);
+        $this->assertTrue($array->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfAValueIsInvalid()
+    {
+        $builder = new ContainerBuilder();
+        $array = new DynamicArray([new Reference('not_found')]);
+        $this->assertFalse($array->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfNestedArrayIsInvalid()
+    {
+        $builder = new ContainerBuilder();
+        $array = new DynamicArray([[new Reference('not_found')]]);
+        $this->assertFalse($array->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfNestedArrayIsValid()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('foo')->class(SimpleClass::class);
+        $array = new DynamicArray([[new Reference('foo')]]);
+        $this->assertTrue($array->validate($builder));
+    }
 }

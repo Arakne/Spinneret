@@ -2,12 +2,15 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ValidatableInterface;
 use Attribute;
 use Generator;
 use Override;
 use Psr\Container\ContainerInterface;
 
 use function assert;
+use function class_exists;
 use function implode;
 use function is_array;
 use function sprintf;
@@ -19,7 +22,7 @@ use function sprintf;
  * and do not depend on promoted properties.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class NewExpression implements NestedValueInterface
+final readonly class NewExpression implements NestedValueInterface, ValidatableInterface
 {
     use ValueHelperTrait;
 
@@ -108,5 +111,11 @@ final readonly class NewExpression implements NestedValueInterface
         }
 
         return new self($this->className, $values);
+    }
+
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        return class_exists($this->className) && new DynamicArray($this->arguments)->validate($builder);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ValidatableInterface;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
@@ -21,7 +23,7 @@ use function is_array;
  * This type is equivalent to an inlined service created by a factory.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class Call implements NestedValueInterface
+final readonly class Call implements NestedValueInterface, ValidatableInterface
 {
     use ValueHelperTrait;
 
@@ -114,5 +116,17 @@ final readonly class Call implements NestedValueInterface
         }
 
         return new self($function, $arguments);
+    }
+
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        $factory = ServiceFactoryConverter::convert($this->function);
+
+        if ($factory instanceof ValidatableInterface && !$factory->validate($builder)) {
+            return false;
+        }
+
+        return new DynamicArray($this->arguments)->validate($builder);
     }
 }

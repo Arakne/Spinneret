@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ValidatableInterface;
 use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -16,7 +18,7 @@ use function var_export;
  * The object is retrieved using its ID, which must be a valid service ID.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class Reference implements ValueInterface
+final readonly class Reference implements ValueInterface, ValidatableInterface
 {
     use ValueHelperTrait;
 
@@ -74,6 +76,16 @@ final readonly class Reference implements ValueInterface
     public function type(): ?string
     {
         return class_exists($this->id) ? $this->id : null;
+    }
+
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        if ($this->nullOnInvalid || $this->defaultValueOnInvalid !== null) {
+            return true;
+        }
+
+        return $builder->find($this->id)?->validate($builder) === true;
     }
 
     /**

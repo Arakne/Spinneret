@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ValidatableInterface;
 use Attribute;
 use Generator;
 use Override;
@@ -16,7 +18,7 @@ use function var_export;
  * This is equivalent of {@see PropertyAccess} but for arrays with `[]` operator.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class ArrayOffset implements NestedValueInterface
+final readonly class ArrayOffset implements NestedValueInterface, ValidatableInterface
 {
     use ValueHelperTrait;
 
@@ -65,5 +67,11 @@ final readonly class ArrayOffset implements NestedValueInterface
         }
 
         return new self($newArray, $this->offset);
+    }
+
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        return !$this->array instanceof ValidatableInterface || $this->array->validate($builder);
     }
 }

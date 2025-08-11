@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Value\DynamicArray;
 use Arakne\Spinneret\Container\Value\Literal;
@@ -117,5 +118,38 @@ class NewExpressionTest extends TestCase
         $this->assertEquals(['foo', new Literal(155)], $newValue->arguments);
         $this->assertSame(ClassWithLiteralArguments::class, $newValue->className);
         $this->assertNotEquals($arg, $newValue);
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfClassExistsAndArgumentsValid()
+    {
+        $builder = new ContainerBuilder();
+        $arg = new NewExpression(
+            className: SimpleClass::class,
+            arguments: [],
+        );
+        $this->assertTrue($arg->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfClassDoesNotExist()
+    {
+        $builder = new ContainerBuilder();
+        $arg = new NewExpression(
+            className: 'NotAClass',
+            arguments: [],
+        );
+        $this->assertFalse($arg->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfArgumentsInvalid()
+    {
+        $builder = new ContainerBuilder();
+        $arg = new NewExpression(
+            className: SimpleClass::class,
+            arguments: [new Reference('not_found')],
+        );
+        $this->assertFalse($arg->validate($builder));
     }
 }

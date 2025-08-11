@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ValidatableInterface;
 use Arakne\Spinneret\Container\Exception\MissingArgumentException;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -12,7 +14,7 @@ use function sprintf;
  * Explicitly announces that the argument should be autowired.
  * Autowired argument cannot be resolved nor compiled, it must be replaced by a processor.
  */
-final readonly class Autowire implements ValueInterface
+final readonly class Autowire implements ValueInterface, ValidatableInterface
 {
     public function __construct(
         /**
@@ -55,5 +57,11 @@ final readonly class Autowire implements ValueInterface
     public function type(): ?string
     {
         return null;
+    }
+
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        return false;
     }
 }

@@ -154,7 +154,7 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
                 $cases .= sprintf(
                     "%s => %s,\n",
                     var_export($id, true),
-                    $this->buildServiceInstantiation($service)
+                    $this->buildServiceInstantiation($id, $service)
                 );
             } catch (Throwable $e) {
                 if ($service->ignoreIfInvalid) {
@@ -171,7 +171,7 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
         return $cases;
     }
 
-    private function buildServiceInstantiation(ServiceMetadata $service): string
+    private function buildServiceInstantiation(string $id, ServiceMetadata $service): string
     {
         $arguments = $this->buildArguments($service->arguments);
         $factory = $service->factory;
@@ -184,7 +184,7 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
         }
 
         if ($service->shared) {
-            $instantiation = sprintf('$this->instances[%s] = %s', var_export($service->class, true), $instantiation);
+            $instantiation = sprintf('$this->instances[%s] = %s', var_export($id, true), $instantiation);
         }
 
         return $instantiation;

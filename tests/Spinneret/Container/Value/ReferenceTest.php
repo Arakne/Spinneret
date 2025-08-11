@@ -90,4 +90,37 @@ class ReferenceTest extends TestCase
         $ref = new Reference(SimpleClass::class);
         $this->assertEquals(new PropertyAccess($ref, 'prop'), $ref->property('prop'));
     }
+
+    #[Test]
+    public function validateReturnsTrueIfReferenceIsValid()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('foo')->class(SimpleClass::class);
+        $ref = new Reference('foo');
+        $this->assertTrue($ref->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfReferenceIsInvalid()
+    {
+        $builder = new ContainerBuilder();
+        $ref = new Reference('not_found');
+        $this->assertFalse($ref->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfNullOnInvalid()
+    {
+        $builder = new ContainerBuilder();
+        $ref = new Reference('not_found', nullOnInvalid: true);
+        $this->assertTrue($ref->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfDefaultValueOnInvalid()
+    {
+        $builder = new ContainerBuilder();
+        $ref = new Reference('not_found', defaultValueOnInvalid: 'default');
+        $this->assertTrue($ref->validate($builder));
+    }
 }

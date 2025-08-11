@@ -559,10 +559,12 @@ class ContainerBuilderTest extends TestCase
         $this->assertSame($container->get(DepConfig::class), $container->get(SimpleDep::class)->config);
         $this->assertInstanceOf(MessageDispatcher::class, $container->get(MessageDispatcher::class));
         $this->assertInstanceOf(MessageDispatcher::class, $container->get('dispatcher'));
-        $this->assertSame([
+        $this->assertEquals([
             DoA::class => $container->get(DoAHandler::class),
             DoB::class => $container->get(DoBHandler::class),
         ], $container->get(MessageDispatcher::class)->handlers);
+        $this->assertSame($container->get(DoAHandler::class), $container->get(MessageDispatcher::class)->handlers[DoA::class]);
+        $this->assertSame($container->get(DoBHandler::class), $container->get(MessageDispatcher::class)->handlers[DoB::class]);
     }
 
     #[Test]
@@ -768,6 +770,24 @@ class ContainerBuilderTest extends TestCase
         $this->assertEquals(new NewExpression(SimpleClass::class), $arg[0]);
         $this->assertEquals(new NewExpression(ClassWithLiteralArguments::class, [new Literal('foo'), new Literal(42)]), $arg[1]);
         $this->assertEquals(new Call(new StaticMethodServiceFactory(StaticFactory::class, 'create'), [new Literal('test')]), $arg[2]);
+    }
+
+    #[Test]
+    public function removeInvalidServices()
+    {
+        $builder = new ContainerBuilder(registerAsPublic: true);
+        $builder->register(ClassWithLiteralArguments::class, ['foo'])->ignorable();
+        $builder->register(SimpleClass::class)->ignorable();
+        $builder->register(ContainerClass::class)->ignorable();
+
+        $container = $builder->build();
+
+        $this->assertFalse($container->has(ClassWithLiteralArguments::class));
+        $this->assertTrue($container->has(SimpleClass::class));
+        $this->assertFalse($container->has(ContainerClass::class));
+
+        $this->assertInstanceOf(SimpleClass::class, $container->get(SimpleClass::class));
+        $this->assertCount(1, $container->services);
     }
 }
 

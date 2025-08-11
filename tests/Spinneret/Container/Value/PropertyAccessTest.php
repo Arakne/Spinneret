@@ -71,4 +71,29 @@ class PropertyAccessTest extends TestCase
         $this->assertSame('test', $newValue->property);
         $this->assertNotEquals($value, $newValue);
     }
+
+    #[Test]
+    public function validateReturnsTrueIfObjectIsNotValidatable()
+    {
+        $builder = new ContainerBuilder();
+        $access = new PropertyAccess(new Literal(['foo' => 123]), 'foo');
+        $this->assertTrue($access->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfObjectIsValidatableAndValid()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('foo')->class(ClassWithLiteralArguments::class)->arg('a')->arg(1);
+        $access = new PropertyAccess(new Reference('foo'), 'foo');
+        $this->assertTrue($access->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfObjectIsValidatableAndInvalid()
+    {
+        $builder = new ContainerBuilder();
+        $access = new PropertyAccess(new Reference('not_found'), 'foo');
+        $this->assertFalse($access->validate($builder));
+    }
 }

@@ -2,17 +2,21 @@
 
 namespace Arakne\Spinneret\Container\Service;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ValidatableInterface;
 use Override;
 use Psr\Container\ContainerInterface;
 use ReflectionException;
 use ReflectionMethod;
 
+use function class_exists;
+use function method_exists;
 use function sprintf;
 
 /**
  * Create a service using a static method call.
  */
-final readonly class StaticMethodServiceFactory implements ServiceFactoryInterface
+final readonly class StaticMethodServiceFactory implements ServiceFactoryInterface, ValidatableInterface
 {
     use FactoryHelperTrait;
 
@@ -45,5 +49,11 @@ final readonly class StaticMethodServiceFactory implements ServiceFactoryInterfa
     public function compile(string $arguments): string
     {
         return sprintf('\%s::%s(%s)', $this->class, $this->method, $arguments);
+    }
+
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        return class_exists($this->class) && method_exists($this->class, $this->method);
     }
 }

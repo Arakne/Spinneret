@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Service;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass;
@@ -51,5 +52,29 @@ class StaticMethodServiceFactoryTest extends TestCase
         $value = $factory->call(['test']);
 
         $this->assertEquals(new Call($factory, ['test']), $value);
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfClassAndMethodExist()
+    {
+        $factory = new StaticMethodServiceFactory(StaticFactory::class, 'create');
+        $builder = new ContainerBuilder();
+        $this->assertTrue($factory->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfClassDoesNotExist()
+    {
+        $factory = new StaticMethodServiceFactory('NotAClass', 'create');
+        $builder = new ContainerBuilder();
+        $this->assertFalse($factory->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfMethodDoesNotExist()
+    {
+        $factory = new StaticMethodServiceFactory(StaticFactory::class, 'notFoundMethod');
+        $builder = new ContainerBuilder();
+        $this->assertFalse($factory->validate($builder));
     }
 }

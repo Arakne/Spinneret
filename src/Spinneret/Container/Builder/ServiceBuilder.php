@@ -15,11 +15,13 @@ use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Closure;
+use Override;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use Throwable;
 
 use function array_values;
+use function count;
 use function is_array;
 use function is_object;
 
@@ -28,7 +30,7 @@ use function is_object;
  *
  * @todo add fluent setters for all properties + handle "value" service (i.e. use constant value instead of class or factory).
  */
-final class ServiceBuilder
+final class ServiceBuilder implements ValidatableInterface
 {
     /**
      * List of arguments to pass to the service constructor or factory.
@@ -77,8 +79,6 @@ final class ServiceBuilder
      * This flags will be automatically set to true if it's safe to inline the service:
      * - The service is not shared
      * - The service is private and is used only by a single service
-     *
-     * @todo: not implemented yet.
      */
     public bool $inline = false;
 
@@ -277,6 +277,24 @@ final class ServiceBuilder
     }
 
     /**
+     * Ignore the service if it's invalid.
+     *
+     * The container will detect if the service cannot be built or instantiated,
+     * and will remove it instead of throwing an exception.
+     *
+     * This flag is automatically set to true if the service has been auto-registered by the autowiring system.
+     *
+     * @param bool $ignoreIfInvalid
+     * @return $this
+     */
+    public function ignorable(bool $ignoreIfInvalid = true): self
+    {
+        $this->ignoreIfInvalid = $ignoreIfInvalid;
+
+        return $this;
+    }
+
+    /**
      * Convert the factory property to a proper ServiceFactoryInterface instance.
      *
      * @return ServiceFactoryInterface|null
@@ -307,6 +325,85 @@ final class ServiceBuilder
             ? new ReflectionClass($this->class)
             : null
         ;
+    }
+
+    /**
+     * Check if the service definition is valid.
+     *
+     * A service is considered valid if:
+     * - If the service is runtime, it is always valid.
+     * - It has a class or a factory defined.
+     * - If it has a class, the class exists and is instantiable.
+     * - If it has a factory, the factory is a callable
+     * - The count of arguments matches the constructor or factory method signature.
+     * - Arguments are valid (e.g. not invalid references or invalid values).
+     *
+     * @param ContainerBuilder $builder
+     * @return bool
+     */
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        if ($this->runtime) {
+            return true;
+        }
+
+        $factory = $this->resolveFactory();
+
+        if ($this->class === null && $factory === null) {
+            return false;
+        }
+
+        if ($factory !== null) {
+            if (
+                $factory instanceof ValidatableInterface
+                && !$factory->validate($builder)
+            ) {
+                return false;
+            }
+
+            $parameters = $factory->parameters();
+        } else {
+            $reflection = $this->reflection();
+
+            if (
+                !$reflection
+                || !$reflection->isInstantiable()
+            ) {
+                return false;
+            }
+
+            $constructor = $reflection->getConstructor();
+
+            if ($constructor?->isPublic() === false) {
+                return false;
+            }
+
+            $parameters = $constructor->getParameters();
+        }
+
+        if ($parameters !== null) {
+            $requiredCount = 0;
+
+            foreach ($parameters as $parameter) {
+                if (!$parameter->isOptional()) {
+                    $requiredCount++;
+                }
+            }
+
+            if (count($this->arguments) < $requiredCount) {
+                return false;
+            }
+        }
+
+        /** @var mixed $argument */
+        foreach ($this->arguments as $argument) {
+            if ($argument instanceof ValidatableInterface && !$argument->validate($builder)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

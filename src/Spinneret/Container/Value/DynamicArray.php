@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ValidatableInterface;
 use Attribute;
 use Generator;
 use Override;
@@ -17,7 +19,7 @@ use function var_export;
  * If you want to represent a constant array, use {@see Literal} instead.
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class DynamicArray implements NestedValueInterface
+final readonly class DynamicArray implements NestedValueInterface, ValidatableInterface
 {
     use ValueHelperTrait;
 
@@ -112,5 +114,22 @@ final readonly class DynamicArray implements NestedValueInterface
         }
 
         return new self($values);
+    }
+
+    #[Override]
+    public function validate(ContainerBuilder $builder): bool
+    {
+        /** @var mixed $value */
+        foreach ($this->values as $value) {
+            if (is_array($value)) {
+                $value = new self($value);
+            }
+
+            if ($value instanceof ValidatableInterface && !$value->validate($builder)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

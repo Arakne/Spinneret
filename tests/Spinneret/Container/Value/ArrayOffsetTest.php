@@ -67,4 +67,32 @@ class ArrayOffsetTest extends TestCase
         $this->assertEquals(new Literal(['foo' => 42]), $newValue->array);
         $this->assertSame('foo', $newValue->offset);
     }
+
+    #[Test]
+    public function validateReturnsTrueIfArrayIsNotValidatable()
+    {
+        $value = new ArrayOffset(new Literal(['foo' => 'bar']), 'foo');
+        $builder = new ContainerBuilder();
+        $this->assertTrue($value->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfArrayIsValidatableAndValid()
+    {
+        $value = new ArrayOffset(new Reference('a'), 'foo');
+        $builder = new ContainerBuilder();
+        $builder->register('a')
+            ->class(ArrayObject::class)
+            ->arg(['foo' => 'bar'])
+        ;
+        $this->assertTrue($value->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfArrayIsValidatableAndInvalid()
+    {
+        $value = new ArrayOffset(new Reference('invalid'), 'foo');
+        $builder = new ContainerBuilder();
+        $this->assertFalse($value->validate($builder));
+    }
 }

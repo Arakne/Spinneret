@@ -2,6 +2,8 @@
 
 namespace Arakne\Tests\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Service\FunctionServiceFactory;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Value\DynamicArray;
@@ -114,5 +116,29 @@ class CallTest extends TestCase
         $this->assertEquals(new MethodServiceFactory(new Reference(InstanceFactory::class), 'create'), $newCall->function);
         $this->assertEquals([new Literal('baz'), 78], $newCall->arguments);
         $this->assertNotEquals($call, $newCall);
+    }
+
+    #[Test]
+    public function validateReturnsTrueIfFactoryAndArgumentsAreValid()
+    {
+        $call = new Call(strtoupper(...), ['foo']);
+        $builder = new ContainerBuilder();
+        $this->assertTrue($call->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfFactoryIsInvalid()
+    {
+        $call = new Call(new FunctionServiceFactory('not_callable'), []);
+        $builder = new ContainerBuilder();
+        $this->assertFalse($call->validate($builder));
+    }
+
+    #[Test]
+    public function validateReturnsFalseIfArgumentsAreInvalid()
+    {
+        $call = new Call(strtoupper(...), [new Reference('invalid')]);
+        $builder = new ContainerBuilder();
+        $this->assertFalse($call->validate($builder));
     }
 }
