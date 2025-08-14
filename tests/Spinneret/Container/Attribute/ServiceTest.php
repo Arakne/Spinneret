@@ -15,7 +15,7 @@ class ServiceTest extends TestCase
     public function emptyTag()
     {
         $builder = new ContainerBuilder();
-        $builder->register(DefaultServiceAttribute::class);
+        $builder->register(DefaultServiceAttribute::class)->inline(false);
         $builder->register(ArrayObject::class)->arg([new Reference(DefaultServiceAttribute::class)])->public(); // Ensure the service is not optimized out
         $container = $builder->build();
 
@@ -46,7 +46,7 @@ class ServiceTest extends TestCase
     public function tags()
     {
         $builder = new ContainerBuilder();
-        $builder->register(TaggedService::class);
+        $builder->register(TaggedService::class)->inline(false);
         $builder->register(ArrayObject::class)->arg([new Reference(TaggedService::class)])->public(); // Ensure the service is not optimized out
         $container = $builder->build();
 

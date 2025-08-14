@@ -27,11 +27,6 @@ final class ServiceUsageCounter
      */
     public private(set) array $services = [];
 
-    public function count(string $serviceId): int
-    {
-        return $this->services[$serviceId] ?? 0;
-    }
-
     public function add(ServiceBuilder $service): void
     {
         if ($service->public) {

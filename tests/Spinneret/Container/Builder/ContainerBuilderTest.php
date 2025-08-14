@@ -179,7 +179,7 @@ class ContainerBuilderTest extends TestCase
     #[Test]
     public function withReferenceAutowiring()
     {
-        $builder = new ContainerBuilder();
+        $builder = new ContainerBuilder(registerAsPublic: true);
         $builder->register(SimpleClass::class);
         $builder->register(ClassWithLiteralArguments::class)
             ->arg('test')
@@ -198,7 +198,7 @@ class ContainerBuilderTest extends TestCase
     #[Test]
     public function withReferenceAutowiringShouldAutoregisterMissingDependencies()
     {
-        $builder = new ContainerBuilder();
+        $builder = new ContainerBuilder(registerAsPublic: true);
         $builder->register(ClassWithLiteralArguments::class)
             ->arg('test')
             ->arg(42)
@@ -524,7 +524,7 @@ class ContainerBuilderTest extends TestCase
     #[Test]
     public function import()
     {
-        $builder = new ContainerBuilder();
+        $builder = new ContainerBuilder(registerAsPublic: true);
         $builder->import(__DIR__ . '/../Fixtures/WithLoader', 'Arakne\Tests\Spinneret\Container\Fixtures\WithLoader');
 
         $builder->processor(new class implements ContainerBuilderProcessorInterface {
@@ -603,7 +603,7 @@ class ContainerBuilderTest extends TestCase
     #[Test]
     public function autowireComplexExpression()
     {
-        $builder = new ContainerBuilder();
+        $builder = new ContainerBuilder(registerAsPublic: true);
         $builder->register(ClassWithLiteralArguments::class, ['test', 42])->public();
         $builder->register('a')->class(SingleLiteralClass::class)->arg(new Reference(InjectUsingParameterAttribute::class)->property('value'))->public();
         $builder->register('b')->class(ArrayObject::class)->arg([
@@ -636,7 +636,7 @@ class ContainerBuilderTest extends TestCase
 
         $container = $builder->build();
 
-        $this->assertEquals(new DynamicArray([new DynamicArray([new DynamicArray([new Reference('a'), new Reference('b')])])]), $container->services[ArrayObject::class]->arguments[0]);
+        $this->assertEquals(new DynamicArray([new DynamicArray([new DynamicArray([new NewExpression(SingleLiteralClass::class, [new Literal('a')]), new NewExpression(SingleLiteralClass::class, [new Literal('b')])])])]), $container->services[ArrayObject::class]->arguments[0]);
         $this->assertEquals([[[new SingleLiteralClass('a'), new SingleLiteralClass('b')]]], $container->get(ArrayObject::class)->getArrayCopy());
     }
 
@@ -773,6 +773,38 @@ class ContainerBuilderTest extends TestCase
     }
 
     #[Test]
+    public function disableInlining()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SimpleClass::class)->inline(false);
+        $builder->register(ClassWithLiteralArguments::class, ['foo', 42])->inline(false);
+        $builder->register(SingleLiteralClass::class)->factory(StaticFactory::create(...))->arg('test')->inline(false);
+        $builder->register(ArrayObject::class, [[
+            new Reference(SimpleClass::class),
+            new Reference(ClassWithLiteralArguments::class),
+            new Reference(SingleLiteralClass::class),
+        ]])->public();
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(SimpleClass::class));
+        $this->assertTrue($container->has(ClassWithLiteralArguments::class));
+        $this->assertTrue($container->has(SingleLiteralClass::class));
+        $this->assertTrue($container->has(ArrayObject::class));
+
+        $this->assertEquals([
+            new SimpleClass(),
+            new ClassWithLiteralArguments('foo', 42),
+            new SingleLiteralClass('TEST'),
+        ], $container->get(ArrayObject::class)->getArrayCopy());
+
+        $arg = $container->services[ArrayObject::class]->arguments[0]->values;
+        $this->assertEquals(new Reference(SimpleClass::class), $arg[0]);
+        $this->assertEquals(new Reference(ClassWithLiteralArguments::class), $arg[1]);
+        $this->assertEquals(new Reference(SingleLiteralClass::class), $arg[2]);
+    }
+
+    #[Test]
     public function removeInvalidServices()
     {
         $builder = new ContainerBuilder(registerAsPublic: true);
@@ -788,6 +820,109 @@ class ContainerBuilderTest extends TestCase
 
         $this->assertInstanceOf(SimpleClass::class, $container->get(SimpleClass::class));
         $this->assertCount(1, $container->services);
+    }
+
+    #[Test]
+    public function importShouldInlinePrivateServices()
+    {
+        $builder = new ContainerBuilder();
+        $builder->import(__DIR__ . '/../Fixtures/WithLoader', 'Arakne\Tests\Spinneret\Container\Fixtures\WithLoader');
+
+        $builder->processor(new class implements ContainerBuilderProcessorInterface {
+            #[Override]
+            public function process(ContainerBuilder $builder): void
+            {
+                $handlers = [];
+                $dispatcher = $builder->services[MessageDispatcher::class];
+
+                foreach ($builder->findByTag(MessageHandlerTag::class) as $service => $attributes) {
+                    foreach ($attributes as $attribute) {
+                        $handlers[$attribute->message] = new Reference($service->id);
+                    }
+                }
+
+                $dispatcher->arguments[0] = $handlers;
+            }
+        });
+        $builder->register(DepConfig::class, ['my-key']);
+
+        $container = $builder->build();
+
+        $this->assertFalse($container->has(DepConfig::class));
+        $this->assertFalse($container->has(DoAHandler::class));
+        $this->assertFalse($container->has(DoBHandler::class));
+        $this->assertFalse($container->has(SimpleDep::class));
+        $this->assertTrue($container->has(MessageDispatcher::class));
+
+        $this->assertInstanceOf(MessageDispatcher::class, $container->get(MessageDispatcher::class));
+        $this->assertInstanceOf(MessageDispatcher::class, $container->get('dispatcher'));
+        $this->assertEquals([
+            DoA::class => new DoAHandler(),
+            DoB::class => new DoBHandler(new SimpleDep(new DepConfig('my-key'))),
+        ], $container->get(MessageDispatcher::class)->handlers);
+
+        $this->assertCount(1, $container->services);
+        $this->assertEquals([new DynamicArray([
+            DoA::class => new NewExpression(DoAHandler::class),
+            DoB::class => new NewExpression(DoBHandler::class, [new NewExpression(SimpleDep::class, [new NewExpression(DepConfig::class, [new Literal('my-key')])])]),
+        ])], $container->services[MessageDispatcher::class]->arguments);
+    }
+
+    #[Test]
+    public function invalidServiceCannotBeInlined()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(ContainerClass::class)->public();
+        $builder->register(ClassWithLiteralArguments::class);
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(ContainerClass::class));
+        $this->assertTrue($container->has(ClassWithLiteralArguments::class));
+        $this->assertFalse($container->has(SimpleClass::class));
+
+        $this->assertEquals([
+            new NewExpression(SimpleClass::class),
+            new Reference(ClassWithLiteralArguments::class),
+        ], $container->services[ContainerClass::class]->arguments);
+    }
+
+    #[Test]
+    public function inlineWithNestedArrayValues()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SimpleClass::class);
+        $builder->register(ClassWithLiteralArguments::class, ['foo', 42]);
+        $builder->register(SingleLiteralClass::class)->factory(StaticFactory::create(...))->arg('test');
+        $builder->register(ArrayObject::class, [[
+            new Reference(SimpleClass::class),
+            [
+                'foo' => new Reference(ClassWithLiteralArguments::class),
+                'bar' => new Reference(SingleLiteralClass::class),
+            ],
+        ]])->public();
+
+        $container = $builder->build();
+
+        $this->assertFalse($container->has(SimpleClass::class));
+        $this->assertFalse($container->has(ClassWithLiteralArguments::class));
+        $this->assertFalse($container->has(SingleLiteralClass::class));
+        $this->assertTrue($container->has(ArrayObject::class));
+
+        $this->assertEquals([
+            new SimpleClass(),
+            [
+                'foo' => new ClassWithLiteralArguments('foo', 42),
+                'bar' => new SingleLiteralClass('TEST'),
+            ],
+        ], $container->get(ArrayObject::class)->getArrayCopy());
+
+        $arg = $container->services[ArrayObject::class]->arguments[0]->values;
+        $this->assertEquals(new NewExpression(SimpleClass::class), $arg[0]);
+        $this->assertEquals(new DynamicArray([
+            'foo' => new NewExpression(ClassWithLiteralArguments::class, [new Literal('foo'), new Literal(42)]),
+            'bar' => new Call(new StaticMethodServiceFactory(StaticFactory::class, 'create'), [new Literal('test')]),
+        ]), $arg[1]);
     }
 }
 

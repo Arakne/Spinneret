@@ -140,6 +140,8 @@ class AbstractModuleTest extends TestCase
         $this->assertEquals(['test', (object) ['key' => 'value']], $container->services[Baz::class]->tags);
         $this->assertTrue($container->services[Bar::class]->public);
 
+        $container->services[Foo::class]->public(); // Ensure that it will not be removed from the container
+
         $this->assertSame('Hello', $container->build()->get(Foo::class)->bar);
         $this->assertInstanceOf(Foo::class, $container->build()->get(Foo::class));
         $this->assertInstanceOf(Bar::class, $container->build()->get(Bar::class));

@@ -1,14 +1,16 @@
 <?php
 namespace  {
-    final class CompiledContainerManualInlineTest implements \Arakne\Spinneret\Container\SpinneretContainerInterface
+    final class CompiledContainerAutoInlineTest implements \Arakne\Spinneret\Container\SpinneretContainerInterface
     {
         private array $instances = [];
         private array $aliases = array (
+  'dispatcher' => 'Arakne\\Tests\\Spinneret\\Container\\Fixtures\\WithLoader\\MessageDispatcher',
 );
         private array $servicesByTag = array (
 );
         private array $serviceIds = array (
-  'ArrayObject' => 1,
+  'dispatcher' => 1,
+  'Arakne\\Tests\\Spinneret\\Container\\Fixtures\\WithLoader\\MessageDispatcher' => 1,
   'Psr\\Container\\ContainerInterface' => 1,
   'Arakne\\Spinneret\\Container\\SpinneretContainerInterface' => 1,
 );
@@ -63,7 +65,7 @@ namespace  {
         private function load(string $id, bool $ignoreInvalid = false): mixed
         {
             return match ($id) {
-                'ArrayObject' => $this->instances['ArrayObject'] = new \ArrayObject([new \Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass(), new \Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments('foo', 42), \Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory::create('test'), ], 0, 'ArrayIterator'),
+                'Arakne\\Tests\\Spinneret\\Container\\Fixtures\\WithLoader\\MessageDispatcher' => $this->instances['Arakne\\Tests\\Spinneret\\Container\\Fixtures\\WithLoader\\MessageDispatcher'] = new \Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\MessageDispatcher(['Arakne\\Tests\\Spinneret\\Container\\Fixtures\\WithLoader\\Messages\\DoA' => new \Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoAHandler(), 'Arakne\\Tests\\Spinneret\\Container\\Fixtures\\WithLoader\\Messages\\DoB' => new \Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoBHandler(new \Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\SimpleDep(new \Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\DepConfig('my-key'))), ]),
 
                 default => $ignoreInvalid ? null : throw new \Arakne\Spinneret\Container\Exception\ServiceNotFoundException(sprintf('Service "%s" not found.', $id)),
             };   

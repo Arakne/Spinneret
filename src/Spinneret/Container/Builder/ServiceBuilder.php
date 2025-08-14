@@ -18,6 +18,7 @@ use Closure;
 use Override;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
+use ReflectionMethod;
 use Throwable;
 
 use function array_values;
@@ -76,11 +77,13 @@ final class ServiceBuilder implements ValidatableInterface
      * instead of being resolved from the container.
      * This can improve performance, but disallow usage of public or shared services.
      *
-     * This flags will be automatically set to true if it's safe to inline the service:
+     * If false, the service will never be inlined, even if it is safe to do so.
+     *
+     * If null, this flags will be automatically set to true if it's safe to inline the service:
      * - The service is not shared
      * - The service is private and is used only by a single service
      */
-    public bool $inline = false;
+    public ?bool $inline = null;
 
     /**
      * Indicates whether the service is only defined at runtime.
@@ -379,7 +382,9 @@ final class ServiceBuilder implements ValidatableInterface
                 return false;
             }
 
-            $parameters = $constructor->getParameters();
+            /** @var ReflectionMethod|null $constructor */
+
+            $parameters = $constructor?->getParameters();
         }
 
         if ($parameters !== null) {
@@ -445,9 +450,9 @@ final class ServiceBuilder implements ValidatableInterface
      *
      * @return ValueInterface|null The inline value representing the service instantiation, or null if the service cannot be inlined.
      */
-    public function asInlineValue(): ?ValueInterface
+    public function asInlineValue(ContainerBuilder $builder): ?ValueInterface
     {
-        if ($this->class === null && $this->factory === null) {
+        if (!$this->validate($builder)) {
             return null;
         }
 

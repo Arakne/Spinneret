@@ -25,7 +25,7 @@ class ServiceBuilderTest extends TestCase
         $service = new ServiceBuilder('', SingleLiteralClass::class);
         $service->arg('foo');
 
-        $value = $service->asInlineValue();
+        $value = $service->asInlineValue(new ContainerBuilder());
 
         $this->assertEquals(new NewExpression(SingleLiteralClass::class, [new Literal('foo')]), $value);
     }
@@ -37,7 +37,7 @@ class ServiceBuilderTest extends TestCase
         $service->factory(StaticFactory::create(...));
         $service->arg('foo');
 
-        $value = $service->asInlineValue();
+        $value = $service->asInlineValue(new ContainerBuilder());
 
         $this->assertEquals(
             new Call(new StaticMethodServiceFactory(StaticFactory::class, 'create'), [new Literal('foo')]),
@@ -50,7 +50,7 @@ class ServiceBuilderTest extends TestCase
     {
         $service = new ServiceBuilder('', null);
 
-        $value = $service->asInlineValue();
+        $value = $service->asInlineValue(new ContainerBuilder());
 
         $this->assertNull($value);
     }

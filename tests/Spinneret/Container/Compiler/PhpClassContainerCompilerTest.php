@@ -30,6 +30,14 @@ use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\Tagged;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedA;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedB;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\DepConfig;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\MessageDispatcher;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\MessageHandlerTag;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoA;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoAHandler;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoB;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\Messages\DoBHandler;
+use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\SimpleDep;
 use ArrayObject;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
@@ -132,14 +140,12 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \ReferenceContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass(\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SimpleClass'), \$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments')),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass(new \Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass(), new \Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments('a', 1)),", $compiled);
         $instance = $compiledContainer->get(ContainerClass::class);
         $this->assertInstanceOf(ContainerClass::class, $instance);
         $this->assertSame($instance, $compiledContainer->get(ContainerClass::class));
         $this->assertInstanceOf(SimpleClass::class, $instance->simpleClass);
         $this->assertInstanceOf(ClassWithLiteralArguments::class, $instance->classWithLiteralArguments);
-        $this->assertSame($compiledContainer->get(SimpleClass::class), $instance->simpleClass);
-        $this->assertSame($compiledContainer->get(ClassWithLiteralArguments::class), $instance->classWithLiteralArguments);
         $this->assertSame('a', $instance->classWithLiteralArguments->foo);
         $this->assertSame(1, $instance->classWithLiteralArguments->bar);
     }
@@ -157,7 +163,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \PropertyAccessContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass(\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ClassWithLiteralArguments')->foo),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass(new \Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments('a', 1)->foo),", $compiled);
         $instance = $compiledContainer->get(SingleLiteralClass::class);
         $this->assertInstanceOf(SingleLiteralClass::class, $instance);
         $this->assertSame('a', $instance->value);
@@ -178,7 +184,7 @@ class PhpClassContainerCompilerTest extends TestCase
         eval($compiled);
         $compiledContainer = new \TaggedServiceIteratorContainerTest();
 
-        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TagContainer' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TagContainer'] = new \Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer([\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TaggedA'), \$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TaggedB'), ]),", $compiled);
+        $this->assertStringContainsString("'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TagContainer' => \$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\TagContainer'] = new \Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer([new \Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedA(), new \Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TaggedB(), ]),", $compiled);
         $instance = $compiledContainer->get(TagContainer::class);
         $this->assertInstanceOf(TagContainer::class, $instance);
         $this->assertInstanceOf(TaggedA::class, $instance->tagged[0]);
@@ -495,6 +501,53 @@ class PhpClassContainerCompilerTest extends TestCase
         ], $container->get(ArrayObject::class)->getArrayCopy());
 
         $this->assertStringEqualsFile(__DIR__ . '/Fixtures/manual_inline.php', "<?php\n".$compiled);
+    }
+
+
+    #[Test]
+    public function importShouldInlinePrivateServices()
+    {
+        $builder = new ContainerBuilder();
+        $builder->import(__DIR__ . '/../Fixtures/WithLoader', 'Arakne\Tests\Spinneret\Container\Fixtures\WithLoader');
+
+        $builder->processor(new class implements ContainerBuilderProcessorInterface {
+            #[Override]
+            public function process(ContainerBuilder $builder): void
+            {
+                $handlers = [];
+                $dispatcher = $builder->services[MessageDispatcher::class];
+
+                foreach ($builder->findByTag(MessageHandlerTag::class) as $service => $attributes) {
+                    foreach ($attributes as $attribute) {
+                        $handlers[$attribute->message] = new Reference($service->id);
+                    }
+                }
+
+                $dispatcher->arguments[0] = $handlers;
+            }
+        });
+        $builder->register(DepConfig::class, ['my-key']);
+
+        $built = $builder->build();
+        $compiled = $built->compile(new PhpClassContainerCompiler($className = 'CompiledContainerAutoInlineTest'));
+        eval($compiled);
+
+        $container = new $className();
+
+        $this->assertFalse($container->has(DepConfig::class));
+        $this->assertFalse($container->has(DoAHandler::class));
+        $this->assertFalse($container->has(DoBHandler::class));
+        $this->assertFalse($container->has(SimpleDep::class));
+        $this->assertTrue($container->has(MessageDispatcher::class));
+
+        $this->assertInstanceOf(MessageDispatcher::class, $container->get(MessageDispatcher::class));
+        $this->assertInstanceOf(MessageDispatcher::class, $container->get('dispatcher'));
+        $this->assertEquals([
+            DoA::class => new DoAHandler(),
+            DoB::class => new DoBHandler(new SimpleDep(new DepConfig('my-key'))),
+        ], $container->get(MessageDispatcher::class)->handlers);
+
+        $this->assertStringEqualsFile(__DIR__.'/Fixtures/auto_inline.php', "<?php\n".$compiled);
     }
 
     private function compileContainer(ContainerBuilder $builder): SpinneretContainerInterface

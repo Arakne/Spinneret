@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\Container\Builder\Processor;
 
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Value\Reference;
+use Closure;
 use Override;
 
 use function array_flip;
@@ -16,8 +17,10 @@ final readonly class InlineServicesProcessor implements ContainerBuilderProcesso
     #[Override]
     public function process(ContainerBuilder $builder): void
     {
-        //$this->markAsInline($builder); // @todo Activer quand la validation des services sera implémentée
-        $this->doInlining($builder);
+        $this->markAsInline($builder);
+        do {
+            $hasChanged = $this->doInlining($builder);
+        } while ($hasChanged);
     }
 
     private function markAsInline(ContainerBuilder $builder): void
@@ -32,7 +35,7 @@ final readonly class InlineServicesProcessor implements ContainerBuilderProcesso
 
             $service = $builder->services[$serviceId] ?? null;
 
-            if ($service === null || $service->runtime) {
+            if ($service === null || $service->runtime || $service->inline !== null) {
                 continue;
             }
 
@@ -40,9 +43,18 @@ final readonly class InlineServicesProcessor implements ContainerBuilderProcesso
         }
     }
 
-    private function doInlining(ContainerBuilder $builder): void
+    private function doInlining(ContainerBuilder $builder): bool
     {
-        $processor = new readonly class () extends AbstractArgumentProcessor {
+        $hasChanged = false;
+        $processor = new readonly class (
+            function () use (&$hasChanged): void {
+                $hasChanged = true;
+            }
+        ) extends AbstractArgumentProcessor {
+            public function __construct(
+                private Closure $notifyChange,
+            ) {}
+
             #[Override]
             protected function processValue(ContainerBuilder $builder, mixed $value): mixed
             {
@@ -56,10 +68,19 @@ final readonly class InlineServicesProcessor implements ContainerBuilderProcesso
                     return $value;
                 }
 
-                return $service->asInlineValue() ?? $value;
+                $inlined = $service->asInlineValue($builder);
+
+                if ($inlined === null) {
+                    return $value;
+                }
+
+                ($this->notifyChange)();
+                return $inlined;
             }
         };
 
         $processor->process($builder);
+
+        return $hasChanged;
     }
 }

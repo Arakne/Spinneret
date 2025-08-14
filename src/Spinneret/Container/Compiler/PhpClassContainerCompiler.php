@@ -81,7 +81,7 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
                         }
             
                         try {
-                            return \$this->instances[\$id] ??= \$this->load(\$id, true);
+                            return \$this->instances[\$id] ?? \$this->load(\$id, true);
                         } catch (\Throwable) {
                             return null;
                         }
@@ -91,7 +91,7 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
                     {
                         return match (\$id) {
                             {$this->buildServiceInstantiations($container)}
-                            default => throw new \Arakne\Spinneret\Container\Exception\ServiceNotFoundException(sprintf('Service "%s" not found.', \$id)),
+                            default => \$ignoreInvalid ? null : throw new \Arakne\Spinneret\Container\Exception\ServiceNotFoundException(sprintf('Service "%s" not found.', \$id)),
                         };   
                     }
                 }
