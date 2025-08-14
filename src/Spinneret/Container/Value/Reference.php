@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\Container\Value;
 
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\ValidatableInterface;
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -63,6 +64,10 @@ final readonly class Reference implements ValueInterface, ValidatableInterface
     #[Override]
     public function compile(): string
     {
+        if ($this->id === ContainerInterface::class || $this->id === SpinneretContainerInterface::class) {
+            return '$this';
+        }
+
         if ($this->defaultValueOnInvalid !== null) {
             return sprintf('($this->getOrNull(%s) ?? %s)', var_export($this->id, true), Literal::dump($this->defaultValueOnInvalid));
         } elseif ($this->nullOnInvalid) {
@@ -81,6 +86,10 @@ final readonly class Reference implements ValueInterface, ValidatableInterface
     #[Override]
     public function validate(ContainerBuilder $builder): bool
     {
+        if ($this->id === ContainerInterface::class || $this->id === SpinneretContainerInterface::class) {
+            return '$this';
+        }
+
         if ($this->nullOnInvalid || $this->defaultValueOnInvalid !== null) {
             return true;
         }

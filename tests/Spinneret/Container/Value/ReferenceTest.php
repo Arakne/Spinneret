@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Value;
 
+use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Arakne\Spinneret\Container\Value\PropertyAccess;
 use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
@@ -9,6 +10,7 @@ use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 
 class ReferenceTest extends TestCase
 {
@@ -54,6 +56,13 @@ class ReferenceTest extends TestCase
     {
         $ref = new Reference(SimpleClass::class);
         $this->assertSame('$this->get(\'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SimpleClass\')', $ref->compile());
+    }
+
+    #[Test]
+    public function containerReference()
+    {
+        $this->assertSame('$this', new Reference(ContainerInterface::class)->compile());
+        $this->assertSame('$this', new Reference(SpinneretContainerInterface::class)->compile());
     }
 
     #[Test]
@@ -122,5 +131,12 @@ class ReferenceTest extends TestCase
         $builder = new ContainerBuilder();
         $ref = new Reference('not_found', defaultValueOnInvalid: 'default');
         $this->assertTrue($ref->validate($builder));
+    }
+
+    #[Test]
+    public function validateContainerReference()
+    {
+        $this->assertTrue(new Reference(ContainerInterface::class)->validate(new ContainerBuilder()));
+        $this->assertTrue(new Reference(SpinneretContainerInterface::class)->validate(new ContainerBuilder()));
     }
 }

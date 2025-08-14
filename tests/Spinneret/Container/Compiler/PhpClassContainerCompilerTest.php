@@ -19,6 +19,7 @@ use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Spinneret\Container\SpinneretContainerInterface;
 use Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments;
 use Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass;
+use Arakne\Tests\Spinneret\Container\Fixtures\ContainerWrapper;
 use Arakne\Tests\Spinneret\Container\Fixtures\InstanceFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\NullableContainerClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass;
@@ -548,6 +549,25 @@ class PhpClassContainerCompilerTest extends TestCase
         ], $container->get(MessageDispatcher::class)->handlers);
 
         $this->assertStringEqualsFile(__DIR__.'/Fixtures/auto_inline.php', "<?php\n".$compiled);
+    }
+
+    #[Test]
+    public function referenceToContainerShouldBeInlined()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(ContainerWrapper::class)->public();
+
+        $built = $builder->build();
+        $compiled = $built->compile(new PhpClassContainerCompiler($className = 'CompiledContainerWithContainerRef'));
+        eval($compiled);
+
+        $container = new $className();
+
+        $this->assertTrue($container->has(ContainerWrapper::class));
+        $this->assertInstanceOf(ContainerWrapper::class, $container->get(ContainerWrapper::class));
+        $this->assertSame($container, $container->get(ContainerWrapper::class)->container);
+
+        $this->assertStringContainsString("\$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerWrapper'] = new \Arakne\Tests\Spinneret\Container\Fixtures\ContainerWrapper(\$this)", $compiled);
     }
 
     private function compileContainer(ContainerBuilder $builder): SpinneretContainerInterface
