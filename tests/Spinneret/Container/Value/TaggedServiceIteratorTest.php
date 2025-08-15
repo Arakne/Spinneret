@@ -51,6 +51,22 @@ class TaggedServiceIteratorTest extends TestCase
     }
 
     #[Test]
+    public function resolveAsArray()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(TaggedA::class)->tag(MyTagInterface::class)->public();
+        $builder->register(TaggedB::class)->tag(MyTagInterface::class)->public();
+
+        $container = $builder->build();
+
+        $resolved = new TaggedServiceIterator(MyTagInterface::class, asArray: true)->resolve($container);
+        $this->assertIsArray($resolved);
+        $this->assertCount(2, $resolved);
+        $this->assertInstanceOf(TaggedA::class, $resolved[0]);
+        $this->assertInstanceOf(TaggedB::class, $resolved[1]);
+    }
+
+    #[Test]
     public function resolveInvalidContainerInstance()
     {
         $this->expectException(ContainerBuildException::class);
@@ -63,6 +79,7 @@ class TaggedServiceIteratorTest extends TestCase
     public function compile()
     {
         $this->assertSame('$this->findByTag(\'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\MyTagInterface\')', (new TaggedServiceIterator(MyTagInterface::class))->compile());
+        $this->assertSame('\iterator_to_array($this->findByTag(\'Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\Tagged\\\MyTagInterface\'))', (new TaggedServiceIterator(MyTagInterface::class, asArray: true))->compile());
     }
 
     #[Test]

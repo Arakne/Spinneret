@@ -39,7 +39,7 @@ interface SpinneretContainerInterface extends ContainerInterface
      * Find all services tagged with the given tag.
      *
      * @param string $tag
-     * @return iterable<mixed>
+     * @return iterable<array-key, mixed>
      */
     public function findByTag(string $tag): iterable;
 }
