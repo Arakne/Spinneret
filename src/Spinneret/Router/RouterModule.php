@@ -95,7 +95,7 @@ final readonly class RouterModule implements ConfigurableModuleInterface
         $containerBuilder->register(UrlGeneratorCompiler::class); // @todo configure file name ?
         $containerBuilder->alias(UrlGeneratorCompilerInterface::class, UrlGeneratorCompiler::class);
 
-        $containerBuilder->register(RouteCollectionLoader::class);
+        $containerBuilder->register(RouteCollectionLoader::class, [[]]);
         $containerBuilder->alias(RouteCollectionLoaderInterface::class, RouteCollectionLoader::class);
 
         $containerBuilder->register(RequestContext::class)

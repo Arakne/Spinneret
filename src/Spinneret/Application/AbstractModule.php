@@ -2,27 +2,13 @@
 
 namespace Arakne\Spinneret\Application;
 
-use Arakne\Spinneret\Application\Attribute\ModuleAttributeInterface;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\Attribute\Presenter;
 use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\View\Attribute\Renderer;
 use Arakne\Spinneret\View\ViewRendererInterface;
-use FilesystemIterator;
 use Override;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use ReflectionAttribute;
-use ReflectionClass;
-use SplFileInfo;
-
-use function assert;
-use function class_exists;
-use function ltrim;
-use function str_replace;
-use function strlen;
-use function substr;
 
 /**
  * Simple module implementation
@@ -188,47 +174,18 @@ abstract class AbstractModule implements ModuleInterface
         }
     }
 
-    // @todo remove: use directly container->import()
+    /**
+     * Load classes from the given directory path.
+     *
+     * @param string $path The directory path to load classes from
+     * @param string $namespace The namespace to use for the classes in the given path
+     *
+     * @return void
+     * @see ContainerBuilder::import()
+     */
     final public function path(string $path, string $namespace): void
     {
         $this->paths[] = [$path, $namespace];
-        if ($namespace !== '' && $namespace[-1] !== '\\') {
-            $namespace .= '\\';
-        }
-
-        $pathLen = strlen($path);
-
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
-
-        foreach ($it as $file) {
-            assert($file instanceof SplFileInfo);
-
-            $classBaseName = $file->getBasename('.php');
-            $classNamespace = $namespace . str_replace('/', '\\', substr($file->getPath(), $pathLen + 1));
-
-            if ($classNamespace !== '' && $classNamespace[-1] !== '\\') {
-                $classNamespace .= '\\';
-            }
-
-            $className = ltrim($classNamespace, '\\') . $classBaseName;
-
-            if (!class_exists($className)) {
-                continue;
-            }
-
-            $reflection = new ReflectionClass($className);
-
-            if (!$reflection->isInstantiable()) {
-                continue;
-            }
-
-            // @todo automatically handle AsCommand ?
-            foreach ($reflection->getAttributes(ModuleAttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $reflectionAttribute) {
-                $attribute = $reflectionAttribute->newInstance();
-                assert($attribute instanceof ModuleAttributeInterface);
-                $attribute->register($reflection, $this);
-            }
-        }
     }
 
     /**
