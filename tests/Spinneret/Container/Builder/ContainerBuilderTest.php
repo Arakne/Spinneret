@@ -38,6 +38,7 @@ use Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\ComplexTag;
+use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\MyTagInterface;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\TagContainer;
 use Arakne\Tests\Spinneret\Container\Fixtures\Tagged\Tagged;
 use Arakne\Tests\Spinneret\Container\Fixtures\WithLoader\DepConfig;
@@ -415,7 +416,7 @@ class ContainerBuilderTest extends TestCase
     public function buildWithoutClassOrFactory()
     {
         $this->expectException(ContainerBuildException::class);
-        $this->expectExceptionMessage('Error building service "test": Service must have a class or a factory.');
+        $this->expectExceptionMessage('Error building service "test": Service must have a class or a factory or a value.');
 
         $builder = new ContainerBuilder();
         $builder->register('test')->public();
@@ -964,6 +965,66 @@ class ContainerBuilderTest extends TestCase
             class: SingleLiteralClass::class,
             value: new Literal(new SingleLiteralClass('test'))
         ), $container->services[SingleLiteralClass::class]);
+    }
+
+    #[Test]
+    public function set()
+    {
+        $builder = new ContainerBuilder();
+        $builder->set(new SingleLiteralClass('test'))->public();
+        $builder->set('foo', ['bar'])->public();
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(SingleLiteralClass::class));
+        $this->assertInstanceOf(SingleLiteralClass::class, $container->get(SingleLiteralClass::class));
+        $instance = $container->get(SingleLiteralClass::class);
+        $this->assertSame('test', $instance->value);
+        $this->assertSame($instance, $container->get(SingleLiteralClass::class));
+        $this->assertTrue($container->has('foo'));
+        $this->assertSame(['bar'], $container->get('foo'));
+
+        $this->assertEquals(new ServiceMetadata(
+            class: SingleLiteralClass::class,
+            value: new Literal(new SingleLiteralClass('test'))
+        ), $container->services[SingleLiteralClass::class]);
+        $this->assertEquals(new ServiceMetadata(
+            class: null,
+            value: new Literal(['bar'])
+        ), $container->services['foo']);
+    }
+
+    #[Test]
+    public function push()
+    {
+        $builder = new ContainerBuilder();
+        $builder->configureInstanceOf(MyTagInterface::class, function (ServiceBuilder $service) {
+            $service->tag(MyTagInterface::class);
+        });
+        $builder->register(TagContainer::class, [new TaggedServiceIterator(MyTagInterface::class)])->public();
+
+        $builder->push(new Tagged('foo'));
+        $builder->push(new Tagged('bar'));
+        $baz = $builder->push(new Tagged('baz'))->public();
+
+        $container = $builder->build();
+        $this->assertTrue($container->has(TagContainer::class));
+        $this->assertInstanceOf(TagContainer::class, $container->get(TagContainer::class));
+        $this->assertEquals([new Tagged('foo'), new Tagged('bar'), new Tagged('baz')], $container->get(TagContainer::class)->tagged);
+
+        $this->assertCount(2, $container->services);
+        $this->assertEquals([
+            new DynamicArray([
+                new Literal(new Tagged('foo')),
+                new Literal(new Tagged('bar')),
+                new Reference($baz->id),
+            ]),
+        ], $container->services[TagContainer::class]->arguments);
+        $this->assertEquals(new ServiceMetadata(
+            class: Tagged::class,
+            value: new Literal(new Tagged('baz')),
+            tags: [MyTagInterface::class],
+        ), $container->services[$baz->id]);
     }
 }
 

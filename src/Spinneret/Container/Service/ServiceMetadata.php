@@ -32,8 +32,8 @@ final readonly class ServiceMetadata
          */
         public bool $shared = true,
     ) {
-        if ($class === null && $factory === null) {
-            throw new ContainerBuildException('Service must have a class or a factory.');
+        if ($class === null && $factory === null && $value === null) {
+            throw new ContainerBuildException('Service must have a class or a factory or a value.');
         }
     }
 }

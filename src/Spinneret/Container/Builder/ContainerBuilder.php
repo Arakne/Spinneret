@@ -22,6 +22,7 @@ use Throwable;
 
 use function class_exists;
 use function count;
+use function is_object;
 use function sprintf;
 
 /**
@@ -212,6 +213,27 @@ final class ContainerBuilder
     }
 
     /**
+     * Define a value service.
+     *
+     * This method is equivalent to calling `$builder->register($id)->value($value)`
+     * or `$builder->register($value::class)->value($value)` if the first parameter is an object.
+     *
+     * @param string|object $id The service ID, or value to register if you want to use the class name as ID.
+     * @param mixed|null $value The value to register as a service.
+     *
+     * @return ServiceBuilder
+     */
+    public function set(string|object $id, mixed $value = null): ServiceBuilder
+    {
+        if (is_object($id)) {
+            $value = $id;
+            $id = $value::class;
+        }
+
+        return $this->register($id)->value($value);
+    }
+
+    /**
      * Register an anonymous service.
      *
      * An anonymous service is a service that does not have a specific ID,
@@ -241,6 +263,32 @@ final class ContainerBuilder
         }
 
         return $builder;
+    }
+
+    /**
+     * Push an anonymous value into the container.
+     * This method is equivalent to calling `$builder->anonymous()->value($value)`.
+     *
+     * Use configurator or tags to reference this value later.
+     *
+     * Usage:
+     * ```php
+     * $builder->configureInstanceOf(MyValue::class, function (ServiceBuilder $service) {
+     *     $service->tag(MyValue::class);
+     * });
+     *
+     * $builder->register(MyContainer::class, [new TaggedServiceIterator(MyValue::class)]);
+     * $builder->push(new MyValue('foo', 42));
+     * $builder->push(new MyValue('bar', 84));
+     * $builder->push(new MyValue('baz', 32));
+     * ```
+     *
+     * @param mixed $value
+     * @return ServiceBuilder
+     */
+    public function push(mixed $value): ServiceBuilder
+    {
+        return $this->anonymous(is_object($value) ? $value::class : null)->value($value);
     }
 
     /**
