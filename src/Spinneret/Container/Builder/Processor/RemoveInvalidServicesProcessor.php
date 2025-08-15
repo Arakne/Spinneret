@@ -5,6 +5,9 @@ namespace Arakne\Spinneret\Container\Builder\Processor;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Override;
 
+/**
+ * Remove all invalid services marked with `ignoreIfInvalid`.
+ */
 final readonly class RemoveInvalidServicesProcessor implements ContainerBuilderProcessorInterface
 {
     #[Override]

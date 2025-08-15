@@ -148,6 +148,8 @@ class DatabaseModuleTest extends TestCase
 
         $databaseModule = new DatabaseModule();
         $databaseModule->register($container);
+        $container->register(LoggerInterface::class)->runtime();
+        $container->register(DatabaseConfig::class)->runtime();
         $container = $container->build();
         $container->set(LoggerInterface::class, $logger = new ArrayLogger());
         $container->set(DatabaseConfig::class, new DatabaseConfig(

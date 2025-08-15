@@ -10,7 +10,7 @@ use Override;
 use function array_flip;
 
 /**
- * Inline service instanciation when it is used only once, or it's explicitly marked as inline.
+ * Inline service instantiation when it is used only once, or it's explicitly marked as inline.
  */
 final readonly class InlineServicesProcessor implements ContainerBuilderProcessorInterface
 {

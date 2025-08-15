@@ -87,7 +87,7 @@ final readonly class Reference implements ValueInterface, ValidatableInterface
     public function validate(ContainerBuilder $builder): bool
     {
         if ($this->id === ContainerInterface::class || $this->id === SpinneretContainerInterface::class) {
-            return '$this';
+            return true;
         }
 
         if ($this->nullOnInvalid || $this->defaultValueOnInvalid !== null) {

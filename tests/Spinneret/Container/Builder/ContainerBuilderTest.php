@@ -924,6 +924,26 @@ class ContainerBuilderTest extends TestCase
             'bar' => new Call(new StaticMethodServiceFactory(StaticFactory::class, 'create'), [new Literal('test')]),
         ]), $arg[1]);
     }
+
+    #[Test]
+    public function invalidReferenceWithFallbackShouldBeInlined()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(NullableContainerClass::class)->public();
+        $builder->register('other', [new Reference(SingleLiteralClass::class, defaultValueOnInvalid: new SingleLiteralClass('test'))])->class(NullableContainerClass::class)->public();
+        $builder->register(SingleLiteralClass::class);
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(NullableContainerClass::class));
+        $this->assertTrue($container->has('other'));
+        $this->assertFalse($container->has(SingleLiteralClass::class));
+        $this->assertNull($container->get(NullableContainerClass::class)->dep);
+        $this->assertEquals(new SingleLiteralClass('test'), $container->get('other')->dep);
+
+        $this->assertEquals([new Literal(null)], $container->services[NullableContainerClass::class]->arguments);
+        $this->assertEquals([new Literal(new SingleLiteralClass('test'))], $container->services['other']->arguments);
+    }
 }
 
 function global_function_factory(string $value): SingleLiteralClass
