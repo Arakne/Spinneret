@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Builder;
 
+use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Arakne\Spinneret\Container\Value\Autowire;
 use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Value\DynamicArray;
@@ -943,6 +944,26 @@ class ContainerBuilderTest extends TestCase
 
         $this->assertEquals([new Literal(null)], $container->services[NullableContainerClass::class]->arguments);
         $this->assertEquals([new Literal(new SingleLiteralClass('test'))], $container->services['other']->arguments);
+    }
+
+    #[Test]
+    public function valueService()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SingleLiteralClass::class)->value(new SingleLiteralClass('test'))->public();
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(SingleLiteralClass::class));
+        $this->assertInstanceOf(SingleLiteralClass::class, $container->get(SingleLiteralClass::class));
+        $instance = $container->get(SingleLiteralClass::class);
+        $this->assertSame('test', $instance->value);
+        $this->assertSame($instance, $container->get(SingleLiteralClass::class));
+
+        $this->assertEquals(new ServiceMetadata(
+            class: SingleLiteralClass::class,
+            value: new Literal(new SingleLiteralClass('test'))
+        ), $container->services[SingleLiteralClass::class]);
     }
 }
 

@@ -15,6 +15,7 @@ final readonly class ServiceMetadata
         /** @var list<ValueInterface> */
         public array $arguments = [],
         public ?ServiceFactoryInterface $factory = null,
+        public ?ValueInterface $value = null,
 
         /** @var list<string> */
         public array $tags = [],

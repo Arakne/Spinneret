@@ -109,7 +109,10 @@ final class BuiltContainer implements SpinneretContainerInterface
             $arguments[] = $argument->resolve($this);
         }
 
-        if ($service->factory !== null) {
+        if ($service->value !== null) {
+            /** @var mixed $instance */
+            $instance = $service->value->resolve($this);
+        } elseif ($service->factory !== null) {
             /** @var mixed $instance */
             $instance = $service->factory->create($this, $arguments);
         } else {

@@ -31,6 +31,17 @@ class ServiceBuilderTest extends TestCase
     }
 
     #[Test]
+    public function asInlineValueWithValueService()
+    {
+        $service = new ServiceBuilder('', SingleLiteralClass::class);
+        $service->value(new SingleLiteralClass('foo'));
+
+        $value = $service->asInlineValue(new ContainerBuilder());
+
+        $this->assertEquals(new Literal(new SingleLiteralClass('foo')), $value);
+    }
+
+    #[Test]
     public function asInlineValueWithNoClassButWithFactory()
     {
         $service = new ServiceBuilder('', null);
@@ -62,6 +73,17 @@ class ServiceBuilderTest extends TestCase
         $builder->runtime = true;
         $containerBuilder = new ContainerBuilder();
         $this->assertTrue($builder->validate($containerBuilder));
+    }
+
+    #[Test]
+    public function validateWithValueService()
+    {
+        $builder = new ServiceBuilder('id', SingleLiteralClass::class);
+        $containerBuilder = new ContainerBuilder();
+
+        $this->assertTrue($builder->value(new SingleLiteralClass('test'))->validate($containerBuilder));
+        $this->assertTrue($builder->value(new NewExpression(SingleLiteralClass::class, ['test']))->validate($containerBuilder));
+        $this->assertFalse($builder->value(new Reference('invalid'))->validate($containerBuilder));
     }
 
     #[Test]

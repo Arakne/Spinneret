@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Container\Compiler;
 
+use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
 use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Value\DynamicArray;
@@ -568,6 +569,26 @@ class PhpClassContainerCompilerTest extends TestCase
         $this->assertSame($container, $container->get(ContainerWrapper::class)->container);
 
         $this->assertStringContainsString("\$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\ContainerWrapper'] = new \Arakne\Tests\Spinneret\Container\Fixtures\ContainerWrapper(\$this)", $compiled);
+    }
+
+
+    #[Test]
+    public function valueService()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SingleLiteralClass::class)->value(new SingleLiteralClass('test'))->public();
+
+        $compiled = $builder->build()->compile(new PhpClassContainerCompiler('ValueServiceContainer'));
+        eval($compiled);
+        $container = new \ValueServiceContainer();
+
+        $this->assertStringContainsString("\$this->instances['Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass'] = new \Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass('test')", $compiled);
+
+        $this->assertTrue($container->has(SingleLiteralClass::class));
+        $this->assertInstanceOf(SingleLiteralClass::class, $container->get(SingleLiteralClass::class));
+        $instance = $container->get(SingleLiteralClass::class);
+        $this->assertSame('test', $instance->value);
+        $this->assertSame($instance, $container->get(SingleLiteralClass::class));
     }
 
     private function compileContainer(ContainerBuilder $builder): SpinneretContainerInterface

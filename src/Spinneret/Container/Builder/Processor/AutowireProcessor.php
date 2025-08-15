@@ -49,7 +49,7 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
         $toProcess = [];
 
         foreach ($services as $service) {
-            if ($service->runtime) {
+            if ($service->runtime || $service->value !== null) {
                 continue;
             }
 

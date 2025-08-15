@@ -28,8 +28,6 @@ use function is_object;
 
 /**
  * Builder for service metadata.
- *
- * @todo add fluent setters for all properties + handle "value" service (i.e. use constant value instead of class or factory).
  */
 final class ServiceBuilder implements ValidatableInterface
 {
@@ -43,9 +41,25 @@ final class ServiceBuilder implements ValidatableInterface
     public array $arguments = [];
 
     /**
+     * Define the factory function or method to used instead of the class constructor.
+     *
      * @var ServiceFactoryInterface|Closure|callable-string|null
      */
     public ServiceFactoryInterface|Closure|string|null $factory = null;
+
+    /**
+     * Define the service as an inline value.
+     *
+     * If a {@see ValueInterface} is used, it will be resolved using {@see ValueInterface::resolve()}.
+     * If used into a compiled container, the value will be compiled using the {@see ValueInterface::compile()},
+     * or {@see Literal::dump()} in case of a literal value.
+     *
+     * Value service should be `shared`. Non-shared value services may lead to inconsistencies between compiled and non-compiled containers.
+     * No autowiring will be applied to the value, so it must be a valid value.
+     *
+     * @var mixed
+     */
+    public mixed $value = null;
 
     /**
      * @var list<string|object>
@@ -166,6 +180,25 @@ final class ServiceBuilder implements ValidatableInterface
     public function factory(ServiceFactoryInterface|Closure|string|null $factory): self
     {
         $this->factory = $factory;
+
+        return $this;
+    }
+
+    /**
+     * Define the service as an inline value.
+     *
+     * If a {@see ValueInterface} is used, it will be resolved using {@see ValueInterface::resolve()}.
+     * If used into a compiled container, the value will be compiled using the {@see ValueInterface::compile()},
+     * or {@see Literal::dump()} in case of a literal value.
+     *
+     * Note: Value service should be `shared`. Non-shared value services may lead to inconsistencies between compiled and non-compiled containers.
+     *
+     * @param mixed $value The value to set as the service value.
+     * @return $this
+     */
+    public function value(mixed $value): self
+    {
+        $this->value = $value;
 
         return $this;
     }
@@ -351,6 +384,10 @@ final class ServiceBuilder implements ValidatableInterface
             return true;
         }
 
+        if ($this->value !== null) {
+            return !$this->value instanceof ValidatableInterface || $this->value->validate($builder);
+        }
+
         $factory = $this->resolveFactory();
 
         if ($this->class === null && $factory === null) {
@@ -423,8 +460,18 @@ final class ServiceBuilder implements ValidatableInterface
             return null;
         }
 
-        if ($this->ignoreIfInvalid && $this->factory === null && $this->class === null) {
+        if ($this->ignoreIfInvalid && $this->factory === null && $this->class === null && $this->value === null) {
             return null;
+        }
+
+        if ($this->value !== null) {
+            return new ServiceMetadata(
+                class: $this->class,
+                value: ($this->value instanceof ValueInterface ? $this->value : new Literal($this->value)),
+                tags: $this->buildTags(),
+                ignoreIfInvalid: $this->ignoreIfInvalid,
+                shared: $this->shared,
+            );
         }
 
         try {
@@ -454,6 +501,13 @@ final class ServiceBuilder implements ValidatableInterface
     {
         if (!$this->validate($builder)) {
             return null;
+        }
+
+        if ($this->value !== null) {
+            return $this->value instanceof ValueInterface
+                ? $this->value
+                : new Literal($this->value)
+            ;
         }
 
         try {

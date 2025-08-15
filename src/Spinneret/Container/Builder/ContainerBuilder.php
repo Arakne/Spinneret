@@ -56,6 +56,9 @@ use function sprintf;
  * // The first element is the reference, the second is the method name.
  * $builder->register(MyComplexService::class)->factory([new Reference(MyServiceFactory::class), 'create']);
  *
+ * // You can also directly use a value to register a service.
+ * $builder->register(MyValueService::class)->value(new MyValueService('foo', 42));
+ *
  * // You can add tags to services.
  * $builder->register(FooHandler::class)->tag(HandlerTag::class);
  * $builder->register(BarHandler::class)->tag(HandlerTag::class);

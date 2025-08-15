@@ -173,14 +173,18 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
 
     private function buildServiceInstantiation(string $id, ServiceMetadata $service): string
     {
-        $arguments = $this->buildArguments($service->arguments);
-        $factory = $service->factory;
-
-        if ($factory === null) {
-            assert($service->class !== null);
-            $instantiation = sprintf('new \%s(%s)', $service->class, $arguments);
+        if ($service->value !== null) {
+            $instantiation = $service->value->compile();
         } else {
-            $instantiation = $factory->compile($arguments);
+            $arguments = $this->buildArguments($service->arguments);
+            $factory = $service->factory;
+
+            if ($factory === null) {
+                assert($service->class !== null);
+                $instantiation = sprintf('new \%s(%s)', $service->class, $arguments);
+            } else {
+                $instantiation = $factory->compile($arguments);
+            }
         }
 
         if ($service->shared) {
