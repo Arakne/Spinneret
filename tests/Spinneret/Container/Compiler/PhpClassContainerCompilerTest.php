@@ -56,6 +56,7 @@ use function bin2hex;
 use function class_exists;
 use function file_put_contents;
 use function iterator_to_array;
+use function ksort;
 use function random_bytes;
 
 class PhpClassContainerCompilerTest extends TestCase
@@ -524,6 +525,8 @@ class PhpClassContainerCompilerTest extends TestCase
                         $handlers[$attribute->message] = new Reference($service->id);
                     }
                 }
+
+                ksort($handlers); // For consistent order on tests
 
                 $dispatcher->arguments[0] = $handlers;
             }

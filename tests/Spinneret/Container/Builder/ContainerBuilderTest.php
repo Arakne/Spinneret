@@ -57,6 +57,7 @@ use PHPUnit\Framework\TestCase;
 use SplPriorityQueue;
 
 use function iterator_to_array;
+use function ksort;
 use function var_dump;
 
 class ContainerBuilderTest extends TestCase
@@ -842,6 +843,8 @@ class ContainerBuilderTest extends TestCase
                         $handlers[$attribute->message] = new Reference($service->id);
                     }
                 }
+
+                ksort($handlers); // For consistent order on build
 
                 $dispatcher->arguments[0] = $handlers;
             }
