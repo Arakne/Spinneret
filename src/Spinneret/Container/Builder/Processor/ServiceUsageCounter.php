@@ -47,6 +47,11 @@ final class ServiceUsageCounter
         $counter = new self();
 
         foreach ($builder->services as $service) {
+            if ($service->value !== null) {
+                self::processValue($builder, $counter, $service->value);
+                continue;
+            }
+
             $factory = $service->resolveFactory();
 
             if ($factory instanceof MethodServiceFactory) {

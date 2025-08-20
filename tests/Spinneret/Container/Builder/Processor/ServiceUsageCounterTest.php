@@ -29,14 +29,17 @@ class ServiceUsageCounterTest extends TestCase
                 'foo' => new Reference(ClassWithLiteralArguments::class),
                 'bar' => new Reference(SingleLiteralClass::class),
             ],
+            new Reference('foo'),
         ]])->public();
+        $builder->register('foo')->value(new Reference(SingleLiteralClass::class)->property('value'));
 
         $counter = ServiceUsageCounter::fromContainerBuilder($builder);
 
         $this->assertSame([
             SimpleClass::class => ServiceUsageCounter::PUBLIC,
             ClassWithLiteralArguments::class => 1,
-            SingleLiteralClass::class => 1,
+            SingleLiteralClass::class => 2,
+            'foo' => 1,
         ], $counter->services);
 
         $this->assertFalse($counter->unused(SimpleClass::class));

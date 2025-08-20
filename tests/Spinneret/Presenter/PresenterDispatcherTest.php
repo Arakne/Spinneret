@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Presenter;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\PresenterDispatcher;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Tests\Spinneret\Presenter\Fixtures\MyPresenter;
@@ -9,15 +10,15 @@ use Arakne\Tests\Spinneret\Presenter\Fixtures\MyRequest;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class PresenterDispatcherTest extends TestCase
 {
     #[Test]
     public function dispatchSuccess()
     {
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $container->set(MyPresenter::class, $presenter = new MyPresenter());
+        $container = $container->build();
         $dispatcher = new PresenterDispatcher($container, [
             MyRequest::class => MyPresenter::class,
         ]);
@@ -36,8 +37,9 @@ class PresenterDispatcherTest extends TestCase
     #[Test]
     public function dispatchError()
     {
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $container->set(MyPresenter::class, $presenter = new MyPresenter());
+        $container = $container->build();
         $dispatcher = new PresenterDispatcher($container, [
             MyRequest::class => MyPresenter::class,
         ]);
@@ -60,7 +62,8 @@ class PresenterDispatcherTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('No presenter found for Arakne\Tests\Spinneret\Presenter\Fixtures\MyRequest');
 
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
+        $container = $container->build();
         $dispatcher = new PresenterDispatcher($container, []);
 
         $routedRequest = new RoutedRequest(

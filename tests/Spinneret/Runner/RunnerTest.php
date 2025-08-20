@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\Runner;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use Arakne\Spinneret\Presenter\PresenterDispatcher;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
@@ -27,8 +28,8 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Quatrevieux\Form\DefaultFormFactory;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 
@@ -37,18 +38,18 @@ class RunnerTest extends TestCase
     private PresenterDispatcher $presenterDispatcher;
     private Router $router;
     private Engine $view;
-    private ContainerBuilder $container;
+    private ContainerInterface $container;
 
     protected function setUp(): void
     {
-        $container = new ContainerBuilder();
-        $container->autowire(FooPresenter::class, FooPresenter::class);
-        $container->autowire(FooSuccessRenderer::class, FooSuccessRenderer::class);
-        $container->autowire(FooErrorRenderer::class, FooErrorRenderer::class);
-        $container->autowire(InternalServerErrorPresenter::class, InternalServerErrorPresenter::class);
-        $container->autowire(InternalServerErrorRenderer::class, InternalServerErrorRenderer::class);
+        $container = new ContainerBuilder(registerAsPublic: true);
+        $container->register(FooPresenter::class);
+        $container->register(FooSuccessRenderer::class);
+        $container->register(FooErrorRenderer::class);
+        $container->register(InternalServerErrorPresenter::class);
+        $container->register(InternalServerErrorRenderer::class);
 
-        $this->container = $container;
+        $this->container = $container->build();
 
         $routesBuilder = new RouteCollectionBuilder();
         $routesBuilder->get('/foo', FooRequest::class);
@@ -58,12 +59,12 @@ class RunnerTest extends TestCase
             new UrlMatcher($routesBuilder->routes, new RequestContext()),
             DefaultFormFactory::runtime()
         );
-        $this->presenterDispatcher = new PresenterDispatcher($container, [
+        $this->presenterDispatcher = new PresenterDispatcher($this->container, [
             FooRequest::class => FooPresenter::class,
             InternalServerError::class => InternalServerErrorPresenter::class,
         ]);
         $this->view = new Engine(
-            $container,
+            $this->container,
             new Psr17Factory(),
             new Psr17Factory(),
             null,

@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Bus;
 
 use Arakne\Spinneret\Bus\BusDispatcher;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Router\Result\NotFound;
 use Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommand;
 use Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommandHandler;
@@ -12,20 +13,21 @@ use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObjectInternal;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class BusDispatcherTest extends TestCase
 {
-    private ContainerBuilder $container;
+    private ContainerInterface $container;
     private LoggerInterface&MockObjectInternal $logger;
     private BusDispatcher $dispatcher;
 
     protected function setUp(): void
     {
-        $this->container = new ContainerBuilder();
-        $this->container->set(FooCommandHandler::class, new FooCommandHandler());
-        $this->container->set(ErrorCommandHandler::class, new ErrorCommandHandler());
+        $container = new ContainerBuilder(registerAsPublic: true);
+        $container->set(FooCommandHandler::class, new FooCommandHandler());
+        $container->set(ErrorCommandHandler::class, new ErrorCommandHandler());
+        $this->container = $container->build();
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->dispatcher = new BusDispatcher(
             $this->container,

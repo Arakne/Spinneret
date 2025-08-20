@@ -27,6 +27,8 @@ final readonly class ServiceConfiguratorAttributeConfigurator implements Configu
     #[Override]
     public function configure(ServiceBuilder $service, ContainerBuilder $containerBuilder): void
     {
+        $service->ignorable(false);
+
         foreach ($service->reflection()?->getAttributes(ServiceConfiguratorAttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF) ?? [] as $attribute) {
             $instance = $attribute->newInstance();
             $instance->configure($service, $containerBuilder);

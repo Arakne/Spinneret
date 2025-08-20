@@ -4,78 +4,66 @@ namespace Arakne\Spinneret\Event\Processor;
 
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\Processor\ContainerBuilderProcessorInterface;
-use Arakne\Spinneret\Event\EventDispatcher;
-use LogicException;
+use Arakne\Spinneret\Container\Value\Reference;
+use Arakne\Spinneret\Event\Attribute\EventListener;
+use Arakne\Spinneret\Event\ContainerListenerProvider;
+use Closure;
 use Override;
-use ReflectionException;
 use ReflectionMethod;
-use ReflectionNamedType;
 
-use function class_exists;
-use function count;
+use function assert;
+use function is_array;
 
 /**
- * Register listeners tagged with the "spinneret.event.listener" tag.
- * If the "event" attribute is not provided, the event class is resolved from the handler parameter type.
+ * Register listeners tagged with the {@see EventListener} tag.
  *
- * @todo migrate
+ * It also parse all public methods of all services with the {@see EventListener} attribute
+ * to automatically register them as listeners.
  */
 final readonly class RegisterListenersProcessor implements ContainerBuilderProcessorInterface
 {
-    public const string TAG = 'spinneret.event.listener';
-
     #[Override]
     public function process(ContainerBuilder $builder): void
     {
-        //$definition = $builder->getDefinition(EventDispatcher::class);
-        ///** @var array<string, list<string>> $listeners */
-        //$listeners = $definition->getArgument(1);
-        //
-        //foreach ($builder->findTaggedServiceIds(self::TAG) as $id => $tags) {
-        //    /** @var class-string $messageClass */
-        //    $messageClass = $tags[0]['event'] ?? $this->resolveEventClass($builder, $id);
-        //    $listeners[$messageClass][] = $id;
-        //    $builder->getDefinition($id)->setPublic(true);
-        //}
-        //
-        //$definition->setArgument(1, $listeners);
+        $this->registerMethodListeners($builder);
+        $this->setupContainerListenerProvider($builder);
     }
-    //
-    ///**
-    // * @param ContainerBuilder $builder
-    // * @param string $id
-    // * @return class-string
-    // *
-    // * @throws ReflectionException
-    // */
-    //public function resolveEventClass(ContainerBuilder $builder, string $id): string
-    //{
-    //    /** @var class-string $listenerClass */
-    //    $listenerClass = $builder->getDefinition($id)->getClass() ?? $id;
-    //
-    //    if (!method_exists($listenerClass, '__invoke')) {
-    //        throw new LogicException("Listener $listenerClass must have an __invoke method");
-    //    }
-    //
-    //    $reflection = new ReflectionMethod($listenerClass, '__invoke');
-    //    $parameters = $reflection->getParameters();
-    //
-    //    if (count($parameters) !== 1) {
-    //        throw new LogicException("Listener $listenerClass must have exactly one parameter");
-    //    }
-    //
-    //    $type = $parameters[0]->getType();
-    //
-    //    if (!$type instanceof ReflectionNamedType) {
-    //        throw new LogicException("Listener $listenerClass must have a typed parameter, or use the event attribute to explicitly define the event class");
-    //    }
-    //
-    //    $type = $type->getName();
-    //
-    //    if (!class_exists($type)) {
-    //        throw new LogicException("The type $type is not a valid event class");
-    //    }
-    //
-    //    return $type;
-    //}
+
+    private function registerMethodListeners(ContainerBuilder $builder): void
+    {
+        foreach ($builder->services as $service) {
+            if (($reflection = $service->reflection()) === null) {
+                continue;
+            }
+
+            foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                foreach ($method->getAttributes(EventListener::class) as $reflectionAttribute) {
+                    $listenerService = $builder
+                        ->anonymous(Closure::class)
+                        ->value(new Reference($service->id)->method($method->name)->fcc())
+                        ->public()
+                    ;
+
+                    foreach ($reflectionAttribute->newInstance()->resolveWithReflectionMethod($method) as $attribute) {
+                        $listenerService->tag($attribute);
+                    }
+                }
+            }
+        }
+    }
+
+    private function setupContainerListenerProvider(ContainerBuilder $builder): void
+    {
+        $provider = $builder->services[ContainerListenerProvider::class];
+        $listeners = $provider->arguments[1] ?? [];
+        assert(is_array($listeners));
+
+        foreach ($builder->findByTag(EventListener::class) as $service => $tags) {
+            foreach ($tags as $tag) {
+                $listeners[$tag->eventClass][] = $service->id;
+            }
+        }
+
+        $provider->set(1, $listeners);
+    }
 }

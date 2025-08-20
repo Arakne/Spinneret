@@ -2,6 +2,7 @@
 
 namespace Arakne\Tests\Spinneret\View;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\View\Engine;
 use Arakne\Spinneret\View\View;
 use Arakne\Tests\Spinneret\View\Fixtures\EmbeddedComponent;
@@ -24,7 +25,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use stdClass;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class EngineTest extends TestCase
 {
@@ -33,7 +33,7 @@ class EngineTest extends TestCase
 
     protected function setUp(): void
     {
-        $container = new ContainerBuilder();
+        $container = new ContainerBuilder(registerAsPublic: true);
         $container->set(SimpleRenderer::class, $this->renderer = new SimpleRenderer());
         $container->set(RendererWithResponseConfigurator::class, new RendererWithResponseConfigurator());
         $container->set(WithParentRenderer::class, new WithParentRenderer());
@@ -41,6 +41,8 @@ class EngineTest extends TestCase
         $container->set(OnlyResponseConfigurator::class, new OnlyResponseConfigurator());
         $container->set(EmbeddedComponentRenderer::class, new EmbeddedComponentRenderer());
         $container->set(WithEmbeddedRenderer::class, new WithEmbeddedRenderer());
+
+        $container = $container->build();
 
         $this->engine = new Engine(
             $container,

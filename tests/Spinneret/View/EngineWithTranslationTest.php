@@ -2,9 +2,9 @@
 
 namespace Arakne\Tests\Spinneret\View;
 
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\View\Engine;
 use Arakne\Spinneret\View\ViewLocaleResolverInterface;
-use Arakne\Tests\Spinneret\View\Fixtures\SimpleRenderer;
 use Arakne\Tests\Spinneret\View\Fixtures\WithTranslation;
 use Arakne\Tests\Spinneret\View\Fixtures\WithTranslationRenderer;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -13,7 +13,6 @@ use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Translation\Loader\PhpFileLoader;
 use Symfony\Component\Translation\Translator;
 
@@ -28,7 +27,7 @@ class EngineWithTranslationTest extends TestCase
     protected function setUp(): void
     {
         $container = new ContainerBuilder();
-        $container->set(WithTranslationRenderer::class, new WithTranslationRenderer());
+        $container->set(WithTranslationRenderer::class, new WithTranslationRenderer())->public();
 
         $translator = new Translator('en');
         $translator->addLoader('php', new PhpFileLoader());
@@ -36,7 +35,7 @@ class EngineWithTranslationTest extends TestCase
         $translator->addResource('php', __DIR__ . '/Fixtures/translations/fr.php', 'fr');
 
         $this->engine = new Engine(
-            $container,
+            $container->build(),
             new Psr17Factory(),
             new Psr17Factory(),
             $translator,
