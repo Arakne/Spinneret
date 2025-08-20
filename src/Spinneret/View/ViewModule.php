@@ -3,10 +3,9 @@
 namespace Arakne\Spinneret\View;
 
 use Arakne\Spinneret\Application\ModuleInterface;
-use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\View\Processor\RegisterViewRenderersProcessor;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -53,7 +52,4 @@ final class ViewModule implements ModuleInterface
         $containerBuilder->alias(ViewEngineInterface::class, Engine::class);
         $containerBuilder->alias(ForwarderInterface::class, DispatcherForwarder::class);
     }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void {}
 }

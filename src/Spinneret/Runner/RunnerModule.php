@@ -4,10 +4,9 @@ namespace Arakne\Spinneret\Runner;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RouterInterface;
 use Arakne\Spinneret\Runner\Backend\Httpd\HttpdBackend;
 use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanBackend;
@@ -90,12 +89,6 @@ final readonly class RunnerModule implements ConfigurableModuleInterface
         if ($this->config->workerman?->enable === true) {
             $this->registerWorkermanBackend($containerBuilder);
         }
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 
     private function registerHttpdBackend(ContainerBuilder $containerBuilder): void

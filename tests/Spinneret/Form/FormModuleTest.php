@@ -6,7 +6,6 @@ use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Form\Csrf\CsrfHelper;
 use Arakne\Spinneret\Form\FormModule;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Form\Fixtures\SimpleForm;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -17,20 +16,9 @@ use Quatrevieux\Form\FormFactoryInterface;
 use Quatrevieux\Form\FormInterface;
 use Quatrevieux\Form\RegistryInterface;
 use Quatrevieux\Form\Transformer\RuntimeFormTransformer;
-use Symfony\Component\Routing\RouteCollection;
 
 class FormModuleTest extends TestCase
 {
-    #[Test]
-    public function emptyMethods()
-    {
-        $routerModule = new FormModule();
-        $routes = new RouteCollectionBuilder();
-        $routerModule->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function registerNotDevShouldCreateGeneratedForm()
     {

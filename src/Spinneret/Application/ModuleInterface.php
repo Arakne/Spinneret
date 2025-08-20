@@ -3,7 +3,6 @@
 namespace Arakne\Spinneret\Application;
 
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 
 /**
  * Base type for register routes, presenters, renderers and services on the application
@@ -27,17 +26,4 @@ interface ModuleInterface
      * @return void
      */
     public function register(ContainerBuilder $containerBuilder): void;
-
-    /**
-     * Register routes
-     *
-     * Note: this method is only called during the build of the container,
-     *       so it's not possible to use dynamic configuration (e.g. feature flags resolved during runtime).
-     *
-     * @param RouteCollectionBuilder $builder
-     * @return void
-     *
-     * @todo Use another interface for module which can define routes
-     */
-    public function configureRoutes(RouteCollectionBuilder $builder): void;
 }

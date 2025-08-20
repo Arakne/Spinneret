@@ -4,8 +4,8 @@ namespace Arakne\Spinneret\Router;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
@@ -102,12 +102,6 @@ final readonly class RouterModule implements ConfigurableModuleInterface
             ->factory(self::createRequestContext(...))
             ->arg(new Reference(RouterConfig::class))
         ;
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 
     public static function createRequestContext(RouterConfig $config): RequestContext

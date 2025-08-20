@@ -10,24 +10,12 @@ use Arakne\Spinneret\Logger\LoggerConfiguration;
 use Arakne\Spinneret\Logger\LoggerDispatcher;
 use Arakne\Spinneret\Logger\LoggerFilter;
 use Arakne\Spinneret\Logger\LoggerModule;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Routing\RouteCollection;
 
 class LoggerModuleTest extends TestCase
 {
-    #[Test]
-    public function emptyMethods()
-    {
-        $module = new LoggerModule();
-        $routes = new RouteCollectionBuilder();
-        $module->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function register()
     {

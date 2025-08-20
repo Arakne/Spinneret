@@ -3,13 +3,12 @@
 namespace Arakne\Spinneret\Logger;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Value\ValueInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Value\Call;
 use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Value\Reference;
-use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Value\ValueInterface;
 use Arakne\Spinneret\Logger\Driver\FileLogger;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use InvalidArgumentException;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -53,12 +52,6 @@ final readonly class LoggerModule implements ConfigurableModuleInterface
         }
 
         $containerBuilder->alias(LoggerInterface::class, LoggerDispatcher::class);
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 
     private function createLogger(LogChannel $channel): ValueInterface

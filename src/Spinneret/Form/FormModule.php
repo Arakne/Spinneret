@@ -4,11 +4,10 @@ namespace Arakne\Spinneret\Form;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\ServiceBuilder;
 use Arakne\Spinneret\Container\Value\Reference;
-use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Form\Csrf\CsrfHelper;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
 use Psr\Container\ContainerInterface;
 use Quatrevieux\Form\ContainerRegistry;
@@ -51,11 +50,5 @@ final class FormModule implements ModuleInterface
         $containerBuilder->register(CsrfHelper::class, [new Reference(FormFactoryInterface::class)]);
 
         $containerBuilder->alias(RegistryInterface::class, ContainerRegistry::class);
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 }

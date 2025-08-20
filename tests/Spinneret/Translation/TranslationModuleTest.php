@@ -4,29 +4,17 @@ namespace Arakne\Tests\Spinneret\Translation;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Translation\CollectorTranslator;
 use Arakne\Spinneret\Translation\TranslationConfig;
 use Arakne\Spinneret\Translation\TranslationModule;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Translation\PseudoLocalizationTranslator;
 use Symfony\Component\Translation\Translator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class TranslationModuleTest extends TestCase
 {
-    #[Test]
-    public function emptyMethods()
-    {
-        $module = TranslationModule::create(new Application());
-        $routes = new RouteCollectionBuilder();
-        $module->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function register()
     {

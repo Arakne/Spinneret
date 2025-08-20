@@ -4,9 +4,8 @@ namespace Arakne\Spinneret\Translation;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
 use Locale;
 use Override;
 use Symfony\Component\Translation\Loader\PhpFileLoader;
@@ -81,12 +80,6 @@ final readonly class TranslationModule implements ConfigurableModuleInterface
     public function configuration(): object
     {
         return $this->config;
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 
     public static function createTranslator(TranslationConfig $config): Translator

@@ -3,9 +3,8 @@
 namespace Arakne\Spinneret\Security;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Security\Serializer\CookieSerializerInterface;
 use Arakne\Spinneret\Security\Serializer\HmacCookieSerializer;
 use Arakne\Spinneret\Security\User\ObjectUserHandler;
@@ -81,12 +80,6 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
             new Reference(Randomizer::class, nullOnInvalid: true),
             new Reference(ClockInterface::class, nullOnInvalid: true),
         ]);
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 
     public static function createUserMiddleware(CookieSerializerInterface $serializer, AuthenticationCookieHelper $cookieHelper, SecurityConfig $config): LoadSessionMiddleware

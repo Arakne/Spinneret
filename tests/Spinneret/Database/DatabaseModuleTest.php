@@ -20,7 +20,6 @@ use Arakne\Spinneret\Database\Migration\Repository\MigrationRepositoryInterface;
 use Arakne\Spinneret\Database\Migration\Repository\NullMigrationRepository;
 use Arakne\Spinneret\Database\Migration\Repository\SqlMigrationRepository;
 use Arakne\Spinneret\Logger\Driver\ArrayLogger;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Database\Fixtures\MyEntityModule;
 use Arakne\Tests\Spinneret\Database\Fixtures\MyEntityRepository;
 use Arakne\Tests\Spinneret\Database\Fixtures\OtherRepository;
@@ -31,21 +30,9 @@ use Arakne\Tests\Spinneret\Database\Migration\Fixtures\SkippedMigration;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Routing\RouteCollection;
 
 class DatabaseModuleTest extends TestCase
 {
-
-    #[Test]
-    public function emptyMethods()
-    {
-        $databaseModule = new DatabaseModule();
-        $routes = new RouteCollectionBuilder();
-        $databaseModule->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function register()
     {

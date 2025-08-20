@@ -7,7 +7,6 @@ use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Event\Attribute\EventListener;
 use Arakne\Spinneret\Event\Processor\RegisterListenersProcessor;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -45,11 +44,5 @@ final readonly class EventModule implements ModuleInterface
 
         $containerBuilder->alias(ListenerProviderInterface::class, ContainerListenerProvider::class);
         $containerBuilder->alias(EventDispatcherInterface::class, EventDispatcher::class);
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 }

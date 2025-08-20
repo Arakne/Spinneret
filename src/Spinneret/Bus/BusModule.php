@@ -4,9 +4,8 @@ namespace Arakne\Spinneret\Bus;
 
 use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Bus\Processor\RegisterHandlersProcessor;
-use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
 use Override;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -37,11 +36,5 @@ final readonly class BusModule implements ModuleInterface
         ]);
 
         $containerBuilder->alias(BusDispatcherInterface::class, BusDispatcher::class);
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 }

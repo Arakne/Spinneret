@@ -6,6 +6,7 @@ use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\Attribute\Presenter;
 use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Router\RouteConfiguratorInterface;
 use Arakne\Spinneret\View\Attribute\Renderer;
 use Arakne\Spinneret\View\ViewRendererInterface;
 use Override;
@@ -41,7 +42,7 @@ use Override;
  *     }
  * }
  */
-abstract class AbstractModule implements ModuleInterface
+abstract class AbstractModule implements ModuleInterface, RouteConfiguratorInterface
 {
     /**
      * @var array<class-string, class-string<PresenterInterface>>

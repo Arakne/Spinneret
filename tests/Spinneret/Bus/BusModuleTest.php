@@ -8,7 +8,6 @@ use Arakne\Spinneret\Bus\BusDispatcher;
 use Arakne\Spinneret\Bus\BusDispatcherInterface;
 use Arakne\Spinneret\Bus\BusModule;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Bus\Fixtures\FooCommand;
 use Arakne\Tests\Spinneret\Bus\Fixtures\FooCommandHandler;
 use Arakne\Tests\Spinneret\Bus\Fixtures\GenericHandler;
@@ -19,20 +18,9 @@ use Arakne\Tests\Spinneret\Bus\Fixtures\InvalidHandlerWithoutParameters;
 use ArrayObject;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Routing\RouteCollection;
 
 class BusModuleTest extends TestCase
 {
-    #[Test]
-    public function emptyMethods()
-    {
-        $routerModule = new BusModule();
-        $routes = new RouteCollectionBuilder();
-        $routerModule->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function register()
     {

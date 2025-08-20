@@ -3,11 +3,11 @@
 namespace Arakne\Spinneret\Database;
 
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
-use Arakne\Spinneret\Container\Value\ValueInterface;
-use Arakne\Spinneret\Container\Value\Reference;
-use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\ServiceBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
+use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
+use Arakne\Spinneret\Container\Value\ValueInterface;
 use Arakne\Spinneret\Database\Argument\UseConnection as DatabaseConnectionArgument;
 use Arakne\Spinneret\Database\Migration\Console\MigrationDownCommand;
 use Arakne\Spinneret\Database\Migration\Console\MigrationStatusCommand;
@@ -17,7 +17,6 @@ use Arakne\Spinneret\Database\Migration\MigrationManager;
 use Arakne\Spinneret\Database\Migration\Repository\MigrationRepositoryInterface;
 use Arakne\Spinneret\Database\Migration\Repository\NullMigrationRepository;
 use Arakne\Spinneret\Database\Migration\Repository\SqlMigrationRepository;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
@@ -72,12 +71,6 @@ final readonly class DatabaseModule implements ConfigurableModuleInterface
         if ($this->config->useMigration) {
             $this->registerMigration($containerBuilder);
         }
-    }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void
-    {
-        // No-op
     }
 
     private function registerMigration(ContainerBuilder $containerBuilder): void

@@ -10,8 +10,6 @@ use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompilerInterface;
 use Arakne\Spinneret\Router\Result\MethodNotAllowed;
-use Arakne\Spinneret\Router\Result\NotFound;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RouteCollectionLoader;
 use Arakne\Spinneret\Router\RouteCollectionLoaderInterface;
 use Arakne\Spinneret\Router\Router;
@@ -31,22 +29,9 @@ use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
 use Quatrevieux\Form\FormFactoryInterface;
 use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\RouteCollection;
-
-use function var_dump;
 
 class RouterModuleTest extends TestCase
 {
-    #[Test]
-    public function emptyMethods()
-    {
-        $routerModule = new RouterModule();
-        $routes = new RouteCollectionBuilder();
-        $routerModule->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function register()
     {

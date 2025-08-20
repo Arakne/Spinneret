@@ -8,25 +8,13 @@ use Arakne\Spinneret\Presenter\PresenterDispatcher;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
 use Arakne\Spinneret\Presenter\PresenterModule;
 use Arakne\Spinneret\Presenter\RequestPresenter;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
 use Quatrevieux\Form\FormFactoryInterface;
-use Symfony\Component\Routing\RouteCollection;
 
 class PresenterModuleTest extends TestCase
 {
-    #[Test]
-    public function emptyMethods()
-    {
-        $routerModule = new PresenterModule();
-        $routes = new RouteCollectionBuilder();
-        $routerModule->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function register()
     {

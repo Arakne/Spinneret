@@ -3,10 +3,9 @@
 namespace Arakne\Spinneret\Presenter;
 
 use Arakne\Spinneret\Application\ModuleInterface;
-use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Presenter\Processor\RegisterPresentersProcessor;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Override;
 use Psr\Container\ContainerInterface;
 
@@ -36,7 +35,4 @@ final class PresenterModule implements ModuleInterface
         $containerBuilder->alias(PresenterDispatcherInterface::class, PresenterDispatcher::class);
         $containerBuilder->register(RequestPresenter::class)->public();
     }
-
-    #[Override]
-    public function configureRoutes(RouteCollectionBuilder $builder): void {}
 }

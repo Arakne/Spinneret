@@ -4,7 +4,6 @@ namespace Arakne\Tests\Spinneret\Security;
 
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Security\AuthenticationCookieHelper;
 use Arakne\Spinneret\Security\LoadSessionMiddleware;
 use Arakne\Spinneret\Security\SecurityConfig;
@@ -17,20 +16,9 @@ use Arakne\Spinneret\Security\User\UserHandlerInterface;
 use Arakne\Tests\Spinneret\Security\Fixtures\TestUserHandler;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Routing\RouteCollection;
 
 class SecurityModuleTest extends TestCase
 {
-    #[Test]
-    public function emptyMethods()
-    {
-        $routerModule = new SecurityModule();
-        $routes = new RouteCollectionBuilder();
-        $routerModule->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function register()
     {

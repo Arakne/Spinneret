@@ -30,8 +30,9 @@ final readonly class RouteCollectionLoader implements RouteCollectionLoaderInter
         }
 
         foreach ($application->modules() as $module) {
-            // @todo Call only modules that define routes
-            $module->configureRoutes($builder);
+            if ($module instanceof RouteConfiguratorInterface) {
+                $module->configureRoutes($builder);
+            }
         }
 
         return $builder->routes;

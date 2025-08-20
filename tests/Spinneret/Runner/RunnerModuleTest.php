@@ -5,7 +5,6 @@ namespace Arakne\Tests\Spinneret\Runner;
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
-use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RouterInterface;
 use Arakne\Spinneret\Runner\Backend\Httpd\HttpdBackend;
 use Arakne\Spinneret\Runner\Backend\Workerman\WorkermanBackend;
@@ -25,21 +24,9 @@ use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
-use Symfony\Component\Routing\RouteCollection;
 
 class RunnerModuleTest extends TestCase
 {
-
-    #[Test]
-    public function emptyMethods()
-    {
-        $runnerModule = new RunnerModule();
-        $routes = new RouteCollectionBuilder();
-        $runnerModule->configureRoutes($routes);
-
-        $this->assertEquals(new RouteCollection(), $routes->routes);
-    }
-
     #[Test]
     public function register()
     {
