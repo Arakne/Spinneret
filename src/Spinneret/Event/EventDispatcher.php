@@ -21,11 +21,17 @@ final readonly class EventDispatcher implements EventDispatcherInterface
         private ?LoggerInterface $logger = null
     ) {}
 
+    /**
+     * @param T $event
+     * @return T
+     * @template T as object
+     */
     #[Override]
     public function dispatch(object $event): object
     {
         $eventClass = $event::class;
 
+        /** @var callable(T):void $listener */
         foreach ($this->listenerProvider->getListenersForEvent($event) as $listener) {
             try {
                 $this->logger?->debug(

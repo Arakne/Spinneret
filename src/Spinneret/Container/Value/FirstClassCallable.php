@@ -36,9 +36,10 @@ final readonly class FirstClassCallable implements ValueInterface, NestedValueIn
             return $this->function;
         }
 
-        return function (...$args) use ($container): mixed {
+        return function (mixed ...$args) use ($container): mixed {
             $factory = ServiceFactoryConverter::convert($this->function);
 
+            /** @psalm-suppress ArgumentTypeCoercion */
             return $factory->create($container, $args);
         };
     }
