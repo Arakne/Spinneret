@@ -403,7 +403,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute reused prepared query "{{ query }}"',
+                'message' => 'Execute reused prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE id = ?',
                     'parameters' => [[1, 1]],
@@ -426,7 +426,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute reused prepared query "{{ query }}"',
+                'message' => 'Execute reused prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT name FROM test WHERE id IN (?, ?) AND name LIKE ?',
                     'parameters' => [[1, 1], [3, 1], ['b%', 2]],
@@ -467,7 +467,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute reused prepared query "{{ query }}"',
+                'message' => 'Execute reused prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT name FROM test WHERE id = ?',
                     'parameters' => [[1, 1]],
@@ -475,21 +475,21 @@ class QueryStatementTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Reconnect to database {{ dsn }}',
+                'message' => 'Reconnect to database {dsn}',
                 'context' => [
                     'dsn' => $dsn,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Connect to database {{ dsn }}',
+                'message' => 'Connect to database {dsn}',
                 'context' => [
                     'dsn' => $dsn,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT name FROM test WHERE id = ?',
                     'parameters' => [[1, 1]],
@@ -513,7 +513,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT name FROM test WHERE id > 1',
                     'parameters' => [],
@@ -537,7 +537,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT name FROM test WHERE 1 = 1 AND id > 1',
                     'parameters' => [],
@@ -562,7 +562,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute reused prepared query "{{ query }}"',
+                'message' => 'Execute reused prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE id = ?',
                     'parameters' => [[2, 1]],
@@ -605,7 +605,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT name FROM test WHERE id IN (?, ?)',
                     'parameters' => [[2, 1], [3, 1]],
@@ -629,7 +629,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT name FROM test WHERE TRUE ',
                     'parameters' => [],
@@ -761,7 +761,7 @@ class QueryStatementTest extends TestCase
         $this->assertSame([
             [
                 'level' => 'debug',
-                'message' => 'Execute reused prepared query "{{ query }}"',
+                'message' => 'Execute reused prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE id = ? OR name IN (?)',
                     'parameters' => [[2, 1], ['baz', 2]],
@@ -801,7 +801,7 @@ class QueryStatementTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE id IN (?)',
                     'parameters' => [[null, 0]],
@@ -817,7 +817,7 @@ class QueryStatementTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE id IN (?)',
                     'parameters' => [[2, 2]],
@@ -834,7 +834,7 @@ class QueryStatementTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE id IN (?, ?)',
                     'parameters' => [[2, 2], [3, 2]],
@@ -851,7 +851,7 @@ class QueryStatementTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE id IN (?, ?, ?)',
                     'parameters' => [[2, 2], [3, 2], [4, 2]],
@@ -868,7 +868,7 @@ class QueryStatementTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE id IN (?, ?, ?, ?, ?)',
                     'parameters' => [[2, 2], [3, 2], [4, 2], [5, 2], [6, 2]],

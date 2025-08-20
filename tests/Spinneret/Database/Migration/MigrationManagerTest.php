@@ -81,7 +81,7 @@ class MigrationManagerTest extends TestCase
 
         $this->assertCount(3, $this->logger->logs);
         $this->assertEquals('info', $this->logger->logs[0]['level']);
-        $this->assertEquals('Migration {{ migration }} applied in {{ time }} ms', $this->logger->logs[0]['message']);
+        $this->assertEquals('Migration {migration} applied in {time} ms', $this->logger->logs[0]['message']);
         $this->assertEquals(['CreateStructureMigration', 'AddEntitiesMigration', 'SeparateNameColumnsMigration'], array_map(fn ($log) => $log['context']['migration'], $this->logger->logs));
         $this->assertEquals([CreateStructureMigration::class, AddEntitiesMigration::class, SeparateNameColumnsMigration::class], array_map(fn ($log) => $log['context']['migration_class'], $this->logger->logs));
 
@@ -125,7 +125,7 @@ class MigrationManagerTest extends TestCase
 
         $this->assertCount(1, $this->logger->logs);
         $this->assertEquals('info', $this->logger->logs[0]['level']);
-        $this->assertEquals('Migration {{ migration }} applied in {{ time }} ms', $this->logger->logs[0]['message']);
+        $this->assertEquals('Migration {migration} applied in {time} ms', $this->logger->logs[0]['message']);
         $this->assertEquals(['CreateStructureMigration'], array_map(fn ($log) => $log['context']['migration'], $this->logger->logs));
         $this->assertEquals([CreateStructureMigration::class], array_map(fn ($log) => $log['context']['migration_class'], $this->logger->logs));
 
@@ -195,7 +195,7 @@ class MigrationManagerTest extends TestCase
 
         $this->assertCount(1, $this->logger->logs);
         $this->assertEquals('info', $this->logger->logs[0]['level']);
-        $this->assertEquals('Migration {{ migration }} rolled back in {{ time }} ms', $this->logger->logs[0]['message']);
+        $this->assertEquals('Migration {migration} rolled back in {time} ms', $this->logger->logs[0]['message']);
         $this->assertEquals(['AddEntitiesMigration'], array_map(fn ($log) => $log['context']['migration'], $this->logger->logs));
         $this->assertEquals([AddEntitiesMigration::class], array_map(fn ($log) => $log['context']['migration_class'], $this->logger->logs));
 
@@ -302,7 +302,7 @@ class MigrationManagerTest extends TestCase
 
         $this->assertCount(1, $this->logger->logs);
         $this->assertEquals('info', $this->logger->logs[0]['level']);
-        $this->assertEquals('Migration {{ migration }} rolled back in {{ time }} ms', $this->logger->logs[0]['message']);
+        $this->assertEquals('Migration {migration} rolled back in {time} ms', $this->logger->logs[0]['message']);
         $this->assertEquals(['SeparateNameColumnsMigration'], array_map(fn ($log) => $log['context']['migration'], $this->logger->logs));
         $this->assertEquals([SeparateNameColumnsMigration::class], array_map(fn ($log) => $log['context']['migration_class'], $this->logger->logs));
 

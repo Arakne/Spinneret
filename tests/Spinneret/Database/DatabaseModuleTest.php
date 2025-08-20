@@ -164,7 +164,7 @@ class DatabaseModuleTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => '[test] Execute read query "{{ query }}"',
+                'message' => '[test] Execute read query "{query}"',
                 'context' => [
                     'query' => 'SELECT 1',
                     'database' => 'test',
@@ -172,7 +172,7 @@ class DatabaseModuleTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => '[test] Connect to database {{ dsn }}',
+                'message' => '[test] Connect to database {dsn}',
                 'context' => [
                     'dsn' => 'sqlite::memory:',
                     'database' => 'test',

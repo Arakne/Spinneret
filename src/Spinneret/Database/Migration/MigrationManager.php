@@ -76,7 +76,7 @@ final readonly class MigrationManager
 
             $time = round((microtime(true) - $start) * 1000.0, 2);
             $output("Migration {$migration->name()} applied in {$time}ms", true);
-            $this->logger?->info('Migration {{ migration }} applied in {{ time }} ms', [
+            $this->logger?->info('Migration {migration} applied in {time} ms', [
                 'migration' => $migration->name(),
                 'time' => $time,
                 'migration_class' => $migration::class,
@@ -119,7 +119,7 @@ final readonly class MigrationManager
 
             $time = round((microtime(true) - $start) * 1000.0, 2);
             $output("Migration {$migration->name()} rolled back in {$time}ms", true);
-            $this->logger?->info('Migration {{ migration }} rolled back in {{ time }} ms', [
+            $this->logger?->info('Migration {migration} rolled back in {time} ms', [
                 'migration' => $migration->name(),
                 'time' => $time,
                 'migration_class' => $migration::class,
@@ -161,7 +161,7 @@ final readonly class MigrationManager
 
             $time = round((microtime(true) - $start) * 1000.0, 2);
             $output("Migration {$migration->name()} rolled back in {$time}ms", true);
-            $this->logger?->info('Migration {{ migration }} rolled back in {{ time }} ms', [
+            $this->logger?->info('Migration {migration} rolled back in {time} ms', [
                 'migration' => $migration->name(),
                 'time' => $time,
                 'migration_class' => $migration::class,

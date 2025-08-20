@@ -65,7 +65,7 @@ class DatabaseConnectionTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute read query "{{ query }}"',
+                'message' => 'Execute read query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test ORDER BY id',
                 ],
@@ -116,7 +116,7 @@ class DatabaseConnectionTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute prepared query "{{ query }}"',
+                'message' => 'Execute prepared query "{query}"',
                 'context' => [
                     'query' => 'SELECT * FROM test WHERE name = ?',
                     'parameters' => [['foo', PDO::PARAM_STR]],
@@ -132,7 +132,7 @@ class DatabaseConnectionTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute write query "{{ query }}"',
+                'message' => 'Execute write query "{query}"',
                 'context' => [
                     'query' => 'UPDATE test SET name = "???" WHERE name LIKE "b%"',
                 ],
@@ -230,42 +230,42 @@ class DatabaseConnectionTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'debug',
-                'message' => 'Execute read query "{{ query }}"',
+                'message' => 'Execute read query "{query}"',
                 'context' => [
                     'query' => 'SELECT 1',
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Connect to database {{ dsn }}',
+                'message' => 'Connect to database {dsn}',
                 'context' => [
                     'dsn' => $dsn,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Execute write query "{{ query }}"',
+                'message' => 'Execute write query "{query}"',
                 'context' => [
                     'query' => 'SET SESSION wait_timeout=1',
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Execute read query "{{ query }}"',
+                'message' => 'Execute read query "{query}"',
                 'context' => [
                     'query' => 'SELECT 1',
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Reconnect to database {{ dsn }}',
+                'message' => 'Reconnect to database {dsn}',
                 'context' => [
                     'dsn' => $dsn,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Connect to database {{ dsn }}',
+                'message' => 'Connect to database {dsn}',
                 'context' => [
                     'dsn' => $dsn,
                 ],

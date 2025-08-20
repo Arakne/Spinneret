@@ -83,7 +83,7 @@ final class ErrorHandler
 
         $this->logger?->log(
             $this->severityToLevel($severity),
-            'Error {{ errno }} ' . $errstr . ' in {{ file }} on line {{ line }}',
+            'Error {errno} ' . $errstr . ' in {file} on line {line}',
             [
                 'errno' => $severity,
                 'file' => $errFile,
@@ -110,7 +110,7 @@ final class ErrorHandler
     private function handleException(Throwable $e): void
     {
         $this->logger?->critical(
-            'Uncaught exception {{ exception }}',
+            'Uncaught exception {exception}',
             [
                 'exception' => $e,
             ]

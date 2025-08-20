@@ -309,7 +309,7 @@ final class QueryStatement implements QueryStatementInterface
             }
         }
 
-        $this->logger?->debug('Execute reused prepared query "{{ query }}"', ['query' => $statement->queryString, 'parameters' => $parameters]);
+        $this->logger?->debug('Execute reused prepared query "{query}"', ['query' => $statement->queryString, 'parameters' => $parameters]);
 
         /**
          * @var int $position
@@ -333,7 +333,7 @@ final class QueryStatement implements QueryStatementInterface
         $query = $this->applyExpressions($this->query);
         [$query, $parameters] = $this->spreadArrayParameters($query, $this->parameters);
 
-        $this->logger?->debug('Execute prepared query "{{ query }}"', ['query' => $query, 'parameters' => $parameters]);
+        $this->logger?->debug('Execute prepared query "{query}"', ['query' => $query, 'parameters' => $parameters]);
 
         try {
             // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"

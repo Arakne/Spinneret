@@ -44,8 +44,12 @@ class BusDispatcherTest extends TestCase
     {
         $command = new FooCommand(42);
         $this->logger->expects($this->once())->method('debug')->with(
-            "Dispatching message Arakne\Tests\Spinneret\Bus\Fixtures\FooCommand to handler Arakne\Tests\Spinneret\Bus\Fixtures\FooCommandHandler",
-            ['message' => $command],
+            "Dispatching message {message_class} to handler {handler_class}",
+            [
+                'message' => $command,
+                'message_class' => FooCommand::class,
+                'handler_class' => FooCommandHandler::class,
+            ],
         );
         $this->dispatcher->dispatch($command);
 
@@ -58,12 +62,16 @@ class BusDispatcherTest extends TestCase
         $command = new ErrorCommand();
 
         $this->logger->expects($this->once())->method('debug')->with(
-            "Dispatching message Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommand to handler Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommandHandler",
-            ['message' => $command],
+            "Dispatching message {message_class} to handler {handler_class}",
+            [
+                'message' => $command,
+                'message_class' => ErrorCommand::class,
+                'handler_class' => ErrorCommandHandler::class,
+            ],
         );
 
         $this->logger->expects($this->once())->method('error')->with(
-            $this->stringContains("Error while dispatching message Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommand to handler Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommandHandler : DomainException"),
+            $this->stringContains("Error while dispatching message {message_class} to handler {handler_class} : {exception}"),
             $this->callback(fn ($value) => is_array($value) && $value['message'] === $command && $value['exception'] instanceof \DomainException),
         );
 
@@ -113,8 +121,12 @@ class BusDispatcherTest extends TestCase
     {
         $command = new ErrorCommand();
         $this->logger->expects($this->once())->method('debug')->with(
-            "Dispatching message Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommand to handler Arakne\Tests\Spinneret\Bus\Fixtures\ErrorCommandHandler",
-            ['message' => $command],
+            "Dispatching message {message_class} to handler {handler_class}",
+            [
+                'message' => $command,
+                'message_class' => ErrorCommand::class,
+                'handler_class' => ErrorCommandHandler::class,
+            ],
         );
 
         try {

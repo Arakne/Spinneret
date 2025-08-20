@@ -112,7 +112,7 @@ class ErrorHandlerTest extends TestCase
         $this->assertSame(
             [
                 'level' => 'critical',
-                'message' => 'Uncaught exception {{ exception }}',
+                'message' => 'Uncaught exception {exception}',
                 'context' => ['exception' => $exception],
             ],
             $logger->logs[0]

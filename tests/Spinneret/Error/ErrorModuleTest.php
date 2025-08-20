@@ -120,7 +120,7 @@ HTML
         $this->assertSame([
             [
                 'level' => 'warning',
-                'message' => 'Error {{ errno }} My warning error in {{ file }} on line {{ line }}',
+                'message' => 'Error {errno} My warning error in {file} on line {line}',
                 'context' => [
                     'errno' => E_USER_WARNING,
                     'file' => __FILE__,

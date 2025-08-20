@@ -27,7 +27,7 @@ final readonly class Formatter
      * Format log message
      *
      * Allow to use placeholders in the message, replaced by the context values,
-     * using format `{{ key }}` in the message.
+     * using format `{key}` in the message.
      *
      * @param mixed $level The error level. Should be stringable
      * @param Stringable|string $message
@@ -41,7 +41,7 @@ final readonly class Formatter
         $formatted = date('Y-m-d H:i:s', $timestamp) . ' ' . strtoupper((string) $level) . ' ';
         $message = (string) $message;
 
-        if ($context && str_contains($message, '{{ ')) {
+        if ($context && str_contains($message, '{')) {
             /**
              * @var array-key $key
              * @var mixed $value
@@ -52,7 +52,7 @@ final readonly class Formatter
                 }
 
                 $value = self::value($value);
-                $message = str_replace('{{ ' . $key . ' }}', $value, $message);
+                $message = str_replace('{' . $key . '}', $value, $message);
             }
         }
 

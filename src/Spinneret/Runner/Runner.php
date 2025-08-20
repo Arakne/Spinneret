@@ -41,7 +41,7 @@ final readonly class Runner implements RunnerInterface
     #[Override]
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $this->logger?->info('Handling request {{ method }} {{ uri }} from {{ client }}', [
+        $this->logger?->info('Handling request {method} {uri} from {client}', [
             'method' => $request->getMethod(),
             'uri' => $request->getUri(),
             'client' => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
@@ -51,7 +51,7 @@ final readonly class Runner implements RunnerInterface
         try {
             $response = $this->requestHandler->handle($request);
 
-            $this->logger?->info('Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}', [
+            $this->logger?->info('Response for {method} {uri} : {code} {reason}', [
                 'method' => $request->getMethod(),
                 'uri' => $request->getUri(),
                 'code' => $response->getStatusCode(),
@@ -61,7 +61,7 @@ final readonly class Runner implements RunnerInterface
 
             return $response;
         } catch (Throwable $e) {
-            $this->logger?->error('Error occurs on middleware step for request {{ method }} {{ uri }} : {{ exception }}', [
+            $this->logger?->error('Error occurs on middleware step for request {method} {uri} : {exception}', [
                 'method' => $request->getMethod(),
                 'uri' => $request->getUri(),
                 'exception' => $e,
@@ -88,7 +88,7 @@ final readonly class Runner implements RunnerInterface
         try {
             $responseDto = $this->presenterDispatcher->dispatch($routedRequest);
         } catch (Throwable $e) {
-            $this->logger?->error('Error occurs on presenter step for request {{ method }} {{ uri }} : {{ exception }}', [
+            $this->logger?->error('Error occurs on presenter step for request {method} {uri} : {exception}', [
                 'method' => $routedRequest->psrRequest->getMethod(),
                 'uri' => $routedRequest->psrRequest->getUri(),
                 'exception' => $e,
@@ -113,12 +113,12 @@ final readonly class Runner implements RunnerInterface
             );
         }
 
-        $this->logger?->debug('Response DTO {{ dto }} was generated', ['dto' => get_class($responseDto)]);
+        $this->logger?->debug('Response DTO {dto} was generated', ['dto' => get_class($responseDto)]);
 
         try {
             return $this->view->response($responseDto, $routedRequest->psrRequest, $routedRequest->routedRequest);
         } catch (Throwable $e) {
-            $this->logger?->error('Error occurs on view step for request {{ method }} {{ uri }} : {{ exception }}', [
+            $this->logger?->error('Error occurs on view step for request {method} {uri} : {exception}', [
                 'method' => $routedRequest->psrRequest->getMethod(),
                 'uri' => $routedRequest->psrRequest->getUri(),
                 'exception' => $e,
@@ -150,7 +150,7 @@ final readonly class Runner implements RunnerInterface
         try {
             $routedRequest = $this->router->request($request);
         } catch (Throwable $e) {
-            $this->logger?->error('Error occurs on router step for request {{ method }} {{ uri }} : {{ exception }}', [
+            $this->logger?->error('Error occurs on router step for request {method} {uri} : {exception}', [
                 'method' => $request->getMethod(),
                 'uri' => $request->getUri(),
                 'exception' => $e,
@@ -166,7 +166,7 @@ final readonly class Runner implements RunnerInterface
             );
         }
 
-        $this->logger?->debug('Request {{ method }} {{ uri }} was routed to {{ target }}', [
+        $this->logger?->debug('Request {method} {uri} was routed to {target}', [
             'method' => $request->getMethod(),
             'uri' => $request->getUri(),
             'routedRequest' => $routedRequest->routedRequest,
@@ -211,12 +211,12 @@ final readonly class Runner implements RunnerInterface
                 #[Override]
                 public function handle(ServerRequestInterface $request): ResponseInterface
                 {
-                    $this->logger?->debug('Start Middleware {{ middleware }}', ['middleware' => get_class($this->middleware)]);
+                    $this->logger?->debug('Start Middleware {middleware}', ['middleware' => get_class($this->middleware)]);
 
                     try {
                         return $this->middleware->process($request, $this->next);
                     } finally {
-                        $this->logger?->debug('End Middleware {{ middleware }}', ['middleware' => get_class($this->middleware)]);
+                        $this->logger?->debug('End Middleware {middleware}', ['middleware' => get_class($this->middleware)]);
                     }
                 }
             };

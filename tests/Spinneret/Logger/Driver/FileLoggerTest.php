@@ -86,7 +86,7 @@ class FileLoggerTest extends TestCase
         $logger = new FileLogger($file, bufferSize: 256);
 
         $logger->info('test', ['foo' => 'bar']);
-        $logger->warning('my warning {{ test }}', ['test' => 'qux']);
+        $logger->warning('my warning {test}', ['test' => 'qux']);
         $this->assertFileDoesNotExist($file);
 
         $logger->debug('my debug');

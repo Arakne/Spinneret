@@ -45,7 +45,7 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     #[Override]
     public function query(string $query): QueryResult
     {
-        $this->logger?->debug('Execute read query "{{ query }}"', ['query' => $query]);
+        $this->logger?->debug('Execute read query "{query}"', ['query' => $query]);
         $retry = $this->config->autoReconnect;
 
         for (;;) {
@@ -68,7 +68,7 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     #[Override]
     public function exec(string $query): int
     {
-        $this->logger?->debug('Execute write query "{{ query }}"', ['query' => $query]);
+        $this->logger?->debug('Execute write query "{query}"', ['query' => $query]);
         $retry = $this->config->autoReconnect;
 
         for (;;) {
@@ -107,7 +107,7 @@ final class DatabaseConnection implements DatabaseConnectionInterface
             return $this->connection;
         }
 
-        $this->logger?->debug('Connect to database {{ dsn }}', ['dsn' => $this->config->dsn]);
+        $this->logger?->debug('Connect to database {dsn}', ['dsn' => $this->config->dsn]);
 
         try {
             return $this->connection = new PDO($this->config->dsn, $this->config->username, $this->config->password, $this->config->options + [
@@ -121,7 +121,7 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     #[Override]
     public function reconnect(): void
     {
-        $this->logger?->debug('Reconnect to database {{ dsn }}', ['dsn' => $this->config->dsn]);
+        $this->logger?->debug('Reconnect to database {dsn}', ['dsn' => $this->config->dsn]);
 
         $this->connection = null;
         $this->internalConnection();

@@ -8,6 +8,8 @@ use Override;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
+use function sprintf;
+
 /**
  * Base implementation of command bus dispatcher.
  * Will resolve the handler class from simple associative array, and create the handler instance from the container.
@@ -44,12 +46,21 @@ final readonly class BusDispatcher implements BusDispatcherInterface
         $handler = $this->handler($messageClass);
         $handlerClass = $handler::class;
 
-        $this->logger?->debug("Dispatching message $messageClass to handler $handlerClass", ['message' => $message]);
+        $this->logger?->debug('Dispatching message {message_class} to handler {handler_class}', [
+            'message' => $message,
+            'message_class' => $messageClass,
+            'handler_class' => $handlerClass,
+        ]);
 
         try {
             $handler($message);
         } catch (Exception $e) {
-            $this->logger?->error("Error while dispatching message $messageClass to handler $handlerClass : $e", ['message' => $message, 'exception' => $e]);
+            $this->logger?->error('Error while dispatching message {message_class} to handler {handler_class} : {exception}', [
+                'message' => $message,
+                'exception' => $e,
+                'message_class' => $messageClass,
+                'handler_class' => $handlerClass,
+            ]);
         }
     }
 
@@ -60,12 +71,21 @@ final readonly class BusDispatcher implements BusDispatcherInterface
         $handler = $this->handler($messageClass);
         $handlerClass = $handler::class;
 
-        $this->logger?->debug("Dispatching message $messageClass to handler $handlerClass", ['message' => $message]);
+        $this->logger?->debug('Dispatching message {message_class} to handler {handler_class}', [
+            'message' => $message,
+            'message_class' => $messageClass,
+            'handler_class' => $handlerClass,
+        ]);
 
         /** @psalm-suppress MixedAssignment */
         $res = $handler($message);
 
-        $this->logger?->debug("Message $messageClass processed by handler $handlerClass", ['message' => $message, 'result' => $res]);
+        $this->logger?->debug("Message {message_class} processed by handler {handler_class}", [
+            'message' => $message,
+            'message_class' => $messageClass,
+            'handler_class' => $handlerClass,
+            'result' => $res,
+        ]);
 
         /** @psalm-suppress MixedArgument */
         return $process($res);
@@ -79,7 +99,7 @@ final readonly class BusDispatcher implements BusDispatcherInterface
      */
     private function handler(string $messageClass): callable
     {
-        $handlerClassName = $this->handlers[$messageClass] ?? throw new LogicException("No handler for message $messageClass");
+        $handlerClassName = $this->handlers[$messageClass] ?? throw new LogicException(sprintf('No handler for message %s', $messageClass));
 
         /** @var object&callable(M):mixed */
         return $this->container->get($handlerClassName);

@@ -97,7 +97,7 @@ class RunnerTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'info',
-                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'message' => 'Handling request {method} {uri} from {client}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -107,7 +107,7 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'message' => 'Request {method} {uri} was routed to {target}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -117,14 +117,14 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Response DTO {{ dto }} was generated',
+                'message' => 'Response DTO {dto} was generated',
                 'context' => [
                     'dto' => FooSuccessResponse::class,
                 ],
             ],
             [
                 'level' => 'info',
-                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'message' => 'Response for {method} {uri} : {code} {reason}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -153,7 +153,7 @@ class RunnerTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'info',
-                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'message' => 'Handling request {method} {uri} from {client}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -163,7 +163,7 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'message' => 'Request {method} {uri} was routed to {target}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -173,14 +173,14 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Response DTO {{ dto }} was generated',
+                'message' => 'Response DTO {dto} was generated',
                 'context' => [
                     'dto' => FooErrorResponse::class,
                 ],
             ],
             [
                 'level' => 'info',
-                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'message' => 'Response for {method} {uri} : {code} {reason}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -216,7 +216,7 @@ class RunnerTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'info',
-                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'message' => 'Handling request {method} {uri} from {client}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -226,7 +226,7 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'message' => 'Request {method} {uri} was routed to {target}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -236,7 +236,7 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'error',
-                'message' => 'Error occurs on presenter step for request {{ method }} {{ uri }} : {{ exception }}',
+                'message' => 'Error occurs on presenter step for request {method} {uri} : {exception}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -245,14 +245,14 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Response DTO {{ dto }} was generated',
+                'message' => 'Response DTO {dto} was generated',
                 'context' => [
                     'dto' => InternalServerError::class,
                 ],
             ],
             [
                 'level' => 'info',
-                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'message' => 'Response for {method} {uri} : {code} {reason}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -285,7 +285,7 @@ class RunnerTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'info',
-                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'message' => 'Handling request {method} {uri} from {client}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -295,7 +295,7 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'error',
-                'message' => 'Error occurs on router step for request {{ method }} {{ uri }} : {{ exception }}',
+                'message' => 'Error occurs on router step for request {method} {uri} : {exception}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -304,14 +304,14 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Response DTO {{ dto }} was generated',
+                'message' => 'Response DTO {dto} was generated',
                 'context' => [
                     'dto' => InternalServerError::class,
                 ],
             ],
             [
                 'level' => 'info',
-                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'message' => 'Response for {method} {uri} : {code} {reason}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -365,7 +365,7 @@ class RunnerTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'info',
-                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'message' => 'Handling request {method} {uri} from {client}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -375,7 +375,7 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'message' => 'Request {method} {uri} was routed to {target}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -385,14 +385,14 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Response DTO {{ dto }} was generated',
+                'message' => 'Response DTO {dto} was generated',
                 'context' => [
                     'dto' => FooSuccessResponse::class,
                 ],
             ],
             [
                 'level' => 'error',
-                'message' => 'Error occurs on view step for request {{ method }} {{ uri }} : {{ exception }}',
+                'message' => 'Error occurs on view step for request {method} {uri} : {exception}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -401,14 +401,14 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Response DTO {{ dto }} was generated',
+                'message' => 'Response DTO {dto} was generated',
                 'context' => [
                     'dto' => InternalServerError::class,
                 ],
             ],
             [
                 'level' => 'info',
-                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'message' => 'Response for {method} {uri} : {code} {reason}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -445,7 +445,7 @@ class RunnerTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'info',
-                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'message' => 'Handling request {method} {uri} from {client}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -455,21 +455,21 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Start Middleware {{ middleware }}',
+                'message' => 'Start Middleware {middleware}',
                 'context' => [
                     'middleware' => Base64ResponseMiddleware::class,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Start Middleware {{ middleware }}',
+                'message' => 'Start Middleware {middleware}',
                 'context' => [
                     'middleware' => ReverseMiddleware::class,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'Request {{ method }} {{ uri }} was routed to {{ target }}',
+                'message' => 'Request {method} {uri} was routed to {target}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -479,28 +479,28 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Response DTO {{ dto }} was generated',
+                'message' => 'Response DTO {dto} was generated',
                 'context' => [
                     'dto' => FooSuccessResponse::class,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'End Middleware {{ middleware }}',
+                'message' => 'End Middleware {middleware}',
                 'context' => [
                     'middleware' => ReverseMiddleware::class,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'End Middleware {{ middleware }}',
+                'message' => 'End Middleware {middleware}',
                 'context' => [
                     'middleware' => Base64ResponseMiddleware::class,
                 ],
             ],
             [
                 'level' => 'info',
-                'message' => 'Response for {{ method }} {{ uri }} : {{ code }} {{ reason }}',
+                'message' => 'Response for {method} {uri} : {code} {reason}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -557,7 +557,7 @@ class RunnerTest extends TestCase
         $this->assertEquals([
             [
                 'level' => 'info',
-                'message' => 'Handling request {{ method }} {{ uri }} from {{ client }}',
+                'message' => 'Handling request {method} {uri} from {client}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -567,21 +567,21 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Start Middleware {{ middleware }}',
+                'message' => 'Start Middleware {middleware}',
                 'context' => [
                     'middleware' => ErrorMiddleware::class,
                 ],
             ],
             [
                 'level' => 'debug',
-                'message' => 'End Middleware {{ middleware }}',
+                'message' => 'End Middleware {middleware}',
                 'context' => [
                     'middleware' => ErrorMiddleware::class,
                 ],
             ],
             [
                 'level' => 'error',
-                'message' => 'Error occurs on middleware step for request {{ method }} {{ uri }} : {{ exception }}',
+                'message' => 'Error occurs on middleware step for request {method} {uri} : {exception}',
                 'context' => [
                     'method' => 'GET',
                     'uri' => $psrRequest->getUri(),
@@ -590,7 +590,7 @@ class RunnerTest extends TestCase
             ],
             [
                 'level' => 'debug',
-                'message' => 'Response DTO {{ dto }} was generated',
+                'message' => 'Response DTO {dto} was generated',
                 'context' => [
                     'dto' => InternalServerError::class,
                 ],
