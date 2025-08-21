@@ -132,7 +132,7 @@ class Application implements RunnerInterface, ContainerInterface
             new PresenterModule(),
             new ViewModule(),
             new FormModule(),
-            ErrorModule::create($this),
+            new ErrorModule(),
             new RunnerModule(),
             ...$this->applicationModules(),
         ];

@@ -2,11 +2,11 @@
 
 namespace Arakne\Spinneret\Error;
 
-use Arakne\Spinneret\Application\AbstractConfigurableModule;
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\BootableModuleInterface;
+use Arakne\Spinneret\Application\ConfigurableModuleInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Logger\LoggerModule;
-use Arakne\Spinneret\Runner\InternalServerError;
 use Override;
 use Psr\Log\LoggerInterface;
 
@@ -24,10 +24,14 @@ use function Arakne\Spinneret\Application\service_nullable;
  *
  * @see LoggerModule To enable logging.
  *
- * @extends AbstractConfigurableModule<ErrorConfiguration>
+ * @implements ConfigurableModuleInterface<ErrorConfiguration>
  */
-final class ErrorModule extends AbstractConfigurableModule implements BootableModuleInterface
+final readonly class ErrorModule implements ConfigurableModuleInterface, BootableModuleInterface
 {
+    public function __construct(
+        private ErrorConfiguration $configuration = new ErrorConfiguration(),
+    ) {}
+
     #[Override]
     public function boot(Application $application): void
     {
@@ -35,20 +39,32 @@ final class ErrorModule extends AbstractConfigurableModule implements BootableMo
     }
 
     #[Override]
-    protected function configure(): void
+    public function withConfiguration(object $configuration): static
     {
-        $this->presenter(InternalServerError::class, ErrorPresenter::class);
-        $this->renderer(InternalServerError::class, InternalServerErrorRenderer::class);
-
-        $this->service(ErrorHandler::class, [
-            service(ErrorConfiguration::class),
-            service_nullable(LoggerInterface::class),
-        ], public: true);
+        return new self($configuration);
     }
 
     #[Override]
-    protected static function defaultConfiguration(Application $app): object
+    public function configuration(): object
     {
-        return new ErrorConfiguration();
+        return $this->configuration;
+    }
+
+    #[Override]
+    public function register(ContainerBuilder $containerBuilder): void
+    {
+        $containerBuilder->register(ErrorPresenter::class);
+        $containerBuilder->register(InternalServerErrorRenderer::class);
+
+        $containerBuilder
+            ->register(
+                ErrorHandler::class,
+                [
+                    service(ErrorConfiguration::class),
+                    service_nullable(LoggerInterface::class),
+                ]
+            )
+            ->public()
+        ;
     }
 }

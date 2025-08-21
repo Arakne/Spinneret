@@ -5,6 +5,7 @@ namespace Arakne\Spinneret\Error;
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Runner\InternalServerError;
 use Arakne\Spinneret\View\AbstractViewRenderer;
+use Arakne\Spinneret\View\Attribute\Renderer;
 use Arakne\Spinneret\View\ResponseConfiguratorInterface;
 use Arakne\Spinneret\View\View;
 use Override;
@@ -14,6 +15,7 @@ use Psr\Http\Message\ResponseInterface;
  * @extends AbstractViewRenderer<InternalServerError>
  * @implements ResponseConfiguratorInterface<InternalServerError>
  */
+#[Renderer(InternalServerError::class)]
 final class InternalServerErrorRenderer extends AbstractViewRenderer implements ResponseConfiguratorInterface
 {
     public function __construct(

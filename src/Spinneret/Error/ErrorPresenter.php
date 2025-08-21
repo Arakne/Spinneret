@@ -2,6 +2,7 @@
 
 namespace Arakne\Spinneret\Error;
 
+use Arakne\Spinneret\Presenter\Attribute\Presenter;
 use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Runner\InternalServerError;
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements PresenterInterface<InternalServerError>
  */
+#[Presenter(InternalServerError::class)]
 final readonly class ErrorPresenter implements PresenterInterface
 {
     public function __construct(
