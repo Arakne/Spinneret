@@ -18,6 +18,8 @@ use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function dirname;
+
 class FunctionalApplicationTest extends TestCase
 {
     protected TestApplication $app;
@@ -30,6 +32,11 @@ class FunctionalApplicationTest extends TestCase
     protected function createApplication(): TestApplication
     {
         return new TestApplication(false, env: 'test');
+    }
+
+    public static function setUpBeforeClass(): void
+    {
+        Files::rmdir(dirname(__DIR__, 3).'/var/cache/test');
     }
 
     public static function tearDownAfterClass(): void
