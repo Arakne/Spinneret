@@ -1029,6 +1029,28 @@ class ContainerBuilderTest extends TestCase
             tags: [MyTagInterface::class],
         ), $container->services[$baz->id]);
     }
+
+    #[Test]
+    public function findOrRegister()
+    {
+        $builder = new ContainerBuilder();
+
+        $service = $builder->findOrRegister(SimpleClass::class)->tag('a');
+        $this->assertArrayHasKey(SimpleClass::class, $builder->services);
+
+        $this->assertSame($service, $builder->findOrRegister(SimpleClass::class)->tag('b'));
+        $this->assertSame(['a', 'b'], $builder->services[SimpleClass::class]->tags);
+
+        $builder->findOrRegister(SingleLiteralClass::class, function (ServiceBuilder $service) {
+            $service->arg('foo');
+        })->tag('a');
+        $builder->findOrRegister(SingleLiteralClass::class, function (ServiceBuilder $service) {
+            $service->arg('bar');
+        })->tag('b');
+
+        $this->assertSame(['a', 'b'], $builder->services[SingleLiteralClass::class]->tags);
+        $this->assertSame(['foo'], $builder->services[SingleLiteralClass::class]->arguments);
+    }
 }
 
 function global_function_factory(string $value): SingleLiteralClass

@@ -213,6 +213,41 @@ final class ContainerBuilder
     }
 
     /**
+     * Find a service by its ID or alias, or register it if it does not exist.
+     *
+     * Usage:
+     * ```php
+     * // Add the tag MyTag to the service MyService, and register it if it does not exist.
+     * // Assume that MyService can be autowired.
+     * $builder->findOrRegister(MyService::class)->tag(MyTag::class);
+     *
+     * // You can configure the service if it's not registered, so you do not depend on autowiring.
+     * $builder->findOrRegister(OtherService::class, function (ServiceBuilder $service) {
+     *     $service->arg(new Reference(MyService::class));
+     * })->tag(MyTag::class);
+     * ```
+     *
+     * @param string $id The service ID. If it's a class name, it will be used as the service class.
+     * @param (Closure(ServiceBuilder):void)|null $configurator The service configurator to apply if the service is registered.
+     *
+     * @return ServiceBuilder
+     */
+    public function findOrRegister(string $id, ?Closure $configurator = null): ServiceBuilder
+    {
+        if ($service = $this->find($id)) {
+            return $service;
+        }
+
+        $service = $this->register($id);
+
+        if ($configurator) {
+            $configurator($service);
+        }
+
+        return $service;
+    }
+
+    /**
      * Define a value service.
      *
      * This method is equivalent to calling `$builder->register($id)->value($value)`
