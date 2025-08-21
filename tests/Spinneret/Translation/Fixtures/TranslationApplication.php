@@ -2,9 +2,11 @@
 
 namespace Arakne\Tests\Spinneret\Translation\Fixtures;
 
-use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Translation\TranslationModule;
+use Override;
 
 class TranslationApplication extends Application
 {
@@ -17,10 +19,11 @@ class TranslationApplication extends Application
     {
         return [
             TranslationModule::create($this),
-            new class extends AbstractModule {
-                protected function configure(): void
+            new class implements ModuleInterface {
+                #[Override]
+                public function register(ContainerBuilder $containerBuilder): void
                 {
-                    $this->autowire(Messages::class, public: true);
+                    $containerBuilder->register(Messages::class)->public();
                 }
             }
         ];

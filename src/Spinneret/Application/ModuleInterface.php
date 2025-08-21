@@ -8,8 +8,6 @@ use Arakne\Spinneret\Container\Builder\ContainerBuilder;
  * Base type for register routes, presenters, renderers and services on the application
  * The implementation should be stateless and immutable.
  *
- * For a more convenient way to declare module use {@see AbstractModule}
- *
  * @see ConfigurableModuleInterface for a module that can be configured
  */
 interface ModuleInterface

@@ -2,8 +2,8 @@
 
 namespace Arakne\Tests\Spinneret\Database\Migration\Fixtures;
 
-use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Console\ConsoleModule;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Database\DatabaseConnectionManagerInterface;
@@ -28,19 +28,15 @@ class TestMigrationApp extends Application
         return [
             new ConsoleModule(),
             new DatabaseModule(),
-            new class () extends AbstractModule {
+            new class () implements ModuleInterface {
                 #[Override]
-                protected function configure(): void
+                public function register(ContainerBuilder $containerBuilder): void
                 {
-                    $this->autowire(AddEntitiesMigration::class);
-                    $this->autowire(CreateStructureMigration::class);
-                    $this->autowire(SeparateNameColumnsMigration::class);
-                    $this->autowire(SeparateNameColumnsMigration::class);
-                }
+                    $containerBuilder->register(AddEntitiesMigration::class);
+                    $containerBuilder->register(CreateStructureMigration::class);
+                    $containerBuilder->register(SeparateNameColumnsMigration::class);
+                    $containerBuilder->register(SeparateNameColumnsMigration::class);
 
-                #[Override]
-                protected function configureContainer(ContainerBuilder $containerBuilder): void
-                {
                     $containerBuilder->alias('migration_manager', MigrationManager::class);
                     $containerBuilder->alias('database', DatabaseConnectionManagerInterface::class);
                 }

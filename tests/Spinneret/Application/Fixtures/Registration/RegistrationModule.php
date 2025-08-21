@@ -2,21 +2,31 @@
 
 namespace Arakne\Tests\Spinneret\Application\Fixtures\Registration;
 
-use Arakne\Spinneret\Application\AbstractModule;
+use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Presenter\Attribute\Presenter;
+use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Router\RouteConfiguratorInterface;
+use Arakne\Spinneret\View\Attribute\Renderer;
 use Arakne\Tests\Spinneret\Application\Fixtures\Registration\Constraint\UniqueNameValidator;
 use Arakne\Tests\Spinneret\Application\Fixtures\Registration\Domain\UserRepository;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Override;
 
-final class RegistrationModule extends AbstractModule
+final class RegistrationModule implements ModuleInterface, RouteConfiguratorInterface
 {
-    protected function configure(): void
+    #[Override]
+    public function register(ContainerBuilder $containerBuilder): void
     {
-        $this->post('/register', RegistrationRequest::class, RegistrationPresenter::class);
+        $containerBuilder->register(RegistrationPresenter::class)->tag(new Presenter(RegistrationRequest::class));
+        $containerBuilder->register(RegistrationSuccessRenderer::class)->tag(new Renderer(RegistrationSuccessResponse::class));
+        $containerBuilder->register(RegistrationErrorRenderer::class)->tag(new Renderer(RegistrationErrorResponse::class));
+        $containerBuilder->register(UniqueNameValidator::class)->public();
+        $containerBuilder->register(UserRepository::class)->public();
+    }
 
-        $this->renderer(RegistrationSuccessResponse::class, RegistrationSuccessRenderer::class);
-        $this->renderer(RegistrationErrorResponse::class, RegistrationErrorRenderer::class);
-
-        $this->autowire(UniqueNameValidator::class, public: true);
-        $this->autowire(UserRepository::class, public: true);
+    #[Override]
+    public function configureRoutes(RouteCollectionBuilder $builder): void
+    {
+        $builder->post('/register', RegistrationRequest::class);
     }
 }

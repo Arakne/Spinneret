@@ -2,15 +2,16 @@
 
 namespace Arakne\Tests\Spinneret\Console\Fixtures;
 
-use Arakne\Spinneret\Application\AbstractModule;
+use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 
-class CustomCommandModule extends AbstractModule
+class CustomCommandModule implements ModuleInterface
 {
-    #[\Override] protected function configure(): void
+    #[\Override]
+    public function register(ContainerBuilder $containerBuilder): void
     {
-        $this->autowire(HelloCommand::class);
-        $this->autowire(ManualTagCommand::class, tags: [new AsCommand('manual')]);
+        $containerBuilder->register(HelloCommand::class);
+        $containerBuilder->register(ManualTagCommand::class)->tag(new AsCommand('manual'));
     }
 }

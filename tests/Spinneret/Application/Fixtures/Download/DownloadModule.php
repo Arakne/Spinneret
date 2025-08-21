@@ -2,15 +2,26 @@
 
 namespace Arakne\Tests\Spinneret\Application\Fixtures\Download;
 
-use Arakne\Spinneret\Application\AbstractModule;
+use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Presenter\Attribute\Presenter;
+use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Router\RouteConfiguratorInterface;
+use Arakne\Spinneret\View\Attribute\Renderer;
 use Override;
 
-final class DownloadModule extends AbstractModule
+final class DownloadModule implements ModuleInterface, RouteConfiguratorInterface
 {
     #[Override]
-    protected function configure(): void
+    public function register(ContainerBuilder $containerBuilder): void
     {
-        $this->get('/download', DownloadRequest::class, DownloadPresenter::class);
-        $this->renderer(DownloadResponse::class, DownloadRenderer::class);
+        $containerBuilder->register(DownloadPresenter::class)->tag(new Presenter(DownloadRequest::class));
+        $containerBuilder->register(DownloadRenderer::class)->tag(new Renderer(DownloadResponse::class));
+    }
+
+    #[Override]
+    public function configureRoutes(RouteCollectionBuilder $builder): void
+    {
+        $builder->get('/download', DownloadRequest::class);
     }
 }

@@ -2,11 +2,15 @@
 
 namespace Arakne\Tests\Spinneret\Security\Fixtures;
 
-use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Application\Application;
-use Arakne\Spinneret\Container\Value\NewExpression;
+use Arakne\Spinneret\Application\ModuleInterface;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Value\NewExpression;
+use Arakne\Spinneret\Presenter\Attribute\Presenter;
+use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Router\RouteConfiguratorInterface;
 use Arakne\Spinneret\Security\SecurityModule;
+use Arakne\Spinneret\View\Attribute\Renderer;
 use Arakne\Tests\Spinneret\Security\Fixtures\Login\LoginPresenter;
 use Arakne\Tests\Spinneret\Security\Fixtures\Login\LoginRenderer;
 use Arakne\Tests\Spinneret\Security\Fixtures\Login\LoginRequest;
@@ -34,27 +38,26 @@ class TestSecurityApplication extends Application
     protected function applicationModules(): array
     {
         return [
-            new class extends AbstractModule {
-                #[Override]
-                protected function configure(): void
+            new class implements ModuleInterface, RouteConfiguratorInterface {
+                public function register(ContainerBuilder $containerBuilder): void
                 {
-                    $this->post('/login', LoginRequest::class, LoginPresenter::class);
-                    $this->get('/user', ShowUserRequest::class, ShowUserPresenter::class);
+                    $containerBuilder->register(LoginPresenter::class)->tag(new Presenter(LoginRequest::class));
+                    $containerBuilder->register(ShowUserPresenter::class)->tag(new Presenter(ShowUserRequest::class));
 
-                    $this->renderer(LoginResponse::class, LoginRenderer::class);
-                    $this->renderer(ShowUserResponse::class, ShowUserRenderer::class);
-                    $this->renderer(NotLoggedResponse::class, NotLoggedRenderer::class);
+                    $containerBuilder->register(LoginRenderer::class)->tag(new Renderer(LoginResponse::class));
+                    $containerBuilder->register(ShowUserRenderer::class)->tag(new Renderer(ShowUserResponse::class));
+                    $containerBuilder->register(NotLoggedRenderer::class)->tag(new Renderer(NotLoggedResponse::class));
 
-                    $this->autowire(TestUserHandler::class);
-
-                    $this->service(Randomizer::class, [
-                        new NewExpression(Xoshiro256StarStar::class, [123]),
-                    ]);
+                    $containerBuilder->register(TestUserHandler::class);
+                    $containerBuilder->register(Randomizer::class, [new NewExpression(Xoshiro256StarStar::class, [123])]);
+                    $containerBuilder->register(ClockInterface::class)->factory(FixedClock::instance(...));
                 }
 
-                protected function configureContainer(ContainerBuilder $containerBuilder): void
+                #[Override]
+                public function configureRoutes(RouteCollectionBuilder $builder): void
                 {
-                    $containerBuilder->register(ClockInterface::class)->factory(FixedClock::instance(...));
+                    $builder->post('/login', LoginRequest::class);
+                    $builder->get('/user', ShowUserRequest::class);
                 }
             },
             new SecurityModule(),

@@ -2,14 +2,19 @@
 
 namespace Arakne\Tests\Spinneret\Form\Csrf;
 
-use Arakne\Spinneret\Application\AbstractModule;
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Application\ModuleInterface;
+use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Form\Csrf\Csrf;
 use Arakne\Spinneret\Form\Csrf\CsrfTokenParameters;
 use Arakne\Spinneret\Form\FormModule;
+use Arakne\Spinneret\Presenter\Attribute\Presenter;
+use Arakne\Spinneret\Router\RouteCollectionBuilder;
+use Arakne\Spinneret\Router\RouteConfiguratorInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Security\SecurityModule;
 use Arakne\Spinneret\Security\Serializer\ParsedCookie;
+use Arakne\Spinneret\View\Attribute\Renderer;
 use Arakne\Tests\Spinneret\Form\Fixtures\BasicCsrfForm;
 use Arakne\Tests\Spinneret\Form\Fixtures\JsonStubRenderer;
 use Arakne\Tests\Spinneret\Form\Fixtures\PresenterStub;
@@ -21,6 +26,7 @@ use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\Validator\FieldError;
 use Quatrevieux\Form\View\FieldView;
+use stdClass;
 
 class CsrfTest extends TestCase
 {
@@ -40,12 +46,18 @@ class CsrfTest extends TestCase
                 return [
                     new FormModule(),
                     new SecurityModule(),
-                    new class extends AbstractModule {
+                    new class implements ModuleInterface, RouteConfiguratorInterface {
                         #[Override]
-                        protected function configure(): void
+                        public function register(ContainerBuilder $containerBuilder): void
                         {
-                            $this->post('/csrf', BasicCsrfForm::class, PresenterStub::class);
-                            $this->renderer(\stdClass::class, JsonStubRenderer::class);
+                            $containerBuilder->register(PresenterStub::class)->tag(new Presenter(BasicCsrfForm::class));
+                            $containerBuilder->register(JsonStubRenderer::class)->tag(new Renderer(stdClass::class));
+                        }
+
+                        #[Override]
+                        public function configureRoutes(RouteCollectionBuilder $builder): void
+                        {
+                            $builder->post('/csrf', BasicCsrfForm::class);
                         }
                     },
                 ];
