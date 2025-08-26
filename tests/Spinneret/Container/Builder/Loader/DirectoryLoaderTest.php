@@ -9,6 +9,8 @@ use Arakne\Tests\Spinneret\Container\Builder\Loader\Fixtures\Simple\Dir\B;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function str_contains;
+
 class DirectoryLoaderTest extends TestCase
 {
     #[Test]
@@ -25,6 +27,24 @@ class DirectoryLoaderTest extends TestCase
         $this->assertSame(A::class, $builder->services[A::class]->class);
         $this->assertTrue($builder->services[B::class]->ignoreIfInvalid);
         $this->assertSame(B::class, $builder->services[B::class]->class);
+    }
+
+    #[Test]
+    public function loadWithFilter()
+    {
+        $builder = new ContainerBuilder();
+        $loader = new DirectoryLoader(
+            __DIR__.'/Fixtures/Simple',
+            __NAMESPACE__.'\Fixtures\Simple',
+            static fn (string $class): bool => !str_contains($class, 'Dir')
+        );
+        $loader->load($builder);
+
+        $this->assertArrayHasKey(A::class, $builder->services);
+        $this->assertArrayNotHasKey(B::class, $builder->services);
+
+        $this->assertTrue($builder->services[A::class]->ignoreIfInvalid);
+        $this->assertSame(A::class, $builder->services[A::class]->class);
     }
 
     #[Test]

@@ -332,16 +332,20 @@ final class ContainerBuilder
      * Usage:
      * ```php
      * $builder->import(__DIR__, __NAMESPACE__); // Import all classes in the current directory
+     * $builder->import(__DIR__, __NAMESPACE__, static fn ($class) => !str_contains($class, 'ValueObject')); // Ignore ValueObject classes
      * ```
      *
      * @param string $directory The directory to scan for classes.
      * @param string $namespace The namespace to use for the classes found in the directory. All classes should follow PSR-4 standards.
+     * @param (Closure(class-string):bool)|null $filter Optional predicate to filter which classes should be registered.
+     *                                                  It takes the FQCN as argument and should return true to register the class.
+     *                                                  If the filter is not set, all classes will be registered.
      *
      * @return void
      */
-    public function import(string $directory, string $namespace = ''): void
+    public function import(string $directory, string $namespace = '', ?Closure $filter = null): void
     {
-        new DirectoryLoader($directory, $namespace)->load($this);
+        new DirectoryLoader($directory, $namespace, $filter)->load($this);
     }
 
     /**

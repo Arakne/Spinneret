@@ -3,6 +3,7 @@
 namespace Arakne\Spinneret\Container\Builder\Loader;
 
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Closure;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -35,6 +36,16 @@ final readonly class DirectoryLoader
          * It's not required to end with a backslash.
          */
         private string $namespace = '',
+
+        /**
+         * Predicate to filter which classes should be registered.
+         * It takes the FQCN as argument and should return true to register the class.
+         *
+         * If the filter is not set, all classes will be registered.
+         *
+         * @var (Closure(class-string):bool)|null
+         */
+        private ?Closure $filter = null,
     ) {}
 
     /**
@@ -69,6 +80,10 @@ final readonly class DirectoryLoader
             $className = ltrim($classNamespace, '\\') . $classBaseName;
 
             if (!class_exists($className)) {
+                continue;
+            }
+
+            if ($this->filter !== null && !($this->filter)($className)) {
                 continue;
             }
 

@@ -58,6 +58,7 @@ use SplPriorityQueue;
 
 use function iterator_to_array;
 use function ksort;
+use function str_ends_with;
 use function var_dump;
 
 class ContainerBuilderTest extends TestCase
@@ -568,6 +569,25 @@ class ContainerBuilderTest extends TestCase
         ], $container->get(MessageDispatcher::class)->handlers);
         $this->assertSame($container->get(DoAHandler::class), $container->get(MessageDispatcher::class)->handlers[DoA::class]);
         $this->assertSame($container->get(DoBHandler::class), $container->get(MessageDispatcher::class)->handlers[DoB::class]);
+    }
+
+    #[Test]
+    public function importWithFilter()
+    {
+        $builder = new ContainerBuilder(registerAsPublic: true);
+        $builder->import(
+            __DIR__ . '/../Fixtures/WithLoader',
+            'Arakne\Tests\Spinneret\Container\Fixtures\WithLoader',
+            static fn (string $class): bool => !str_ends_with($class, 'Handler')
+        );
+        $builder->register(DepConfig::class, ['my-key']);
+
+        $container = $builder->build();
+        $this->assertTrue($container->has(DepConfig::class));
+        $this->assertFalse($container->has(DoAHandler::class));
+        $this->assertFalse($container->has(DoBHandler::class));
+        $this->assertTrue($container->has(MessageDispatcher::class));
+        $this->assertTrue($container->has(SimpleDep::class));
     }
 
     #[Test]
