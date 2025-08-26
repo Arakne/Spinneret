@@ -11,7 +11,7 @@ interface QueryResultInterface
      * Fetch all rows as associative arrays
      * Each element of the returned array will represent a row as an associative array with column names as keys.
      *
-     * @return array<array-key, array<string, mixed>>
+     * @return list<array<string, mixed>>
      */
     public function asAssociativeArray(): array;
 
@@ -20,7 +20,7 @@ interface QueryResultInterface
      *
      * @param int $colum The column index to fetch. Starts at 0.
      *
-     * @return array<mixed>
+     * @return list<mixed>
      */
     public function asColumns(int $colum): array;
 

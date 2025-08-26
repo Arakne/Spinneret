@@ -18,7 +18,7 @@ final readonly class QueryResult implements QueryResultInterface
     #[Override]
     public function asAssociativeArray(): array
     {
-        /** @var array<array<string, mixed>> */
+        /** @var list<array<string, mixed>> */
         return $this->statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
