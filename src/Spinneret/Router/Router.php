@@ -18,6 +18,9 @@ use function array_values;
 use function is_callable;
 use function sprintf;
 use function str_starts_with;
+use function strlen;
+use function substr;
+use function var_dump;
 
 /**
  * Default implementation of the router
@@ -46,6 +49,12 @@ final readonly class Router implements RouterInterface
         $matcher = clone $this->matcher;
 
         $currentContext = $matcher->getContext();
+        $basePath = $currentContext->getBaseUrl();
+
+        // @todo test
+        if ($basePath !== '' && $basePath !== '/' && str_starts_with($path, $basePath)) {
+            $path = substr($path, strlen($basePath));
+        }
 
         // Change the current HTTP method
         if ($currentContext->getMethod() !== $method) {
