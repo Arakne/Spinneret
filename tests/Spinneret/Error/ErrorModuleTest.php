@@ -21,6 +21,11 @@ class ErrorModuleTest extends TestCase
     public function functionalProd()
     {
         $app = new class(false, env: 'test') extends Application {
+            public function configDir(): string
+            {
+                return __DIR__ . '/Fixtures/config';
+            }
+
             protected function applicationModules(): array
             {
                 return [
@@ -62,6 +67,11 @@ HTML
     public function functionalDev()
     {
         $app = new class(true, env: 'test') extends Application {
+            public function configDir(): string
+            {
+                return __DIR__ . '/Fixtures/config';
+            }
+
             protected function applicationModules(): array
             {
                 return [
@@ -124,7 +134,7 @@ HTML
                 'context' => [
                     'errno' => E_USER_WARNING,
                     'file' => __FILE__,
-                    'line' => 111,
+                    'line' => 121,
                 ],
             ],
         ], $logger->logs);

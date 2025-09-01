@@ -8,19 +8,27 @@ use Arakne\Spinneret\Presenter\PresenterDispatcher;
 use Arakne\Spinneret\Presenter\PresenterDispatcherInterface;
 use Arakne\Spinneret\Presenter\PresenterModule;
 use Arakne\Spinneret\Presenter\RequestPresenter;
+use Arakne\Spinneret\Util\Files;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
 use Quatrevieux\Form\FormFactoryInterface;
 
+use function clearstatcache;
+
 class PresenterModuleTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Files::rmdir(__DIR__.'/../../../var/cache/test-presenter');
+        clearstatcache();
+    }
+
     #[Test]
     public function register()
     {
-        $app = new Application(env: 'test');
+        $app = new Application(env: 'test-presenter');
         $container = new ContainerBuilder();
-
 
         $routerModule = new PresenterModule();
         $routerModule->register($container);

@@ -271,6 +271,47 @@ PHP
         $this->assertEquals($config, $cachedConfig);
     }
 
+    #[Test]
+    public function loadWithCustomPatterns()
+    {
+        $app = $this->createApp(__DIR__ . '/Fixtures/custom');
+        $loader = new PhpConfigLoader(['*.conf', '*.conf.test']);
+        Files::rmdir(self::CACHE_DIR);
+        $config = $loader->load($app);
+
+        $this->assertEquals([
+            PersonsConfig::class => new PersonsConfig(
+                new PersonConfig(
+                    firstName: 'Robert',
+                    lastName: 'Smith',
+                ),
+                new PersonConfig(
+                    firstName: 'test',
+                    lastName: 'test',
+                ),
+            )
+        ], $config);
+
+        $this->assertFileExists(self::CACHE_DIR . '/config.php');
+        $this->assertEquals(<<<'PHP'
+<?php
+
+return static function (Arakne\Spinneret\Application\Application $app): array {
+    $configPath = $app->configDir();
+
+    return [
+		'Arakne\\Tests\\Spinneret\\Application\\Config\\Fixtures\\PersonsConfig' => (require $configPath . '/persons.conf.test')(require $configPath . '/persons.conf', $app),
+
+    ];
+};
+PHP
+            , file_get_contents(self::CACHE_DIR . '/config.php')
+        );
+
+        $cachedConfig = $loader->load($app);
+        $this->assertEquals($config, $cachedConfig);
+    }
+
     private function createApp(string $configDir): Application
     {
         return new class($configDir) extends Application {

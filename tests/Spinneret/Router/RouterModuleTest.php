@@ -20,6 +20,7 @@ use Arakne\Spinneret\Router\UrlGeneratorLoader;
 use Arakne\Spinneret\Router\UrlGeneratorLoaderInterface;
 use Arakne\Spinneret\Router\UrlMatcherLoader;
 use Arakne\Spinneret\Router\UrlMatcherLoaderInterface;
+use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Router\Fixtures\GetRequestWithAttribute;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedRequestWithAttribute;
 use Arakne\Tests\Spinneret\Router\Fixtures\PostRequestWithAttribute;
@@ -30,12 +31,20 @@ use Quatrevieux\Form\DefaultFormFactory;
 use Quatrevieux\Form\FormFactoryInterface;
 use Symfony\Component\Routing\RequestContext;
 
+use function clearstatcache;
+
 class RouterModuleTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Files::rmdir(__DIR__.'/../../../var/cache/test-router');
+        clearstatcache();
+    }
+
     #[Test]
     public function register()
     {
-        $app = new Application(env: 'test');
+        $app = new Application(env: 'test-router');
         $container = new ContainerBuilder();
 
         $routerModule = new RouterModule();
@@ -59,7 +68,7 @@ class RouterModuleTest extends TestCase
     #[Test]
     public function registerWithConfig()
     {
-        $app = new class(true, env: 'test') extends Application {
+        $app = new class(true, env: 'test-router') extends Application {
             public function configDir(): string
             {
                 return __DIR__.'/Fixtures/config';
@@ -84,7 +93,7 @@ class RouterModuleTest extends TestCase
     #[Test]
     public function registerWithRouteAttributes()
     {
-        $app = new class(true, env: 'test') extends Application {
+        $app = new class(true, env: 'test-router') extends Application {
             public function configDir(): string
             {
                 return __DIR__.'/Fixtures/config';

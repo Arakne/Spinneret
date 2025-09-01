@@ -10,16 +10,31 @@ use Arakne\Spinneret\Logger\LoggerConfiguration;
 use Arakne\Spinneret\Logger\LoggerDispatcher;
 use Arakne\Spinneret\Logger\LoggerFilter;
 use Arakne\Spinneret\Logger\LoggerModule;
+use Arakne\Spinneret\Util\Files;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
+use function clearstatcache;
+
 class LoggerModuleTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Files::rmdir(__DIR__.'/../../../var/cache/test-logger');
+        clearstatcache();
+    }
+
     #[Test]
     public function register()
     {
-        $app = new Application(env: 'test');
+        $app = new class(env: 'test-logger') extends Application {
+            #[\Override]
+            public function configDir(): string
+            {
+                return '/dev/null';
+            }
+        };
         $container = new ContainerBuilder();
 
         $module = new LoggerModule();
@@ -35,7 +50,7 @@ class LoggerModuleTest extends TestCase
     #[Test]
     public function registerWithConfig()
     {
-        $app = new class(true, env: 'test') extends Application {
+        $app = new class(true, env: 'test-logger') extends Application {
             public function configDir(): string
             {
                 return __DIR__.'/Fixtures/config';

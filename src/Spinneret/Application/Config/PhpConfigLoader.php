@@ -18,9 +18,11 @@ use function implode;
 use function is_file;
 use function is_object;
 use function is_subclass_of;
+use function ltrim;
 use function natsort;
 use function realpath;
 use function sprintf;
+use function var_dump;
 
 /**
  * Default config loader, using glob to load all *.php files from the config directory
@@ -34,6 +36,16 @@ use function sprintf;
 final readonly class PhpConfigLoader implements ConfigLoaderInterface
 {
     public function __construct(
+        /**
+         * Glob patterns to load configuration files
+         *
+         * Use glob patterns relative to the config directory, e.g. `['*.php', 'foo/*.conf.php']`
+         * If null, all `*.php`, and `<env>/$.php` files from the config directory are loaded
+         *
+         * @var list<string>|null
+         */
+        private ?array $patterns = null,
+
         /**
          * Name of the cache file
          */
@@ -94,15 +106,18 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
      */
     private function configFiles(Application $app): array
     {
-        $globalConfigFiles = glob($app->configDir().'/*.php');
-        natsort($globalConfigFiles);
+        $configFiles = [];
+        $patterns = $this->patterns ?? ['*.php', $app->env . '/*.php'];
 
-        $currentEnvConfigFiles = glob($app->configDir().'/'.$app->env.'/*.php');
-        natsort($currentEnvConfigFiles);
+        foreach ($patterns as $pattern) {
+            $pattern = ltrim($pattern, '/');
+            $files = glob($app->configDir() . '/' . $pattern);
+            natsort($files);
 
-        array_push($globalConfigFiles, ...$currentEnvConfigFiles);
+            array_push($configFiles, ...$files);
+        }
 
-        return $globalConfigFiles;
+        return $configFiles;
     }
 
     private function processConfigurationClosure(string $file, Closure $config): ClosureMetadata
