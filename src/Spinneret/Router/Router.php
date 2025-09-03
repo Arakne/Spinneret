@@ -37,6 +37,11 @@ final readonly class Router implements RouterInterface
     public function __construct(
         private UrlMatcherInterface $matcher,
         private FormFactoryInterface $formFactory,
+
+        /**
+         * @var list<RouteCheckerInterface>
+         */
+        private array $checkers = [],
     ) {}
 
     #[Override]
@@ -85,13 +90,13 @@ final readonly class Router implements RouterInterface
             }
         }
 
-        // @todo valider les droits
-        // foreach ($this->checkers as $checker) {
-        //     $result = $checker->check($request, $target, $attributes);
-        //     if ($result !== null) {
-        //         return new RoutedRequest($request, $result, false, null);
-        //     }
-        // }
+         foreach ($this->checkers as $checker) {
+             $result = $checker->check($request, $target, $attributes);
+
+             if ($result !== null) {
+                 return new RoutedRequest($request, $result, false, null);
+             }
+         }
 
         // @todo optimisation: field extractor vide et request en singleton
         $form = $this->formFactory->create($target);

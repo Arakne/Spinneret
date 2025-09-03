@@ -5,7 +5,9 @@ namespace Arakne\Spinneret\Router;
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Application\ConfigurableModuleInterface;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
+use Arakne\Spinneret\Container\Builder\ServiceBuilder;
 use Arakne\Spinneret\Container\Value\Reference;
+use Arakne\Spinneret\Container\Value\TaggedServiceIterator;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompiler;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompilerInterface;
 use Arakne\Spinneret\Router\Compiler\UrlMatcherCompiler;
@@ -59,9 +61,14 @@ final readonly class RouterModule implements ConfigurableModuleInterface
     #[Override]
     public function register(ContainerBuilder $containerBuilder): void
     {
+        $containerBuilder->configureInstanceOf(RouteCheckerInterface::class, static function (ServiceBuilder $service) {
+            $service->tag(RouteCheckerInterface::class);
+        });
+
         $containerBuilder->register(Router::class)
             ->arg(new Reference(UrlMatcherInterface::class))
             ->arg(new Reference(FormFactoryInterface::class))
+            ->arg(new TaggedServiceIterator(RouteCheckerInterface::class, asArray: true))
         ;
 
         $containerBuilder->alias(RouterInterface::class, Router::class);
