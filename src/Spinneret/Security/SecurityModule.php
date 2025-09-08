@@ -59,11 +59,17 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
         $containerBuilder->alias(UserHandlerInterface::class, $this->configuration->userHandler);
         $containerBuilder->alias(CookieSerializerInterface::class, $this->configuration->serializer);
 
+        $containerBuilder->register(CookieOptions::class)
+            ->shared(false)
+            ->inline()
+            ->value(new Reference(SecurityConfig::class)->property('cookie'))
+        ;
+
         $containerBuilder->register(LoadSessionMiddleware::class)
-            ->factory(self::createUserMiddleware(...))
             ->arg(new Reference(CookieSerializerInterface::class))
             ->arg(new Reference(AuthenticationCookieHelper::class))
-            ->arg(new Reference(SecurityConfig::class))
+            ->arg(new Reference(CookieOptions::class)->property('name'))
+            ->arg(new Reference(SecurityConfig::class)->property('userAttribute'))
             ->tag(MiddlewareInterface::class)
         ;
 
@@ -77,6 +83,7 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
         $containerBuilder->register(AuthenticationCookieHelper::class, [
             new Reference(SecurityConfig::class),
             new Reference(CookieSerializerInterface::class),
+            new Reference(UserHandlerInterface::class),
             new Reference(Randomizer::class, nullOnInvalid: true),
             new Reference(ClockInterface::class, nullOnInvalid: true),
         ]);

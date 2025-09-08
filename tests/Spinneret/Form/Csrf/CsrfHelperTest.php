@@ -34,6 +34,7 @@ class CsrfHelperTest extends TestCase
         $psr = $psr->withAttribute(ParsedCookie::class, new ParsedCookie(
             token: 'a',
             creation: 0,
+            refresh: 0,
             expiration: 0,
             version: 1,
             data: null,
@@ -65,6 +66,7 @@ class CsrfHelperTest extends TestCase
         $psr = $psr->withAttribute(ParsedCookie::class, new ParsedCookie(
             token: 'a',
             creation: 0,
+            refresh: 0,
             expiration: 0,
             version: 1,
             data: null,
@@ -82,6 +84,7 @@ class CsrfHelperTest extends TestCase
         $req = $req->withAttribute(ParsedCookie::class, new ParsedCookie(
             token: 'a',
             creation: 0,
+            refresh: 0,
             expiration: 0,
             version: 1,
             data: null,

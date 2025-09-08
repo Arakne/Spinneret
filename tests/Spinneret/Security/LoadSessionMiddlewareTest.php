@@ -39,6 +39,7 @@ class LoadSessionMiddlewareTest extends TestCase
             'cookie' => [
                 'token' => 'f969a0d1a18f5a325e4d6d65c7e335f8',
                 'creation' => 1725382169,
+                'refresh' => 1725382169,
                 'expiration' => 1725385769,
                 'version' => 1,
                 'data' => null,
@@ -47,7 +48,7 @@ class LoadSessionMiddlewareTest extends TestCase
 
         $cookie = $response->getHeaderLine('Set-Cookie');
 
-        $this->assertEquals('auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE-F9JX8-3AYa6HXPeDw.RPtAk4hAC43r13-TBot18jbtQ35MiLrtX8uR90XLUWbrNWTOLLKEdsfHheZP0K4XwLqdhtut163VXUovV7giLQ; Path=/; HttpOnly', $cookie);
+        $this->assertEquals('auth=VccrEoAwDAXAuzxdQRqSfm7TaVrVQTCAYbg7IBCs2xMbMnrSVCajQrFLYS9tNjWVGhqz9AiHikzBC0dPmhzWf9tXCW-Ppw6GvOxjXDc.bWX3--pDK1lc1fnJW4BqTV7EApiYzZPREjyDrxwsInEU2NeJ_eLRoLcQH3Gxu4VN913i-LV8aSWRWVb5BkohBg; Path=/; HttpOnly', $cookie);
     }
 
     #[Test]
@@ -61,7 +62,8 @@ class LoadSessionMiddlewareTest extends TestCase
         );
         $cookie = $serializer->toString($parsedCookie = new ParsedCookie(
             token: 'my_token',
-            creation: FixedClock::instance()->now()->getTimestamp() - 250,
+            creation: $created = FixedClock::instance()->now()->getTimestamp() - 250,
+            refresh: $created,
             expiration: FixedClock::instance()->now()->getTimestamp() + 3000,
             version: 1,
             data: null,
@@ -76,6 +78,7 @@ class LoadSessionMiddlewareTest extends TestCase
             'cookie' => [
                 'token' => $parsedCookie->token,
                 'creation' => $parsedCookie->creation,
+                'refresh' => $parsedCookie->creation,
                 'expiration' => $parsedCookie->expiration,
                 'version' => 1,
                 'data' => null,
@@ -101,11 +104,12 @@ class LoadSessionMiddlewareTest extends TestCase
             'authenticatedUser' => [
                 'username' => 'admin',
                 'password' => 'very_secure',
+                'refresh' => 0,
             ]
         ], json_decode((string) $response->getBody(), true));
 
         $cookie = $response->getHeaderLine('Set-Cookie');
-        $this->assertEquals('auth=Ncs7DsIwFETRvUztwpkQ_zaDHs6zRJGAbBKEouwdU1Ae3ZkDLySwiCvM48XxJuK9dYG5iMRoGUgLg4w0eE5j4OCigf45-R_3ToMZ6cDWtK6y9AFkXu5r_z6ltfej9oxd6-faNG9VcZ5f.ysHu2CdjZqT7QUtfJ8d30uc7rn-5rSUA-SbevdBCw8Cm8CRDeRhBUJWm_DEjfmoe8R7IjKfp9wEr7ucuG8SifQ; Path=/; HttpOnly', $cookie);
+        $this->assertEquals('auth=Vcw7DoMwEIThu0ztwizBr8tEG7OWUvDQOhAhxN3jFClSfvpHc-KFBCrsCuX-5ujB7L11gXJhjtFSILIwyEidp6EP1LlooP-UHwf_5d5oMCKd2KrozFMbgMfpOberlWt9L9oydtHjXiVvKriuDw.qYU0mSmiuBs80eaIyQCdDiYsEY22LcOB1IcpN-j_wt_Eu0ntQN1yiJO0Us3oJW2rtXIyJV1UrcjxdJFtA-GckA; Path=/; HttpOnly', $cookie);
 
         $token = explode('=', explode(';', $cookie, 2)[0], 2)[1];
 
@@ -118,6 +122,7 @@ class LoadSessionMiddlewareTest extends TestCase
             'user' => [
                 'username' => 'admin',
                 'password' => 'very_secure',
+                'refresh' => 0,
             ]
         ], json_decode((string) $response->getBody(), true));
         $this->assertEmpty($response->getHeaderLine('Set-Cookie'));
@@ -128,13 +133,14 @@ class LoadSessionMiddlewareTest extends TestCase
     {
         $middleware = new LoadSessionMiddleware(
             $serializer = new HmacCookieSerializer(
-                new TestUserHandler(),
+                $userHandler = new TestUserHandler(),
                 secret: 'my_secret',
                 clock: FixedClock::instance(),
             ),
             new AuthenticationCookieHelper(
                 new SecurityConfig(),
                 $serializer,
+                $userHandler,
                 new Randomizer(new Xoshiro256StarStar(123)),
                 FixedClock::instance(),
             ),
@@ -158,7 +164,7 @@ class LoadSessionMiddlewareTest extends TestCase
         $cookies = $response->getHeader('Set-Cookie');
         $this->assertEquals([
             'auth2=foo',
-            'auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE-F9JX8-3AYa6HXPeDw.RPtAk4hAC43r13-TBot18jbtQ35MiLrtX8uR90XLUWbrNWTOLLKEdsfHheZP0K4XwLqdhtut163VXUovV7giLQ; Path=/; HttpOnly',
+            'auth=VccrEoAwDAXAuzxdQRqSfm7TaVrVQTCAYbg7IBCs2xMbMnrSVCajQrFLYS9tNjWVGhqz9AiHikzBC0dPmhzWf9tXCW-Ppw6GvOxjXDc.bWX3--pDK1lc1fnJW4BqTV7EApiYzZPREjyDrxwsInEU2NeJ_eLRoLcQH3Gxu4VN913i-LV8aSWRWVb5BkohBg; Path=/; HttpOnly',
         ], $cookies);
     }
 
@@ -167,13 +173,14 @@ class LoadSessionMiddlewareTest extends TestCase
     {
         $middleware = new LoadSessionMiddleware(
             $serializer = new HmacCookieSerializer(
-                new TestUserHandler(),
+                $userHandler = new TestUserHandler(),
                 secret: 'my_secret',
                 clock: FixedClock::instance(),
             ),
             new AuthenticationCookieHelper(
                 new SecurityConfig(),
                 $serializer,
+                $userHandler,
                 new Randomizer(new Xoshiro256StarStar(123)),
                 FixedClock::instance(),
             ),
@@ -211,7 +218,8 @@ class LoadSessionMiddlewareTest extends TestCase
         );
         $cookie = $serializer->toString(new ParsedCookie(
             token: 'my_token',
-            creation: FixedClock::instance()->now()->getTimestamp() - 5000,
+            creation: $created = FixedClock::instance()->now()->getTimestamp() - 5000,
+            refresh: $created,
             expiration: FixedClock::instance()->now()->getTimestamp() - 200,
             version: 1,
             data: new TestUser('admin', 'very_secure'),
@@ -226,6 +234,7 @@ class LoadSessionMiddlewareTest extends TestCase
             'cookie' => [
                 'token' => 'f969a0d1a18f5a325e4d6d65c7e335f8',
                 'creation' => 1725382169,
+                'refresh' => 1725382169,
                 'expiration' => 1725385769,
                 'version' => 1,
                 'data' => null,
@@ -234,6 +243,42 @@ class LoadSessionMiddlewareTest extends TestCase
 
         $cookie = $response->getHeaderLine('Set-Cookie');
 
-        $this->assertEquals('auth=NccrEoAwDAXAuzxdQRqSfm7TaVLVQQGG4e6AYN1e2FExipa2GDXKQxpH8dXUVHpyZhkZAR2VUhTOkbQE-F9JX8-3AYa6HXPeDw.RPtAk4hAC43r13-TBot18jbtQ35MiLrtX8uR90XLUWbrNWTOLLKEdsfHheZP0K4XwLqdhtut163VXUovV7giLQ; Path=/; HttpOnly', $cookie);
+        $this->assertEquals('auth=VccrEoAwDAXAuzxdQRqSfm7TaVrVQTCAYbg7IBCs2xMbMnrSVCajQrFLYS9tNjWVGhqz9AiHikzBC0dPmhzWf9tXCW-Ppw6GvOxjXDc.bWX3--pDK1lc1fnJW4BqTV7EApiYzZPREjyDrxwsInEU2NeJ_eLRoLcQH3Gxu4VN913i-LV8aSWRWVb5BkohBg; Path=/; HttpOnly', $cookie);
+    }
+
+    #[Test]
+    public function shouldRefreshSession()
+    {
+        $app = new TestSecurityApplication(isDev: true);
+        $serializer = new HmacCookieSerializer(
+            new TestUserHandler(),
+            'my_secret',
+            clock: FixedClock::instance(),
+        );
+        $cookie = $serializer->toString(new ParsedCookie(
+            token: 'my_token',
+            creation: $created = FixedClock::instance()->now()->getTimestamp() - 5000,
+            refresh: $created + 4000,
+            expiration: FixedClock::instance()->now()->getTimestamp() + 500,
+            version: 1,
+            data: new TestUser('admin', 'very_secure'),
+        ));
+
+        $req = new ServerRequest('GET', '/user');
+        $req = $req->withCookieParams(['auth' => $cookie]);
+        $response = $app->handle($req);
+
+        $this->assertEquals([
+            'success' => true,
+            'user' => [
+                'username' => 'admin',
+                'password' => 'very_secure',
+                'refresh' => 1,
+            ],
+        ], json_decode((string) $response->getBody(), true));
+
+        $cookie = $response->getHeaderLine('Set-Cookie');
+
+        $this->assertEquals('auth=NcxBCoAgFIThu8zaTYVZXibE3iLCimcaId49jVp-_MMknNBw93TuK20QsNCNamWnVNOPAvxxaF_ST6kqY6HADJ0QPPFmXBnAzG6pV4fx_tq5ZETie_JkAxNyfgA.htAFhrXb68awq9pR1L1jXc5mp4ntvNRkXDHiibVEwfAdBN_4h51ijfzijoPjqipg9rdKNNJ7nSj6VKHDEddPtw; Path=/; HttpOnly', $cookie);
     }
 }

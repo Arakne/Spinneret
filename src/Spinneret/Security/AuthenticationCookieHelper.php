@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\Security;
 
 use Arakne\Spinneret\Security\Serializer\CookieSerializerInterface;
 use Arakne\Spinneret\Security\Serializer\ParsedCookie;
+use Arakne\Spinneret\Security\User\UserHandlerInterface;
 use Arakne\Spinneret\Util\SystemClock;
 use Psr\Clock\ClockInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -11,6 +12,7 @@ use Random\Engine\Secure;
 use Random\Randomizer;
 
 use function bin2hex;
+use function var_dump;
 
 /**
  * Utility class to help with authentication cookies.
@@ -23,6 +25,7 @@ final readonly class AuthenticationCookieHelper
     public function __construct(
         private SecurityConfig $config,
         private CookieSerializerInterface $cookieSerializer,
+        private UserHandlerInterface $userHandler,
         ?Randomizer $random = null,
         ?ClockInterface $clock = null,
     ) {
@@ -44,6 +47,7 @@ final readonly class AuthenticationCookieHelper
         return new ParsedCookie(
             bin2hex($this->random->getBytes(16)),
             $now,
+            $now,
             $now + $this->config->ttl,
             $this->config->version,
             $data,
@@ -64,6 +68,42 @@ final readonly class AuthenticationCookieHelper
         }
 
         return $this->config->cookie->format($this->cookieSerializer->toString($data));
+    }
+
+    /**
+     * Check if the cookie should be refreshed.
+     *
+     * @param ParsedCookie $cookie
+     * @return bool True if the cookie should be refreshed.
+     */
+    public function shouldBeRefreshed(ParsedCookie $cookie): bool
+    {
+        $delta = $this->clock->now()->getTimestamp() - $cookie->refresh;
+
+        return $delta > $this->config->refreshThreshold;
+    }
+
+    /**
+     * Refresh the session and update the cookie.
+     *
+     * @param ParsedCookie $cookie
+     * @return ParsedCookie The updated cookie.
+     */
+    public function refreshCookie(ParsedCookie $cookie): ParsedCookie
+    {
+        $now = $this->clock->now()->getTimestamp();
+
+        if ($this->config->extendExpiration) {
+            $expiration = $now + $this->config->ttl;
+        } else {
+            $expiration = $cookie->expiration;
+        }
+
+        return $cookie->refresh(
+            $cookie->data ? $this->userHandler->refresh($cookie->data) : null,
+            $now,
+            $expiration
+        );
     }
 
     /**

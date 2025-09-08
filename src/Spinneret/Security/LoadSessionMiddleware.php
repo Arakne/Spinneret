@@ -44,15 +44,21 @@ final readonly class LoadSessionMiddleware implements MiddlewareInterface
         /** @var mixed $cookie */
         $cookie = $request->getCookieParams()[$this->cookieName] ?? null;
         $parsedCookie = null;
-        $hasCookie = false;
+        $writeCookie = true;
 
         if (is_string($cookie)) {
             $parsedCookie = $this->serializer->fromString($cookie);
 
             if ($parsedCookie) {
                 $request = $this->writeCookieToRequest($request, $parsedCookie);
-                $hasCookie = true;
+                $writeCookie = false;
             }
+        }
+
+        if ($parsedCookie && $this->cookieHelper->shouldBeRefreshed($parsedCookie)) {
+            $parsedCookie = $this->cookieHelper->refreshCookie($parsedCookie);
+            $request = $this->writeCookieToRequest($request, $parsedCookie);
+            $writeCookie = true;
         }
 
         if (!$parsedCookie) {
@@ -60,11 +66,9 @@ final readonly class LoadSessionMiddleware implements MiddlewareInterface
             $request = $this->writeCookieToRequest($request, $parsedCookie);
         }
 
-        // @todo refresh cookie
-
         $response = $handler->handle($request);
 
-        if ($hasCookie) {
+        if (!$writeCookie) {
             return $response;
         }
 

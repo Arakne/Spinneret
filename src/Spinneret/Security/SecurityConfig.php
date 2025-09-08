@@ -63,6 +63,24 @@ final readonly class SecurityConfig
         public int $ttl = 3600,
 
         /**
+         * Time in seconds after which the session should be refreshed.
+         *
+         * Once this time after the previous refresh is reached, the session will be refreshed,
+         * so the user validity will be checked again, and a new cookie will be issued.
+         *
+         * Any null or negative value will refresh the session on every request.
+         */
+        public int $refreshThreshold = 7200,
+
+        /**
+         * Whether to extend the expiration time of the cookie when the session is refreshed.
+         *
+         * If true, the cookie expiration time will be extended by the TTL on each refresh.
+         * If false, the cookie expiration time will remain the same as when it was first issued.
+         */
+        public bool $extendExpiration = false,
+
+        /**
          * Define the user resolver and serializer for create or parse the session cookie.
          *
          * The user handler must implement the {@see UserHandlerInterface} interface, and must be a service registered in the container.

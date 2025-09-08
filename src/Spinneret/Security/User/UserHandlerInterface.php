@@ -35,5 +35,17 @@ interface UserHandlerInterface
      */
     public function toArray(object $user): array;
 
-    // @todo refresh & check role ?
+    /**
+     * Try to refresh the user data.
+     *
+     * The method should get fresh data for the user, for example from the database,
+     * and check if the user is still valid.
+     *
+     * This method should not throw any exception.
+     * The user is invalid, it should return null.
+     *
+     * @param U $user The current user object.
+     * @return U|null
+     */
+    public function refresh(object $user): ?object;
 }

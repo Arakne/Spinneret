@@ -135,6 +135,7 @@ class CsrfTest extends TestCase
         $cookie = new ParsedCookie(
             token: 'a',
             creation: 0,
+            refresh: 0,
             expiration: 0,
             version: 1,
             data: null,

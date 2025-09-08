@@ -113,13 +113,14 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
 
         if (
             !is_array($data)
-            || count($data) !== 5
-            || !isset($data['t'], $data['c'], $data['e'], $data['v'])
+            || count($data) !== 6
+            || !isset($data['t'], $data['c'], $data['e'], $data['v'], $data['r'])
             || !array_key_exists('d', $data)
             || !is_string($data['t'])
             || !is_int($data['c'])
             || !is_int($data['e'])
             || !is_int($data['v'])
+            || !is_int($data['r'])
             || $data['v'] !== $this->version
             || ($data['d'] !== null && !is_array($data['d']))
         ) {
@@ -138,6 +139,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
         return new ParsedCookie(
             $data['t'],
             $data['c'],
+            $data['r'],
             $data['e'],
             $data['v'],
             $user,
@@ -155,6 +157,7 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
         $data = json_encode([
             't' => $cookie->token,
             'c' => $cookie->creation,
+            'r' => $cookie->refresh,
             'e' => $cookie->expiration,
             'v' => $cookie->version,
             'd' => $arrPayload,

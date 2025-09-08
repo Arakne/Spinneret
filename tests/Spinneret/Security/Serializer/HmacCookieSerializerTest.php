@@ -30,6 +30,7 @@ class HmacCookieSerializerTest extends TestCase
         $cookie = new ParsedCookie(
             token: 'f969a0d1a18f5a325e4d6d65c7e335f8',
             creation: FixedClock::instance()->now()->getTimestamp(),
+            refresh: FixedClock::instance()->now()->getTimestamp(),
             expiration: FixedClock::instance()->now()->getTimestamp() + 3600,
             version: 1,
             data: (object) ['foo' => 'bar'],
@@ -37,7 +38,7 @@ class HmacCookieSerializerTest extends TestCase
 
         $str = $this->serializer->toString($cookie);
 
-        $this->assertEquals('Ncw9DoAgDAbQu3wzg1Bbfm5TKawkxrgQ7q4Ojm95ExcKepasm3n1qbNS4LabmHCNjYh7gkNF8TEwpeAlO7SfHD_eLx0MZaKP8Y6HnljrAQ.C4BHNEcki7a5iWbSdizOBSGNRArbPRWDmqYiX1uWtks5PQhQUztInLGRV50HUoTHrmIaylwiA6NmCakuzRrPHw', $str);
+        $this->assertEquals('Vc07DoAgEAXAu7yawmVdfrdBYFsSYmwId1cLC8upZuJEgkYX81YpU1DJbKXt1VUnxTdm0QCDgkTeCgdLLhqMP9tH8S-vhwYVaUJ7f4IjD6x1Aw.7ish2c2K0ZVaFY1ZZSMPN7o4ZJ9BK8DBsORI8xYM-cl925flogmEoCe0e3750KQ3d5MHVbH2uMChffUTfDKtZw', $str);
         $this->assertEquals($cookie, $this->serializer->fromString($str));
     }
 
@@ -53,6 +54,7 @@ class HmacCookieSerializerTest extends TestCase
         $cookie = new ParsedCookie(
             token: 'f969a0d1a18f5a325e4d6d65c7e335f8',
             creation: FixedClock::instance()->now()->getTimestamp(),
+            refresh: FixedClock::instance()->now()->getTimestamp(),
             expiration: FixedClock::instance()->now()->getTimestamp() + 3600,
             version: 1,
             data: (object) ['foo' => 'bar'],
@@ -60,7 +62,7 @@ class HmacCookieSerializerTest extends TestCase
 
         $str = $serializer->toString($cookie);
 
-        $this->assertEquals('eyJ0IjoiZjk2OWEwZDFhMThmNWEzMjVlNGQ2ZDY1YzdlMzM1ZjgiLCJjIjoxNzI1MzgyMTY5LCJlIjoxNzI1Mzg1NzY5LCJ2IjoxLCJkIjp7ImZvbyI6ImJhciJ9fQ.dhu1JlegWsPRu-wiuo6f8Ju2yCvsi0iKWwmRM5eFfzMgzunu91F4RzQ-JwzFQ1vcrG3I-0NbGv5Yl1wOBlyMdg', $str);
+        $this->assertEquals('eyJ0IjoiZjk2OWEwZDFhMThmNWEzMjVlNGQ2ZDY1YzdlMzM1ZjgiLCJjIjoxNzI1MzgyMTY5LCJyIjoxNzI1MzgyMTY5LCJlIjoxNzI1Mzg1NzY5LCJ2IjoxLCJkIjp7ImZvbyI6ImJhciJ9fQ.fiwjEhjIGDlhtPzYxtWR2XBg5vcC4xbG8amZZMLNXnhH-4bFJsNSFtBIfbno-fL_HKuWpiLWyQBSX1VdN-urEA', $str);
         $this->assertEquals($cookie, $serializer->fromString($str));
 
         $this->assertTrue(strlen($str) > strlen($this->serializer->toString($cookie)));
@@ -78,6 +80,7 @@ class HmacCookieSerializerTest extends TestCase
         $cookie = new ParsedCookie(
             token: 'f969a0d1a18f5a325e4d6d65c7e335f8',
             creation: FixedClock::instance()->now()->getTimestamp(),
+            refresh: FixedClock::instance()->now()->getTimestamp(),
             expiration: FixedClock::instance()->now()->getTimestamp() + 3600,
             version: 1,
             data: (object) ['foo' => 'bar'],
@@ -85,7 +88,7 @@ class HmacCookieSerializerTest extends TestCase
 
         $str = $serializer->toString($cookie);
 
-        $this->assertEquals('Ncw9DoAgDAbQu3wzg1Bbfm5TKawkxrgQ7q4Ojm95ExcKepasm3n1qbNS4LabmHCNjYh7gkNF8TEwpeAlO7SfHD_eLx0MZaKP8Y6HnljrAQ.ZPPWbEYWTnz3KaLv7TvhVNZ8UFBHP3zqBQVkmT2zJmo', $str);
+        $this->assertEquals('Vc07DoAgEAXAu7yawmVdfrdBYFsSYmwId1cLC8upZuJEgkYX81YpU1DJbKXt1VUnxTdm0QCDgkTeCgdLLhqMP9tH8S-vhwYVaUJ7f4IjD6x1Aw.maIio7y6VM8Bchlz5rH2_Ysx0Roc4kHN8eMTVhbv8aA', $str);
         $this->assertEquals($cookie, $serializer->fromString($str));
     }
 
@@ -100,6 +103,7 @@ class HmacCookieSerializerTest extends TestCase
         $cookie = new ParsedCookie(
             token: 'f969a0d1a18f5a325e4d6d65c7e335f8',
             creation: FixedClock::instance()->now()->getTimestamp(),
+            refresh: FixedClock::instance()->now()->getTimestamp(),
             expiration: FixedClock::instance()->now()->getTimestamp() + 3600,
             version: 1,
             data: (object) ['foo' => 'bar'],
@@ -121,6 +125,7 @@ class HmacCookieSerializerTest extends TestCase
         $cookie = new ParsedCookie(
             token: 'f969a0d1a18f5a325e4d6d65c7e335f8',
             creation: FixedClock::instance()->now()->getTimestamp(),
+            refresh: FixedClock::instance()->now()->getTimestamp(),
             expiration: FixedClock::instance()->now()->getTimestamp() + 3600,
             version: 2,
             data: (object) ['foo' => 'bar'],
@@ -142,6 +147,7 @@ class HmacCookieSerializerTest extends TestCase
         $cookie = new ParsedCookie(
             token: 'f969a0d1a18f5a325e4d6d65c7e335f8',
             creation: FixedClock::instance()->now()->getTimestamp(),
+            refresh: FixedClock::instance()->now()->getTimestamp(),
             expiration: FixedClock::instance()->now()->getTimestamp() + 3600,
             version: 1,
             data: (object) ['foo' => 'bar'],
@@ -163,6 +169,7 @@ class HmacCookieSerializerTest extends TestCase
         $cookie = new ParsedCookie(
             token: 'f969a0d1a18f5a325e4d6d65c7e335f8',
             creation: FixedClock::instance()->now()->getTimestamp(),
+            refresh: FixedClock::instance()->now()->getTimestamp(),
             expiration: FixedClock::instance()->now()->getTimestamp() + 3600,
             version: 1,
             data: (object) ['foo' => 'bar'],
@@ -195,36 +202,48 @@ class HmacCookieSerializerTest extends TestCase
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
-        $data = gzdeflate(json_encode(['t' => true, 'c' => 1, 'e' => 1, 'v' => 1, 'd' => null]));
+        $data = gzdeflate(json_encode(['t' => true, 'c' => 1, 'r' => 1, 'e' => 1, 'v' => 1, 'd' => null]));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
-        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => '1', 'v' => 1, 'd' => null]));
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'r' => 1, 'e' => '1', 'v' => 1, 'd' => null]));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
-        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => 1, 'v' => '1', 'd' => null]));
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'r' => 1, 'e' => 1, 'v' => '1', 'd' => null]));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
-        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() - 1, 'v' => 1, 'd' => []]));
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'r' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() - 1, 'v' => 1, 'd' => []]));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
-        $data = gzdeflate(json_encode(['t' => 'a', 'c' => FixedClock::instance()->now()->getTimestamp() + 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => []]));
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => FixedClock::instance()->now()->getTimestamp() + 1, 'r' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => []]));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
-        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => null, 'invalid' => 'key']));
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'r' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => null, 'invalid' => 'key']));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
-        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' =>  ['a' => str_repeat('a', 10000000)]]));
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'r' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' =>  ['a' => str_repeat('a', 10000000)]]));
+        $signature = hash_hmac('sha512', $data, 'secret', true);
+        $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
+
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => null]));
+        $signature = hash_hmac('sha512', $data, 'secret', true);
+        $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
+
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'r' => 'abc', 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => null]));
+        $signature = hash_hmac('sha512', $data, 'secret', true);
+        $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
+
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'a' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => null]));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
 
         // Valid exemple
-        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => null]));
+        $data = gzdeflate(json_encode(['t' => 'a', 'c' => 1, 'r' => 1, 'e' => FixedClock::instance()->now()->getTimestamp() + 1, 'v' => 1, 'd' => null]));
         $signature = hash_hmac('sha512', $data, 'secret', true);
         $this->assertNotNull($this->serializer->fromString(base64_encode($data) . '.' . base64_encode($signature)));
     }

@@ -21,6 +21,14 @@ final readonly class ParsedCookie
         public int $creation,
 
         /**
+         * The refresh timestamp of the authentication session.
+         *
+         * This value indicates when the session has been refreshed.
+         * If the session has never been refreshed, this value is equal to the creation timestamp.
+         */
+        public int $refresh,
+
+        /**
          * The expiration timestamp of the authentication session.
          * When reached, the user will be logged out.
          *
@@ -42,4 +50,25 @@ final readonly class ParsedCookie
          */
         public ?object $data,
     ) {}
+
+    /**
+     * Create a new ParsedCookie with updated refresh and expiration timestamps.
+     *
+     * @param object|null $data The new session payload. Can be null in case of anonymous user or expired data.
+     * @param int $refresh The new refresh timestamp (should be current time).
+     * @param int $expiration The new expiration timestamp.
+     *
+     * @return self
+     */
+    public function refresh(?object $data, int $refresh, int $expiration): self
+    {
+        return new self(
+            $this->token,
+            $this->creation,
+            $refresh,
+            $expiration,
+            $this->version,
+            $data,
+        );
+    }
 }

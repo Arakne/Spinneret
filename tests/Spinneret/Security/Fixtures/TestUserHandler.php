@@ -17,6 +17,16 @@ class TestUserHandler implements UserHandlerInterface
     }
 
     #[Override]
+    public function refresh(object $user): ?object
+    {
+        if ($user->refresh >= 2) {
+            return null;
+        }
+
+        return new TestUser($user->username, $user->password, $user->refresh + 1);
+    }
+
+    #[Override]
     public function toArray(object $user): array
     {
         return [

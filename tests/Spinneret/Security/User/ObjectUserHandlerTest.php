@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Security\User;
 
 use Arakne\Spinneret\Security\User\ObjectUserHandler;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class ObjectUserHandlerTest extends TestCase
@@ -38,5 +39,18 @@ class ObjectUserHandlerTest extends TestCase
             'id' => 1,
             'username' => 'john.doe',
         ], $data);
+    }
+
+    #[Test]
+    public function refresh()
+    {
+        $handler = new ObjectUserHandler();
+
+        $user = (object) [
+            'id' => 1,
+            'username' => 'john.doe',
+        ];
+
+        $this->assertSame($user, $handler->refresh($user));
     }
 }

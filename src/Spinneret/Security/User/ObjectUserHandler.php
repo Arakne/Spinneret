@@ -22,4 +22,10 @@ final readonly class ObjectUserHandler implements UserHandlerInterface
     {
         return (array) $user;
     }
+
+    #[Override]
+    public function refresh(object $user): ?object
+    {
+        return $user;
+    }
 }
