@@ -7,6 +7,7 @@ use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Security\Serializer\CookieSerializerInterface;
 use Arakne\Spinneret\Security\Serializer\HmacCookieSerializer;
+use Arakne\Spinneret\Security\User\AuthenticatedUserAccessor;
 use Arakne\Spinneret\Security\User\ObjectUserHandler;
 use Arakne\Spinneret\Security\User\UserHandlerInterface;
 use Override;
@@ -86,6 +87,10 @@ final readonly class SecurityModule implements ConfigurableModuleInterface
             new Reference(UserHandlerInterface::class),
             new Reference(Randomizer::class, nullOnInvalid: true),
             new Reference(ClockInterface::class, nullOnInvalid: true),
+        ]);
+
+        $containerBuilder->register(AuthenticatedUserAccessor::class, [
+            new Reference(SecurityConfig::class)->property('userAttribute'),
         ]);
     }
 

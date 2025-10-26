@@ -5,6 +5,7 @@ namespace Arakne\Tests\Spinneret\Container\Builder;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Arakne\Spinneret\Container\Value\Autowire;
 use Arakne\Spinneret\Container\Value\Call;
+use Arakne\Spinneret\Container\Value\DependentValueInterface;
 use Arakne\Spinneret\Container\Value\DynamicArray;
 use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Value\NewExpression;
@@ -54,10 +55,12 @@ use Closure;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use SplPriorityQueue;
 
 use function iterator_to_array;
 use function ksort;
+use function sprintf;
 use function str_ends_with;
 use function var_dump;
 
@@ -1070,6 +1073,85 @@ class ContainerBuilderTest extends TestCase
 
         $this->assertSame(['a', 'b'], $builder->services[SingleLiteralClass::class]->tags);
         $this->assertSame(['foo'], $builder->services[SingleLiteralClass::class]->arguments);
+    }
+
+    #[Test]
+    public function dependentValueShouldDisableServiceInlining()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SingleLiteralClass::class, ['foo']);
+        $builder->register(ArrayObject::class, [[
+            new class implements DependentValueInterface {
+                #[Override]
+                public function dependencies(): array
+                {
+                    return [SingleLiteralClass::class];
+                }
+
+                #[Override]
+                public function resolve(ContainerInterface $container): string
+                {
+                    return $container->get(SingleLiteralClass::class)->value . '~~~';
+                }
+
+                #[Override]
+                public function compile(): string
+                {
+                    return sprintf('$this->get(%s)->value . %s', var_export(SingleLiteralClass::class, true), var_export('~~~', true));
+                }
+
+                #[Override]
+                public function type(): ?string
+                {
+                    return 'string';
+                }
+            },
+        ]])->public();
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(ArrayObject::class));
+        $this->assertTrue($container->has(SingleLiteralClass::class));
+        $this->assertSame(['foo~~~'], $container->get(ArrayObject::class)->getArrayCopy());
+    }
+
+    #[Test]
+    public function dependentValueShouldAutoregisterDependency()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(ArrayObject::class, [[
+            new class implements DependentValueInterface {
+                #[Override]
+                public function dependencies(): array
+                {
+                    return [SimpleClass::class];
+                }
+
+                #[Override]
+                public function resolve(ContainerInterface $container): SimpleClass
+                {
+                    return $container->get(SimpleClass::class);
+                }
+
+                #[Override]
+                public function compile(): string
+                {
+                    return sprintf('$this->get(%s)', var_export(SimpleClass::class, true));
+                }
+
+                #[Override]
+                public function type(): ?string
+                {
+                    return SimpleClass::class;
+                }
+            },
+        ]])->public();
+
+        $container = $builder->build();
+
+        $this->assertTrue($container->has(ArrayObject::class));
+        $this->assertTrue($container->has(SimpleClass::class));
+        $this->assertSame([$container->get(SimpleClass::class)], $container->get(ArrayObject::class)->getArrayCopy());
     }
 }
 

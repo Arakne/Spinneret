@@ -5,6 +5,7 @@ namespace Arakne\Tests\Spinneret\Container\Compiler;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Arakne\Spinneret\Container\Service\StaticMethodServiceFactory;
 use Arakne\Spinneret\Container\Value\Call;
+use Arakne\Spinneret\Container\Value\DependentValueInterface;
 use Arakne\Spinneret\Container\Value\DynamicArray;
 use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Value\NewExpression;
@@ -58,6 +59,8 @@ use function file_put_contents;
 use function iterator_to_array;
 use function ksort;
 use function random_bytes;
+use function sprintf;
+use function var_export;
 
 class PhpClassContainerCompilerTest extends TestCase
 {
@@ -592,6 +595,51 @@ class PhpClassContainerCompilerTest extends TestCase
         $instance = $container->get(SingleLiteralClass::class);
         $this->assertSame('test', $instance->value);
         $this->assertSame($instance, $container->get(SingleLiteralClass::class));
+    }
+
+    #[Test]
+    public function withDependentValue()
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(SingleLiteralClass::class, ['foo']);
+        $builder->register(ArrayObject::class, [[
+            new class implements DependentValueInterface {
+                #[Override]
+                public function dependencies(): array
+                {
+                    return [SingleLiteralClass::class];
+                }
+
+                #[Override]
+                public function resolve(ContainerInterface $container): string
+                {
+                    return $container->get(SingleLiteralClass::class)->value . '~~~';
+                }
+
+                #[Override]
+                public function compile(): string
+                {
+                    return sprintf('$this->get(%s)->value . %s', var_export(SingleLiteralClass::class, true), var_export('~~~', true));
+                }
+
+                #[Override]
+                public function type(): ?string
+                {
+                    return 'string';
+                }
+            },
+        ]])->public();
+
+        $built = $builder->build();
+        $compiled = $built->compile(new PhpClassContainerCompiler($className = 'CompiledContainer'.bin2hex(random_bytes(8))));
+        eval($compiled);
+
+        $container = new $className();
+
+        $this->assertTrue($container->has(ArrayObject::class));
+        $this->assertTrue($container->has(SingleLiteralClass::class));
+        $this->assertSame(['foo~~~'], $container->get(ArrayObject::class)->getArrayCopy());
+        $this->assertStringContainsString("new \ArrayObject([\$this->get('Arakne\\\Tests\\\Spinneret\\\Container\\\Fixtures\\\SingleLiteralClass')->value . '~~~', ], 0, 'ArrayIterator')", $compiled);
     }
 
     private function compileContainer(ContainerBuilder $builder): SpinneretContainerInterface

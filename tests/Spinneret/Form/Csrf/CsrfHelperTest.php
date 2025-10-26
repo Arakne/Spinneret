@@ -78,6 +78,27 @@ class CsrfHelperTest extends TestCase
     }
 
     #[Test]
+    public function getCsrfFields()
+    {
+        $psr = new ServerRequest('POST', 'http://localhost/csrf');
+        $psr = $psr->withAttribute(ParsedCookie::class, new ParsedCookie(
+            token: 'a',
+            creation: 0,
+            refresh: 0,
+            expiration: 0,
+            version: 1,
+            data: null,
+        ));
+
+        $this->assertSame(['csrf' => 'ce6ce7356ed5476e1c0a87a0e838fd5c129a664afebf079f88e6056677d751b3'], $this->helper->getCsrfFields(BasicCsrfForm::class, $psr));
+        $this->assertSame([
+            'csrf' => '6f9ab287c99556813f109ddab1985bed8761bb3b4fc2a57f91d1085927b44626',
+            'other' => '9c83003eecf27743c467e704876d53b098178ab7c25f51765c11f7c1e685bffe',
+        ], $this->helper->getCsrfFields(OtherCsrfForm::class, $psr));
+        $this->assertNull($this->helper->getCsrfToken(ArrayObject::class, $psr));
+    }
+
+    #[Test]
     public function form()
     {
         $req = new ServerRequest('POST', 'http://localhost/csrf');

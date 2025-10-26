@@ -8,6 +8,7 @@ use Arakne\Spinneret\Container\Service\MethodServiceFactory;
 use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Value\Autowire;
 use Arakne\Spinneret\Container\Value\Call;
+use Arakne\Spinneret\Container\Value\DependentValueInterface;
 use Arakne\Spinneret\Container\Value\DynamicArray;
 use Arakne\Spinneret\Container\Value\Literal;
 use Arakne\Spinneret\Container\Value\NestedValueInterface;
@@ -136,6 +137,10 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                 array_push($toProcess, ...$dependencies);
             }
 
+            if ($argument instanceof DependentValueInterface) {
+                array_push($toProcess, ...$this->processDependentValue($builder, $argument));
+            }
+
             if ($useArray && $argument instanceof DynamicArray) {
                 // Convert back to a simple array if it was originally an array.
                 $argument = $argument->values;
@@ -254,6 +259,7 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                 $inner instanceof Reference => $this->processReference($builder, $inner),
                 $inner instanceof Call => $this->processCall($builder, $inner),
                 $inner instanceof NestedValueInterface => $this->processNestedValue($builder, $inner),
+                $inner instanceof DependentValueInterface => [null, $this->processDependentValue($builder, $inner)],
                 default => [null, []],
             };
 
@@ -267,6 +273,25 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
         }
 
         return [$generator->getReturn(), $toProcess];
+    }
+
+    /**
+     * @param ContainerBuilder $builder
+     * @param DependentValueInterface $value
+     *
+     * @return list<ServiceBuilder> New services to process.
+     */
+    private function processDependentValue(ContainerBuilder $builder, DependentValueInterface $value): array
+    {
+        $toProcess = [];
+
+        foreach ($value->dependencies() as $id) {
+            if (!$builder->defined($id)) {
+                $toProcess[] = $builder->register($id);
+            }
+        }
+
+        return $toProcess;
     }
 
     /**

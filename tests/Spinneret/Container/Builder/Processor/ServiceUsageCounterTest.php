@@ -4,6 +4,7 @@ namespace Arakne\Tests\Spinneret\Container\Builder\Processor;
 
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\Processor\ServiceUsageCounter;
+use Arakne\Spinneret\Container\Value\DependentValueInterface;
 use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Tests\Spinneret\Container\Fixtures\ClassWithLiteralArguments;
 use Arakne\Tests\Spinneret\Container\Fixtures\ContainerClass;
@@ -11,8 +12,10 @@ use Arakne\Tests\Spinneret\Container\Fixtures\SimpleClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\SingleLiteralClass;
 use Arakne\Tests\Spinneret\Container\Fixtures\StaticFactory;
 use ArrayObject;
+use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 
 class ServiceUsageCounterTest extends TestCase
 {
@@ -30,6 +33,31 @@ class ServiceUsageCounterTest extends TestCase
                 'bar' => new Reference(SingleLiteralClass::class),
             ],
             new Reference('foo'),
+            new class implements DependentValueInterface {
+                #[Override]
+                public function dependencies(): array
+                {
+                    return [SingleLiteralClass::class];
+                }
+
+                #[Override]
+                public function resolve(ContainerInterface $container): mixed
+                {
+                    // TODO: Implement resolve() method.
+                }
+
+                #[Override]
+                public function compile(): string
+                {
+                    // TODO: Implement compile() method.
+                }
+
+                #[Override]
+                public function type(): ?string
+                {
+                    // TODO: Implement type() method.
+                }
+            }
         ]])->public();
         $builder->register('foo')->value(new Reference(SingleLiteralClass::class)->property('value'));
 
@@ -38,7 +66,7 @@ class ServiceUsageCounterTest extends TestCase
         $this->assertSame([
             SimpleClass::class => ServiceUsageCounter::PUBLIC,
             ClassWithLiteralArguments::class => 1,
-            SingleLiteralClass::class => 2,
+            SingleLiteralClass::class => 3,
             'foo' => 1,
         ], $counter->services);
 

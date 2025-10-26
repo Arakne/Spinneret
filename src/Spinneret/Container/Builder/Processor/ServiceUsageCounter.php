@@ -5,6 +5,7 @@ namespace Arakne\Spinneret\Container\Builder\Processor;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Container\Builder\ServiceBuilder;
 use Arakne\Spinneret\Container\Service\MethodServiceFactory;
+use Arakne\Spinneret\Container\Value\DependentValueInterface;
 use Arakne\Spinneret\Container\Value\NestedValueInterface;
 use Arakne\Spinneret\Container\Value\Reference;
 
@@ -73,6 +74,7 @@ final class ServiceUsageCounter
             $value instanceof Reference => self::processReference($builder, $counter, $value),
             is_array($value) => self::processArray($builder, $counter, $value),
             $value instanceof NestedValueInterface => self::processNestedValue($builder, $counter, $value),
+            $value instanceof DependentValueInterface => self::processDependentValue($builder, $counter, $value),
             default => null,
         };
     }
@@ -98,6 +100,17 @@ final class ServiceUsageCounter
     {
         foreach ($value->traverse() as $item) {
             self::processValue($builder, $counter, $item);
+        }
+    }
+
+    private static function processDependentValue(ContainerBuilder $builder, ServiceUsageCounter $counter, DependentValueInterface $value): void
+    {
+        foreach ($value->dependencies() as $id) {
+            $service = $builder->find($id);
+
+            if ($service) {
+                $counter->add($service);
+            }
         }
     }
 }
