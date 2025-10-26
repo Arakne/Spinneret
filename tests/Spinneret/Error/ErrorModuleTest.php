@@ -20,7 +20,7 @@ class ErrorModuleTest extends TestCase
     #[Test]
     public function functionalProd()
     {
-        $app = new class(false, env: 'test') extends Application {
+        $app = new class(false, env: 'test-error-module') extends Application {
             public function configDir(): string
             {
                 return __DIR__ . '/Fixtures/config';
@@ -66,7 +66,7 @@ HTML
     #[Test]
     public function functionalDev()
     {
-        $app = new class(true, env: 'test') extends Application {
+        $app = new class(true, env: 'test-error-module') extends Application {
             public function configDir(): string
             {
                 return __DIR__ . '/Fixtures/config';
@@ -101,7 +101,7 @@ HTML
     #[Test]
     public function functionalShouldLogErrors()
     {
-        $app = new class(true, env: 'test') extends Application {
+        $app = new class(true, env: 'test-error-module') extends Application {
             protected function applicationModules(): array
             {
                 return [

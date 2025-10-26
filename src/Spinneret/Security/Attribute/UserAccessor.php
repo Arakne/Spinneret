@@ -8,6 +8,7 @@ use Attribute;
 use Override;
 use Psr\Container\ContainerInterface;
 
+use function assert;
 use function sprintf;
 use function var_export;
 
@@ -36,6 +37,7 @@ final readonly class UserAccessor implements DependentValueInterface
     public function resolve(ContainerInterface $container): ?object
     {
         $accessor = $container->get(AuthenticatedUserAccessor::class);
+        assert($accessor instanceof AuthenticatedUserAccessor);
 
         if ($this->userClassName !== null) {
             $accessor = $accessor->withClassName($this->userClassName);

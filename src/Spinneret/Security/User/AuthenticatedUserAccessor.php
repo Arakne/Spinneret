@@ -53,12 +53,14 @@ final readonly class AuthenticatedUserAccessor
      */
     public function get(ServerRequestInterface $psrRequest): ?object
     {
+        /** @var object|null $user */
         $user = $psrRequest->getAttribute($this->userAttribute);
 
         if ($this->userClassName !== null && !($user instanceof $this->userClassName)) {
             return null;
         }
 
+        /** @var U|null */
         return $user;
     }
 }

@@ -90,10 +90,10 @@ final class CsrfHelper
         $fields = [];
 
         foreach ($properties as $name => $csrf) {
-            $token = $csrf->extract($psrRequest, $name);
+            $token = $csrf->extract($psrRequest, $name)?->token();
 
-            if ($token) {
-                $fields[$name] = $token->token();
+            if ($token !== null) {
+                $fields[$name] = $token;
             }
         }
 
