@@ -18,6 +18,13 @@ final readonly class Renderer implements ServiceConfiguratorAttributeInterface
          * @var class-string
          */
         public string $response,
+
+        /**
+         * Register this renderer for a specific theme.
+         * If null, the renderer will be registered as a default renderer.
+         * If a theme is set, and its value matches the current theme, this renderer will be used instead of the default one.
+         */
+        public ?string $theme = null,
     ) {}
 
     #[Override]

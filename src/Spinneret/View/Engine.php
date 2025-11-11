@@ -13,6 +13,7 @@ use RuntimeException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function sprintf;
+use function var_dump;
 
 /**
  * Default view engine implementation
@@ -30,6 +31,7 @@ final readonly class Engine implements ViewEngineInterface
         private StreamFactoryInterface $streamFactory,
         private ?TranslatorInterface $translator,
         private ?ViewLocaleResolverInterface $localeResolver,
+        private ?ViewThemeResolverInterface $themeResolver,
 
         /**
          * Renderers map
@@ -40,6 +42,14 @@ final readonly class Engine implements ViewEngineInterface
          * @var array<class-string, class-string<ViewRendererInterface|ResponseConfiguratorInterface>>
          */
         private array $renderers,
+
+        /**
+         * Renderers maps by theme id
+         * Will be used to override the default renderer if a theme is resolved.
+         *
+         * @var array<string, array<class-string, class-string<ViewRendererInterface|ResponseConfiguratorInterface>>>
+         */
+        private array $themeRenderers = [],
     ) {}
 
     #[Override]
@@ -52,8 +62,9 @@ final readonly class Engine implements ViewEngineInterface
             $routedRequest,
             $this->translator,
             $this->localeResolver?->resolve($data, $psrRequest),
+            $theme = $this->themeResolver?->resolveThemeId($data, $psrRequest),
         );
-        $renderer = $this->renderer($data);
+        $renderer = $this->renderer($data, $theme);
 
         $response = $this->responseFactory->createResponse();
 
@@ -83,8 +94,9 @@ final readonly class Engine implements ViewEngineInterface
             $data,
             translator: $this->translator,
             locale: $this->localeResolver?->resolve($data, null),
+            theme: $this->themeResolver?->resolveThemeId($data, null),
         );
-        $renderer = $this->renderer($data);
+        $renderer = $this->renderer($data, $view->theme);
 
         if (!($renderer instanceof ViewRendererInterface)) {
             throw new LogicException(sprintf('View %s cannot be rendered', $data::class));
@@ -101,8 +113,9 @@ final readonly class Engine implements ViewEngineInterface
             $data,
             translator: $this->translator,
             locale: $this->localeResolver?->resolve($data, null),
+            theme: $this->themeResolver?->resolveThemeId($data, null),
         );
-        $renderer = $this->renderer($data);
+        $renderer = $this->renderer($data, $view->theme);
 
         if (!($renderer instanceof ViewRendererInterface)) {
             throw new LogicException(sprintf('View %s cannot be rendered', $data::class));
@@ -115,13 +128,18 @@ final readonly class Engine implements ViewEngineInterface
      * Resolve the renderer object for the given data object
      *
      * @param D $data
+     * @param string|null $theme The theme ID to use for renderer resolution. If null, the default renderer will be used.
      * @return ViewRendererInterface<D>|ResponseConfiguratorInterface<D>
      *
      * @template D as object
      */
-    private function renderer(object $data): ViewRendererInterface|ResponseConfiguratorInterface
+    private function renderer(object $data, ?string $theme): ViewRendererInterface|ResponseConfiguratorInterface
     {
-        $rendererClassName = $this->renderers[$data::class] ?? null;
+        if ($theme !== null) {
+            $rendererClassName = $this->themeRenderers[$theme][$data::class] ?? $this->renderers[$data::class] ?? null;
+        } else {
+            $rendererClassName = $this->renderers[$data::class] ?? null;
+        }
 
         if ($rendererClassName === null) {
             throw new RuntimeException('No renderer found for ' . $data::class);

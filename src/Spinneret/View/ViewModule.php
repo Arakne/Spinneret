@@ -41,7 +41,9 @@ final class ViewModule implements ModuleInterface
             new Reference(StreamFactoryInterface::class),
             new Reference(TranslatorInterface::class, nullOnInvalid: true),
             new Reference(ViewLocaleResolverInterface::class, nullOnInvalid: true),
-            [],
+            new Reference(ViewThemeResolverInterface::class, nullOnInvalid: true),
+            [], // renderers
+            [], // theme renderers
         ]);
 
         $containerBuilder->register(DispatcherForwarder::class, [

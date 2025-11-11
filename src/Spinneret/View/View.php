@@ -59,6 +59,7 @@ final class View
         public readonly ?object $routedRequest = null,
         public readonly ?TranslatorInterface $translator = null,
         public readonly ?string $locale = null,
+        public readonly ?string $theme = null,
     ) {}
 
     /**

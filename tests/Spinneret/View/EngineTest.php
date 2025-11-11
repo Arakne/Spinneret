@@ -50,6 +50,7 @@ class EngineTest extends TestCase
             new Psr17Factory(),
             null,
             null,
+            null,
             renderers: [
                 SimpleResponse::class => SimpleRenderer::class,
                 OtherResponse::class => RendererWithResponseConfigurator::class,
@@ -58,7 +59,8 @@ class EngineTest extends TestCase
                 ResponseWithoutBody::class => OnlyResponseConfigurator::class,
                 WithEmbedded::class => WithEmbeddedRenderer::class,
                 EmbeddedComponent::class => EmbeddedComponentRenderer::class,
-            ]
+            ],
+            themeRenderers: [],
         );
     }
 

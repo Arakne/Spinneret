@@ -17,6 +17,7 @@ final readonly class RegisterViewRenderersProcessor implements ContainerBuilderP
     {
         $engineDefinition = $builder->services[Engine::class];
         $renderers = [];
+        $themeRenderers = [];
 
         foreach ($builder->findByTag(Renderer::class) as $service => $tags) {
             $service->public();
@@ -24,10 +25,16 @@ final readonly class RegisterViewRenderersProcessor implements ContainerBuilderP
             foreach ($tags as $tag) {
                 /** @psalm-suppress RedundantConditionGivenDocblockType */
                 assert($tag instanceof Renderer);
-                $renderers[$tag->response] = $service->id;
+
+                if ($tag->theme === null) {
+                    $renderers[$tag->response] = $service->id;
+                } else {
+                    $themeRenderers[$tag->theme][$tag->response] = $service->id;
+                }
             }
         }
 
-        $engineDefinition->set(5, $renderers);
+        $engineDefinition->set(6, $renderers);
+        $engineDefinition->set(7, $themeRenderers);
     }
 }

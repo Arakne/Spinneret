@@ -48,9 +48,11 @@ class EngineWithTranslationTest extends TestCase
                     return $request?->getAttribute('locale') ?? $this->locale;
                 }
             },
+            null,
             renderers: [
                 WithTranslation::class => WithTranslationRenderer::class,
-            ]
+            ],
+            themeRenderers: [],
         );
     }
 

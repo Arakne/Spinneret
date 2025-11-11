@@ -69,6 +69,7 @@ class RunnerTest extends TestCase
             new Psr17Factory(),
             null,
             null,
+            null,
             [
                 FooSuccessResponse::class => FooSuccessRenderer::class,
                 FooErrorResponse::class => FooErrorRenderer::class,
