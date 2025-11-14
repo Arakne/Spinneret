@@ -128,6 +128,6 @@ final readonly class AuthenticationCookieHelper
      */
     public function removeCookie(ResponseInterface $response): ResponseInterface
     {
-        return $response->withAddedHeader('Set-Cookie', $this->config->cookie->name.'=; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
+        return $response->withAddedHeader('Set-Cookie', $this->config->cookie->name . '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=' . $this->config->cookie->path . ';');
     }
 }
