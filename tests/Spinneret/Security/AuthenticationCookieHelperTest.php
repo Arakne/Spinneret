@@ -227,6 +227,6 @@ class AuthenticationCookieHelperTest extends TestCase
     public function removeCookie()
     {
         $response = $this->helper->removeCookie(new Response());
-        $this->assertSame('auth=; Expires=Thu, 01 Jan 1970 00:00:00 GMT', $response->getHeaderLine('Set-Cookie'));
+        $this->assertSame('auth=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/;', $response->getHeaderLine('Set-Cookie'));
     }
 }

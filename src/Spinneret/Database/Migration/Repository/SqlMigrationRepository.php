@@ -5,7 +5,7 @@ namespace Arakne\Spinneret\Database\Migration\Repository;
 use Arakne\Spinneret\Database\DatabaseConnectionInterface;
 use Arakne\Spinneret\Database\Exception\TableNotFoundException;
 use Arakne\Spinneret\Database\Migration\MigrationInterface;
-use Arakne\Spinneret\Util\SystemClock;
+use Arakne\Spinneret\Time\SystemClock;
 use Override;
 use Psr\Clock\ClockInterface;
 

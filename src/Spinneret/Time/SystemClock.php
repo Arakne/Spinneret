@@ -1,8 +1,9 @@
 <?php
 
-namespace Arakne\Spinneret\Util;
+namespace Arakne\Spinneret\Time;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Override;
 use Psr\Clock\ClockInterface;
 
@@ -11,10 +12,14 @@ use Psr\Clock\ClockInterface;
  */
 final readonly class SystemClock implements ClockInterface
 {
+    public function __construct(
+        private ?DateTimeZone $timeZone = null,
+    ) {}
+
     #[Override]
     public function now(): DateTimeImmutable
     {
-        return new DateTimeImmutable();
+        return new DateTimeImmutable(timezone: $this->timeZone);
     }
 
     /**

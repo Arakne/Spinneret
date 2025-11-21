@@ -1,9 +1,10 @@
 <?php
 
-namespace Arakne\Tests\Spinneret\Util;
+namespace Arakne\Tests\Spinneret\Time;
 
-use Arakne\Spinneret\Util\SystemClock;
+use Arakne\Spinneret\Time\SystemClock;
 use DateTimeImmutable;
+use DateTimeZone;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -26,5 +27,16 @@ class SystemClockTest extends TestCase
 
         $this->assertInstanceOf(DateTimeImmutable::class, $now);
         $this->assertLessThanOrEqual(1, abs($now->getTimestamp() - time()));
+    }
+
+    #[Test]
+    public function withTimezone()
+    {
+        $clock = new SystemClock(new DateTimeZone('Arctic/Longyearbyen'));
+        $now = $clock->now();
+
+        $this->assertInstanceOf(DateTimeImmutable::class, $now);
+        $this->assertLessThanOrEqual(1, abs($now->getTimestamp() - time()));
+        $this->assertEquals(new DateTimeZone('Arctic/Longyearbyen'), $now->getTimezone());
     }
 }

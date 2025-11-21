@@ -8,6 +8,9 @@ use Quatrevieux\Form\FormInterface;
 use ReflectionClass;
 use ReflectionProperty;
 
+use function is_object;
+use function is_string;
+
 /**
  * Helper for handle form with CSRF token
  */
@@ -112,17 +115,22 @@ final class CsrfHelper
      * $view['csrf']->value; // The CSRF token
      * ```
      *
-     * @param class-string<T> $requestClassName The request class name
+     * @param class-string<T>|T $request The request class name, or an instance of the request class.
      * @param ServerRequestInterface $serverRequest The server request, use to extract the CSRF token.
      *
      * @return FormInterface<T>
      *
      * @template T as object
      */
-    public function form(string $requestClassName, ServerRequestInterface $serverRequest): FormInterface
+    public function form(string|object $request, ServerRequestInterface $serverRequest): FormInterface
     {
-        /** @psalm-suppress MixedMethodCall */
-        $request = new $requestClassName();
+        if (is_object($request)) {
+            $requestClassName = $request::class;
+        } else {
+            $requestClassName = $request;
+            /** @psalm-suppress MixedMethodCall */
+            $request = new $request();
+        }
 
         return $this->formFactory
             ->create($requestClassName)

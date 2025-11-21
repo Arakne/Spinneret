@@ -4,7 +4,7 @@ namespace Arakne\Spinneret\Security\Serializer;
 
 use Arakne\Spinneret\Security\SecurityConfig;
 use Arakne\Spinneret\Security\User\UserHandlerInterface;
-use Arakne\Spinneret\Util\SystemClock;
+use Arakne\Spinneret\Time\SystemClock;
 use Override;
 use Psr\Clock\ClockInterface;
 

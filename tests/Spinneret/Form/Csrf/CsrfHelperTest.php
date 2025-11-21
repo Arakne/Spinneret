@@ -7,6 +7,7 @@ use Arakne\Spinneret\Form\Csrf\CsrfTokenParameters;
 use Arakne\Spinneret\Security\Serializer\ParsedCookie;
 use Arakne\Tests\Spinneret\Form\Fixtures\BasicCsrfForm;
 use Arakne\Tests\Spinneret\Form\Fixtures\OtherCsrfForm;
+use Arakne\Tests\Spinneret\Form\Fixtures\SimpleFormWithCsrf;
 use ArrayObject;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
@@ -113,5 +114,26 @@ class CsrfHelperTest extends TestCase
 
         $form = $this->helper->form(BasicCsrfForm::class, $req);
         $this->assertSame('ce6ce7356ed5476e1c0a87a0e838fd5c129a664afebf079f88e6056677d751b3', $form->view()['csrf']->value);
+    }
+
+    #[Test]
+    public function formWithObjectRequest()
+    {
+        $req = new ServerRequest('POST', 'http://localhost/csrf');
+        $req = $req->withAttribute(ParsedCookie::class, new ParsedCookie(
+            token: 'a',
+            creation: 0,
+            refresh: 0,
+            expiration: 0,
+            version: 1,
+            data: null,
+        ));
+
+        $dto = new SimpleFormWithCsrf();
+        $dto->foo = 'aaa';
+
+        $form = $this->helper->form($dto, $req);
+        $this->assertSame('10e259a99fbdd960248a2693f41eaa868bcaa5343ba15d1c836e774970c82c59', $form->view()['csrf']->value);
+        $this->assertSame('aaa', $form->view()['foo']->value);
     }
 }

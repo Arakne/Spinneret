@@ -5,14 +5,13 @@ namespace Arakne\Spinneret\Security;
 use Arakne\Spinneret\Security\Serializer\CookieSerializerInterface;
 use Arakne\Spinneret\Security\Serializer\ParsedCookie;
 use Arakne\Spinneret\Security\User\UserHandlerInterface;
-use Arakne\Spinneret\Util\SystemClock;
+use Arakne\Spinneret\Time\SystemClock;
 use Psr\Clock\ClockInterface;
 use Psr\Http\Message\ResponseInterface;
 use Random\Engine\Secure;
 use Random\Randomizer;
 
 use function bin2hex;
-use function var_dump;
 
 /**
  * Utility class to help with authentication cookies.
@@ -128,6 +127,12 @@ final readonly class AuthenticationCookieHelper
      */
     public function removeCookie(ResponseInterface $response): ResponseInterface
     {
-        return $response->withAddedHeader('Set-Cookie', $this->config->cookie->name . '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=' . $this->config->cookie->path . ';');
+        $str = $this->config->cookie->name . '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+
+        if ($this->config->cookie->path !== null) {
+            $str .= ' Path=' . $this->config->cookie->path . ';';
+        }
+
+        return $response->withAddedHeader('Set-Cookie', $str);
     }
 }
