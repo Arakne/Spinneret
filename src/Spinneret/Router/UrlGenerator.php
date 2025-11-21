@@ -5,6 +5,10 @@ namespace Arakne\Spinneret\Router;
 use Override;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface as SfUrlGeneratorInterface;
 
+use function array_key_exists;
+use function get_object_vars;
+use function is_object;
+
 /**
  * Base url generator implementation using Symfony's UrlGeneratorInterface.
  */
@@ -15,8 +19,20 @@ final readonly class UrlGenerator implements UrlGeneratorInterface
     ) {}
 
     #[Override]
-    public function url(string $requestClass, array $parameters = []): string
+    public function url(string|object $request, array $parameters = []): string
     {
-        return $this->sfUrlGenerator->generate($requestClass, $parameters, SfUrlGeneratorInterface::ABSOLUTE_URL);
+        if (is_object($request)) {
+            /** @var mixed $value */
+            foreach (get_object_vars($request) as $name => $value) {
+                if ($value !== null && !array_key_exists($name, $parameters)) {
+                    /** @var mixed */
+                    $parameters[$name] = $value;
+                }
+            }
+
+            $request = $request::class;
+        }
+
+        return $this->sfUrlGenerator->generate($request, $parameters, SfUrlGeneratorInterface::ABSOLUTE_URL);
     }
 }

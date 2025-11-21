@@ -36,5 +36,10 @@ class UrlGeneratorTest extends TestCase
         $this->assertEquals('http://localhost/register?key=aqwzsx', $this->generator->url(RegistrationRequest::class, ['key' => 'aqwzsx']));
         $this->assertEquals('http://localhost/hello/John', $this->generator->url(HelloRequest::class, ['name' => 'John']));
         $this->assertEquals('http://localhost/hello/John?other=value', $this->generator->url(HelloRequest::class, ['name' => 'John', 'other' => 'value']));
+        $this->assertEquals('http://localhost/hello/John?other=value', $this->generator->url(new HelloRequest(), ['name' => 'John', 'other' => 'value']));
+        $req = new HelloRequest();
+        $req->name = 'John';
+        $this->assertEquals('http://localhost/hello/John', $this->generator->url($req));
+        $this->assertEquals('http://localhost/hello/override', $this->generator->url($req, ['name' => 'override']));
     }
 }
