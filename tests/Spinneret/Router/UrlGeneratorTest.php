@@ -4,8 +4,8 @@ namespace Arakne\Tests\Spinneret\Router;
 
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\UrlGenerator;
+use Arakne\Tests\Spinneret\Application\Fixtures\Registration\RegistrationRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
-use Arakne\Web\Account\FrontOffice\Registration\RegistrationRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGenerator as SfUrlGenerator;
