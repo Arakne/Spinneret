@@ -36,7 +36,8 @@
     "friendsofphp/php-cs-fixer": "^3.62",
     "masterminds/html5": "^2.9",
     "symfony/css-selector": "^7.1",
-    "sapientpro/image-comparator": "^1.2"
+    "sapientpro/image-comparator": "^1.2",
+    "deptrac/deptrac": "^4.2"
   },
   "autoload": {
     "psr-4": {
