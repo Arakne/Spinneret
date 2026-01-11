@@ -270,7 +270,7 @@ final readonly class ClosureMetadata
         foreach ($this->parameters as $parameter) {
             $parameters[] = match ($parameter) {
                 self::PARAM_IS_APPLICATION => $app,
-                self::PARAM_IS_CONFIG => $previousConfig[$this->expectedReturnType] ?? null,
+                self::PARAM_IS_CONFIG => $this->expectedReturnType !== null ? $previousConfig[$this->expectedReturnType] ?? null : null,
             };
         }
 
