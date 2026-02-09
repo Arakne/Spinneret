@@ -20,6 +20,10 @@
         <bootstrap class="Arakne\Tests\RestoreErrorHandlerExtension" />
     </extensions>
 
+    <php>
+        <ini name="memory_limit" value="1G" />
+    </php>
+
     <source
         restrictNotices="false"
         restrictWarnings="false"
