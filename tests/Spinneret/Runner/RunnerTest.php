@@ -5,6 +5,7 @@ namespace Arakne\Tests\Spinneret\Runner;
 use Arakne\Spinneret\Container\Builder\ContainerBuilder;
 use Arakne\Spinneret\Logger\Driver\ArrayLogger;
 use Arakne\Spinneret\Presenter\PresenterDispatcher;
+use Arakne\Spinneret\Presenter\RequestPresenter;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RoutedRequest;
 use Arakne\Spinneret\Router\Router;
@@ -22,6 +23,7 @@ use Arakne\Tests\Spinneret\Runner\Fixtures\FooSuccessResponse;
 use Arakne\Tests\Spinneret\Runner\Fixtures\InternalServerErrorPresenter;
 use Arakne\Tests\Spinneret\Runner\Fixtures\InternalServerErrorRenderer;
 use Arakne\Tests\Spinneret\Runner\Fixtures\ReverseMiddleware;
+use Arakne\Web\Foundation\Error\AccessDenied;
 use Exception;
 use LogicException;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -48,6 +50,7 @@ class RunnerTest extends TestCase
         $container->register(FooErrorRenderer::class);
         $container->register(InternalServerErrorPresenter::class);
         $container->register(InternalServerErrorRenderer::class);
+        $container->register(RequestPresenter::class);
 
         $this->container = $container->build();
 
@@ -62,6 +65,7 @@ class RunnerTest extends TestCase
         $this->presenterDispatcher = new PresenterDispatcher($this->container, [
             FooRequest::class => FooPresenter::class,
             InternalServerError::class => InternalServerErrorPresenter::class,
+            AccessDenied::class => RequestPresenter::class,
         ]);
         $this->view = new Engine(
             $this->container,
@@ -73,6 +77,7 @@ class RunnerTest extends TestCase
             [
                 FooSuccessResponse::class => FooSuccessRenderer::class,
                 FooErrorResponse::class => FooErrorRenderer::class,
+                AccessDenied::class => FooErrorRenderer::class,
                 InternalServerError::class => InternalServerErrorRenderer::class,
             ]
         );
@@ -259,6 +264,75 @@ class RunnerTest extends TestCase
                     'uri' => $psrRequest->getUri(),
                     'code' => 500,
                     'reason' => 'Internal Server Error',
+                    'headers' => $response->getHeaders(),
+                ],
+            ],
+        ], $logger->logs);
+    }
+
+    #[Test]
+    public function handleRequestProviderException()
+    {
+        $runner = new Runner(
+            $this->router,
+            $this->presenterDispatcher,
+            $this->view,
+            logger: $logger = new ArrayLogger(),
+        );
+
+        $psrRequest = new ServerRequest('GET', '/foo?bar=access_denied');
+        $response = $runner->handle($psrRequest);
+
+        $parsedRequest = new FooRequest();
+        $parsedRequest->bar = 'access_denied';
+
+        $this->assertEquals('{"error":{"message":""}}', (string) $response->getBody());
+
+        $this->assertEquals([
+            [
+                'level' => 'info',
+                'message' => 'Handling request {method} {uri} from {client}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'headers' => $psrRequest->getHeaders(),
+                    'client' => 'unknown',
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Request {method} {uri} was routed to {target}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'target' => FooRequest::class,
+                    'routedRequest' => $parsedRequest,
+                ],
+            ],
+            [
+                'level' => 'error',
+                'message' => 'Error occurs on presenter step for request {method} {uri} : {exception}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'exception' => $logger->logs[2]['context']['exception'],
+                ],
+            ],
+            [
+                'level' => 'debug',
+                'message' => 'Response DTO {dto} was generated',
+                'context' => [
+                    'dto' => AccessDenied::class,
+                ],
+            ],
+            [
+                'level' => 'info',
+                'message' => 'Response for {method} {uri} : {code} {reason}',
+                'context' => [
+                    'method' => 'GET',
+                    'uri' => $psrRequest->getUri(),
+                    'code' => 400,
+                    'reason' => 'Bad Request',
                     'headers' => $response->getHeaders(),
                 ],
             ],

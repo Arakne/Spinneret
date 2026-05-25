@@ -98,18 +98,23 @@ final readonly class Runner implements RunnerInterface
                 throw $e;
             }
 
+            $newRequest = $e instanceof RequestProviderExceptionInterface
+                ? $e->toRequest($routedRequest->routedRequest, $routedRequest->psrRequest)
+                : new InternalServerError(
+                    RunnerStepEnum::Presenter,
+                    $e,
+                    $routedRequest->psrRequest,
+                    $routedRequest->routedRequest,
+                )
+            ;
+
             return $this->handleRoutedRequest(
                 new RoutedRequest(
                     $routedRequest->psrRequest,
-                    new InternalServerError(
-                        RunnerStepEnum::Presenter,
-                        $e,
-                        $routedRequest->psrRequest,
-                        $routedRequest->routedRequest,
-                    ),
-                    false
+                    $newRequest,
+                    success: false,
                 ),
-                catch: false,
+                catch: false
             );
         }
 

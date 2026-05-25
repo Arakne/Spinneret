@@ -4,6 +4,7 @@ namespace Arakne\Tests\Spinneret\Runner\Fixtures;
 
 use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
+use Arakne\Web\Foundation\Error\Exception\AccessDeniedException;
 use Override;
 
 class FooPresenter implements PresenterInterface
@@ -13,6 +14,10 @@ class FooPresenter implements PresenterInterface
     {
         if ($request->bar === 'error') {
             throw new \Exception('runtime error');
+        }
+
+        if ($request->bar === 'access_denied') {
+            throw new AccessDeniedException();
         }
 
         return new FooSuccessResponse('success ' . $request->bar);
