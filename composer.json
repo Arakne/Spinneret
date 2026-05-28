@@ -29,7 +29,8 @@
     "arakne/swf": "^0.5.3",
     "arakne/php-map-parser": "~0.1",
     "psr/event-dispatcher": "^1.0",
-    "psr/simple-cache": "^3.0"
+    "psr/simple-cache": "^3.0",
+    "symfony/polyfill-php85": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "~10.5",
