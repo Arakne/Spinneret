@@ -72,7 +72,7 @@ class StaticMethodServiceFactoryTest extends TestCase
         $arguments = '"test"';
         $compiled = $factory->compile($arguments);
 
-        $this->assertSame('\$this->get(\'foo\')->bar::create("test")', $compiled);
+        $this->assertSame('$this->get(\'foo\')->bar::create("test")', $compiled);
     }
 
     #[Test]

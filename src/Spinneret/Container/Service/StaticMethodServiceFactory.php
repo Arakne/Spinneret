@@ -60,9 +60,9 @@ final readonly class StaticMethodServiceFactory implements ServiceFactoryInterfa
     #[Override]
     public function compile(string $arguments): string
     {
-        $class = is_string($this->class) ? $this->class : $this->class->compile();
+        $class = is_string($this->class) ? '\\' . $this->class : $this->class->compile();
 
-        return sprintf('\%s::%s(%s)', $class, $this->method, $arguments);
+        return sprintf('%s::%s(%s)', $class, $this->method, $arguments);
     }
 
     #[Override]
