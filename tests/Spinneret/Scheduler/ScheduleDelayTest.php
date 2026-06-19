@@ -41,6 +41,16 @@ class ScheduleDelayTest extends TestCase
 	}
 
 	#[Test]
+	public function hoursFactoryShouldCreateDelayInHours(): void
+	{
+		$delay = ScheduleDelay::hours(2);
+
+		$this->assertSame(2, $delay->value);
+		$this->assertSame(TimeUnit::Hours, $delay->unit);
+		$this->assertSame(2 * 60 * 60 * 1000 + 1000, $delay->toMilliseconds(1000));
+	}
+
+	#[Test]
 	#[DataProvider('toMillisecondsProvider')]
 	public function toMillisecondsShouldOffsetOriginByUnitValue(
 		int $origin,

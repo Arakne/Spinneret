@@ -58,4 +58,14 @@ final readonly class ScheduleDelay implements ScheduleDelayInterface
     {
         return new self($value, TimeUnit::Minutes);
     }
+
+    /**
+     * Create a delay of the given number of hours.
+     *
+     * @param non-negative-int $value
+     */
+    public static function hours(int $value): self
+    {
+        return new self($value, TimeUnit::Hours);
+    }
 }
