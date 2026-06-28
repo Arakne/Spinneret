@@ -61,10 +61,10 @@ interface DatabaseConnectionInterface
      *
      * @param string $query The SQL query to prepare. This value must not be user-provided.
      *
-     * @return QueryStatement
+     * @return QueryStatementInterface
      * @throws DatabaseExceptionInterface
      */
-    public function prepare(string $query): QueryStatement;
+    public function prepare(string $query): QueryStatementInterface;
 
     /**
      * Get the internal connection object
