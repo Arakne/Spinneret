@@ -10,6 +10,7 @@ use Arakne\Spinneret\Container\Value\Reference;
 use Arakne\Spinneret\Form\Csrf\CsrfHelper;
 use Override;
 use Psr\Container\ContainerInterface;
+use Quatrevieux\Form\Choice\ChoicesProviderInterface;
 use Quatrevieux\Form\ContainerRegistry;
 use Quatrevieux\Form\FormFactoryInterface;
 use Quatrevieux\Form\RegistryInterface;
@@ -35,6 +36,10 @@ final class FormModule implements ModuleInterface
         ]);
 
         $containerBuilder->configureInstanceOf(ConstraintValidatorInterface::class, static function (ServiceBuilder $service) {
+            $service->public();
+        });
+
+        $containerBuilder->configureInstanceOf(ChoicesProviderInterface::class, static function (ServiceBuilder $service) {
             $service->public();
         });
 
