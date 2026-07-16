@@ -34,7 +34,7 @@ final readonly class RegisterHandlersProcessor implements ContainerBuilderProces
             $resolved = false;
 
             foreach ($tags as $tag) {
-                /** @psalm-suppress RedundantConditionGivenDocblockType */
+                // @phpstan-ignore instanceof.alwaysTrue
                 assert($tag instanceof MessageHandler);
 
                 $messageClass = $tag->message ?? $this->resolveMessageClass($service);

@@ -62,7 +62,7 @@ final readonly class RegisterListenersProcessor implements ContainerBuilderProce
             foreach ($tags as $tag) {
                 assert($tag->eventClass !== null);
 
-                /** @psalm-suppress MixedArrayAssignment */
+                // @phpstan-ignore offsetAccess.nonOffsetAccessible
                 $listeners[$tag->eventClass][] = $service->id;
             }
         }

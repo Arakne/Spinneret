@@ -9,6 +9,7 @@ use Override;
 use Psr\Clock\ClockInterface;
 
 use function array_key_exists;
+use function assert;
 use function base64_decode;
 use function base64_encode;
 use function count;
@@ -146,9 +147,6 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
         );
     }
 
-    /**
-     * @psalm-suppress PossiblyFalseArgument
-     */
     #[Override]
     public function toString(ParsedCookie $cookie): string
     {
@@ -162,12 +160,13 @@ final readonly class HmacCookieSerializer implements CookieSerializerInterface
             'v' => $cookie->version,
             'd' => $arrPayload,
         ]);
+        assert($data !== false);
 
         if ($this->compress) {
             $data = gzdeflate($data);
+            assert($data !== false);
         }
 
-        /** @var string $signature Cannot be null since PHP 8.0 */
         $signature = hash_hmac($this->algorithm, $data, $this->secret, true);
 
         return self::base64UrlEncode($data) . '.' . self::base64UrlEncode($signature);

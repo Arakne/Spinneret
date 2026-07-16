@@ -146,7 +146,6 @@ final readonly class AutowireProcessor implements ContainerBuilderProcessorInter
                 $argument = $argument->values;
             }
 
-            /** @var mixed */
             $newArguments[$index] = $argument;
         }
 

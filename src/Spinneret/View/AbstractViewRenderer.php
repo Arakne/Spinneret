@@ -4,6 +4,7 @@ namespace Arakne\Spinneret\View;
 
 use Override;
 
+use function assert;
 use function ob_end_clean;
 use function ob_get_clean;
 use function ob_start;
@@ -30,13 +31,15 @@ use function ob_start;
  *
  * @method void __invoke(View $view, D $data): void
  * @psalm-method void __invoke(View $view, D $data): void
+ * @phpstan-method void __invoke(View $view, D $data): void
  */
 abstract class AbstractViewRenderer implements ViewRendererInterface
 {
     #[Override]
     public function display(View $view, object $data): void
     {
-        /** @var callable(View, D): void $this */
+        assert(is_callable($this), 'The view renderer implements method __invoke.');
+
         $this($view, $data);
     }
 

@@ -49,7 +49,7 @@ final readonly class LoggerFilter
          *
          * Returns true if the log should be dispatched
          *
-         * @var (Closure(mixed, Stringable|string, array):bool)|null
+         * @var (Closure(mixed, Stringable|string, array<array-key, mixed>):bool)|null
          */
         public ?Closure $filter = null,
     ) {}
@@ -58,7 +58,7 @@ final readonly class LoggerFilter
      * Check if the log should be dispatched
      *
      * @param int $level
-     * @param Stringable|string $message
+     * @param string $message
      * @param array<array-key, mixed> $context
      *
      * @return bool
@@ -99,6 +99,7 @@ final readonly class LoggerFilter
             return $level;
         }
 
+        // @phpstan-ignore cast.string (levels are generally int|string, but psr/log doesn't enforce it. So we consider that the level is safe to cast to string)
         return match ((string) $level) {
             LogLevel::DEBUG     => 0,
             LogLevel::INFO      => 1,

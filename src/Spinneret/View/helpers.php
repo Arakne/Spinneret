@@ -2,6 +2,8 @@
 
 namespace Arakne\Spinneret\View;
 
+use Stringable;
+
 use function htmlentities;
 use function is_float;
 use function is_int;
@@ -10,10 +12,10 @@ use function is_int;
  * Escape a value for HTML output.
  * Unlike {@see htmlspecialchars}, this function handles non-string values.
  *
- * @param mixed $value Value to escape
+ * @param int|string|float|null|Stringable $value Value to escape
  * @return string Escaped value
  */
-function e(mixed $value): string
+function e(int|string|float|null|Stringable $value): string
 {
     if ($value === null) {
         return '';

@@ -124,6 +124,9 @@ final class MemoryCache implements CacheDriverInterface
         }
     }
 
+    /**
+     * @param iterable<string, mixed> $values
+     */
     #[Override]
     public function setMultiple(iterable $values, DateInterval|int|null $ttl = null): bool
     {

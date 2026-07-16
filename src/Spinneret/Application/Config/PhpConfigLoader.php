@@ -12,6 +12,7 @@ use ReflectionNamedType;
 use Throwable;
 
 use function array_push;
+use function assert;
 use function count;
 use function glob;
 use function implode;
@@ -52,10 +53,6 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
         private string $cacheFile = 'config.php',
     ) {}
 
-    /**
-     * @psalm-suppress InvalidReturnStatement
-     * @psalm-suppress InvalidReturnType
-     */
     #[Override]
     public function load(Application $app): array
     {
@@ -111,7 +108,7 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
 
         foreach ($patterns as $pattern) {
             $pattern = ltrim($pattern, '/');
-            $files = glob($app->configDir() . '/' . $pattern);
+            $files = glob($app->configDir() . '/' . $pattern) ?: [];
             natsort($files);
 
             array_push($configFiles, ...$files);
@@ -158,9 +155,7 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
 
     /**
      * @param Application $app
-     * @return class-string-map<T, T>|null
-     * @psalm-suppress MixedInferredReturnType
-     * @psalm-suppress MixedReturnStatement
+     * @return array<class-string, object>|null
      */
     private function loadFromCache(Application $app): ?array
     {
@@ -180,6 +175,7 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
             return null;
         }
 
+        /** @var array<class-string, object> */
         return $config($app);
     }
 
@@ -194,10 +190,15 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
         $lines = '';
         $configDir = realpath($app->configDir());
 
+        if ($configDir === false) {
+            return;
+        }
+
         foreach ($filesByClassName as $className => $files) {
             $callStack = 'null';
 
             foreach ($files as [$file, $closureMetadata]) {
+                // @phpstan-ignore argument.type
                 $file = str_replace($configDir, '', realpath($file));
                 $req = 'require $configPath . ' . var_export($file, true);
 

@@ -105,7 +105,6 @@ final class BuiltContainer implements SpinneretContainerInterface
         $arguments = [];
 
         foreach ($service->arguments as $argument) {
-            /** @var mixed */
             $arguments[] = $argument->resolve($this);
         }
 

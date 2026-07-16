@@ -18,7 +18,7 @@ interface UserHandlerInterface
      * The handler may perform additional checks to ensure the data is valid.
      * It's not required to reload user data from the database, this will be done on refresh, with lower frequency.
      *
-     * @param array $data The session data.
+     * @param array<array-key, mixed> $data The session data.
      *
      * @return U|null The user object or null if the data is invalid.
      */
@@ -31,7 +31,7 @@ interface UserHandlerInterface
      * This array must be able to be passed to the {@see UserHandlerInterface::fromArray()} method to recreate the user object.
      *
      * @param U $user
-     * @return array
+     * @return array<array-key, mixed>
      */
     public function toArray(object $user): array;
 

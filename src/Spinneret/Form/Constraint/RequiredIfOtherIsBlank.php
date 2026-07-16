@@ -51,7 +51,7 @@ final readonly class RequiredIfOtherIsBlank implements ConstraintInterface, Cons
     }
 
     #[Override]
-    public function validate(ConstraintInterface $constraint, mixed $value, object $data): FieldError|array|null
+    public function validate(ConstraintInterface $constraint, mixed $value, object $data): FieldError|null
     {
         $currentFieldIsBlank = self::isBlank($value);
         $otherIsBlank = self::isBlank($data->{$constraint->field} ?? null);

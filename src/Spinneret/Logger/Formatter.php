@@ -38,6 +38,7 @@ final readonly class Formatter
      */
     public static function message($level, Stringable|string $message, array $context = [], ?int $timestamp = null): string
     {
+        // @phpstan-ignore cast.string (levels are generally int|string, but psr/log doesn't enforce it. So we consider that the level is safe to cast to string)
         $formatted = date('Y-m-d H:i:s', $timestamp) . ' ' . strtoupper((string) $level) . ' ';
         $message = (string) $message;
 

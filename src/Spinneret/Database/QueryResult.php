@@ -25,6 +25,7 @@ final readonly class QueryResult implements QueryResultInterface
     #[Override]
     public function asColumns(int $colum): array
     {
+        /** @var list<mixed> */
         return $this->statement->fetchAll(PDO::FETCH_COLUMN, $colum);
     }
 

@@ -12,6 +12,7 @@ use PDOStatement;
 use Psr\Log\LoggerInterface;
 
 use function array_column;
+use function assert;
 use function count;
 use function is_array;
 use function preg_replace_callback;
@@ -224,11 +225,12 @@ final class QueryStatement implements QueryStatementInterface
     {
         $this->executeStatement();
 
+        /** @var string - False cannot be returned because PDO is configured to throws exceptions */
         return $this->connection->internalConnection()->lastInsertId();
     }
 
     /**
-     * @param array $values
+     * @param array<array-key, mixed> $values
      * @param PDO::PARAM_* $type
      *
      * @return void
@@ -242,7 +244,7 @@ final class QueryStatement implements QueryStatementInterface
 
     /**
      * @param int $index
-     * @param array $values
+     * @param array<array-key, mixed> $values
      * @param PDO::PARAM_* $type
      *
      * @return void
@@ -292,7 +294,6 @@ final class QueryStatement implements QueryStatementInterface
             $parameters = [];
 
             /**
-             * @var int $position
              * @var mixed $value
              * @var PDO::PARAM_* $type
              */
@@ -370,6 +371,7 @@ final class QueryStatement implements QueryStatementInterface
             return $query;
         }
 
+        /** @var string */
         return preg_replace_callback(
             '/\{([a-z0-9_.-]+)}/iu',
             fn ($matches) => $this->expressions[$matches[1]] ?? '',

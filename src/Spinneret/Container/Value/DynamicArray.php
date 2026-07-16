@@ -32,6 +32,8 @@ final readonly class DynamicArray implements NestedValueInterface, ValidatableIn
 
     /**
      * @psalm-suppress MixedAssignment
+     *
+     * @return array<array-key, mixed>
      */
     #[Override]
     public function resolve(ContainerInterface $container): array
@@ -85,7 +87,7 @@ final readonly class DynamicArray implements NestedValueInterface, ValidatableIn
     }
 
     #[Override]
-    public function type(): ?string
+    public function type(): string
     {
         return 'array';
     }
@@ -103,13 +105,10 @@ final readonly class DynamicArray implements NestedValueInterface, ValidatableIn
 
             if ($value instanceof ValueInterface) {
                 $newValue = yield $value;
-                assert($newValue instanceof ValueInterface || $newValue === null);
             } else {
-                /** @var mixed */
                 $newValue = $value;
             }
 
-            /** @var mixed */
             $values[$key] = $newValue ?? $value;
         }
 

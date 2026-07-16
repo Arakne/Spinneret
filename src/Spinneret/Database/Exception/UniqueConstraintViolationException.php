@@ -10,6 +10,10 @@ use UnitEnum;
  */
 final class UniqueConstraintViolationException extends QueryExecutionException
 {
+    /**
+     * @param list<mixed> $parameters
+     * @param array<array-key, mixed>|null $errorInfo
+     */
     public function __construct(
         /**
          * The key that caused the violation

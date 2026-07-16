@@ -43,7 +43,7 @@ final class WorkermanBackend
             return false;
         }
 
-        /** @var array{enable: bool, on: bool, ...array<string, scalar>}|null $jit */
+        /** @var array{enabled: bool, on: bool, ...<string, scalar>}|null $jit */
         $jit = $status['jit'] ?? null;
 
         if ($jit === null) {
@@ -121,13 +121,10 @@ final class WorkermanBackend
      * @param Request $request
      *
      * @return void
-     *
-     * @psalm-suppress MixedArgument
-     * @psalm-suppress PossiblyNullArgument
-     * @psalm-suppress PossiblyInvalidArgument
      */
     public function handle(ConnectionInterface $connection, Request $request): void
     {
+        // @phpstan-ignore cast.string
         $uri = ($this->config->secure ? 'https://' : 'http://') . (string) $request->header('host', '127.0.0.1') . $request->uri();
 
         // PSR interfaces doesn't allow to easily create the server request

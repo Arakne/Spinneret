@@ -37,9 +37,9 @@ final readonly class FirstClassCallable implements ValueInterface, NestedValueIn
         }
 
         return function (mixed ...$args) use ($container): mixed {
+            /** @var list<mixed> $args */
             $factory = ServiceFactoryConverter::convert($this->function);
 
-            /** @psalm-suppress ArgumentTypeCoercion */
             return $factory->create($container, $args);
         };
     }
@@ -51,7 +51,7 @@ final readonly class FirstClassCallable implements ValueInterface, NestedValueIn
     }
 
     #[Override]
-    public function type(): ?string
+    public function type(): string
     {
         return Closure::class;
     }
@@ -72,7 +72,6 @@ final readonly class FirstClassCallable implements ValueInterface, NestedValueIn
 
         if ($function instanceof MethodServiceFactory) {
             $object = yield $function->object;
-            assert($object instanceof ValueInterface || $object === null);
 
             if ($object !== null && $object !== $function->object) {
                 $function = new MethodServiceFactory($object, $function->method);

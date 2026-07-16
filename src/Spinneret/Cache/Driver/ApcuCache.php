@@ -121,6 +121,9 @@ final readonly class ApcuCache implements CacheDriverInterface
         }
     }
 
+    /**
+     * @param iterable<string, mixed> $values
+     */
     #[Override]
     public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
     {
@@ -146,7 +149,6 @@ final readonly class ApcuCache implements CacheDriverInterface
             $key = $this->prefix . $key;
             CacheKey::assertValidKey($key);
 
-            /** @var mixed */
             $toStore[$key] = $value;
         }
 

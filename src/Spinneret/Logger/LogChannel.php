@@ -69,7 +69,7 @@ final readonly class LogChannel
          * Unlike other parameters, which are resolved at compile time, this parameter is resolved at runtime.
          * So, you can use environment variables or other runtime values into the filter.
          *
-         * @var (Closure(mixed, string|\Stringable, array):bool)|null
+         * @var (Closure(mixed, string|\Stringable, array<array-key, mixed>):bool)|null
          */
         public ?Closure $filter = null,
     ) {}

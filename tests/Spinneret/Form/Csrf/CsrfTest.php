@@ -35,7 +35,7 @@ class CsrfTest extends TestCase
     #[TestWith([false])]
     public function functional(bool $isDev): void
     {
-        $app = new class(isDev: $isDev, env: 'test') extends Application {
+        $app = new class(isDev: $isDev, env: 'test-csrf') extends Application {
             public function configDir(): string
             {
                 return __DIR__ . '/Fixtures/config';

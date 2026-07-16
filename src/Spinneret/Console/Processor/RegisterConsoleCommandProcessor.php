@@ -23,7 +23,7 @@ final readonly class RegisterConsoleCommandProcessor implements ContainerBuilder
             $service->public();
 
             foreach ($tags as $tag) {
-                /** @psalm-suppress RedundantConditionGivenDocblockType */
+                // @phpstan-ignore instanceof.alwaysTrue
                 assert($tag instanceof AsCommand);
 
                 $commandNames = explode('|', $tag->name);

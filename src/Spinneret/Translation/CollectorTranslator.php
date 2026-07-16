@@ -38,6 +38,9 @@ final class CollectorTranslator implements TranslatorInterface
         private readonly string $outputFile,
     ) {}
 
+    /**
+     * @param array<string, mixed> $parameters
+     */
     #[Override]
     public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string
     {

@@ -492,7 +492,7 @@ final class ContainerBuilder
      * $builder->services[MyService::class]->arguments[0] = iterator_to_array($values);
      * ```
      *
-     * @param string|class-string<T> $tag The tag to search for.
+     * @param class-string<T> $tag The tag to search for.
      * @return iterable<ServiceBuilder, list<T>>
      *
      * @template T

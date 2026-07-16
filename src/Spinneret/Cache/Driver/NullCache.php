@@ -45,6 +45,9 @@ final readonly class NullCache implements CacheDriverInterface
         return array_fill_keys(iterator_to_array($keys), $default);
     }
 
+    /**
+     * @param iterable<string, mixed> $values
+     */
     #[Override]
     public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
     {

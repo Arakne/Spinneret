@@ -42,6 +42,7 @@ final readonly class SqlMigrationRepository implements MigrationRepositoryInterf
     public function isApplied(MigrationInterface $migration): bool
     {
         try {
+            // @phpstan-ignore cast.int
             $count = (int) $this->db
                 ->prepare('SELECT COUNT(*) FROM MIGRATION_STATUS WHERE MIGRATION_NAME = ?')
                 ->pushString($migration->name())
@@ -86,7 +87,7 @@ final readonly class SqlMigrationRepository implements MigrationRepositoryInterf
     public function lastVersion(): ?string
     {
         try {
-            /** @var mixed $version */
+            /** @var scalar $version */
             $version = $this->db->query('SELECT VERSION FROM MIGRATION_STATUS ORDER BY MIGRATION_DATE DESC LIMIT 1')->fetchColumn(0);
 
             if ($version === false) {

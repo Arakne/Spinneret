@@ -10,7 +10,6 @@ use Generator;
 use Override;
 use Psr\Container\ContainerInterface;
 
-use function assert;
 use function sprintf;
 
 /**
@@ -44,7 +43,7 @@ final readonly class ClosureValue implements NestedValueInterface, ValidatableIn
     }
 
     #[Override]
-    public function type(): ?string
+    public function type(): string
     {
         return Closure::class;
     }
@@ -53,7 +52,6 @@ final readonly class ClosureValue implements NestedValueInterface, ValidatableIn
     public function traverse(): Generator
     {
         $value = yield $this->value;
-        assert($value instanceof ValueInterface || $value === null);
 
         if ($value === null || $value === $this->value) {
             return $this;

@@ -22,6 +22,7 @@ final readonly class SqliteSchema implements DatabaseSchemaInterface
         $stmt->pushString($index);
         $stmt->pushString($table);
 
+        // @phpstan-ignore cast.int
         return (int) $stmt->execute()->fetchColumn(0) > 0;
     }
 
@@ -33,6 +34,7 @@ final readonly class SqliteSchema implements DatabaseSchemaInterface
         $stmt->pushString('table');
         $stmt->pushString($table);
 
+        // @phpstan-ignore cast.int
         return (int) $stmt->execute()->fetchColumn(0) > 0;
     }
 

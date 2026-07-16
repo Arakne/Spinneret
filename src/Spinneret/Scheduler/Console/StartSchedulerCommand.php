@@ -65,6 +65,7 @@ final class StartSchedulerCommand extends Command
         }
 
         $scheduler->start(
+            // @phpstan-ignore cast.int
             $input->getOption('timeout') ? (int) $input->getOption('timeout') : null
         );
 

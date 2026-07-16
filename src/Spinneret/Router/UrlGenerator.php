@@ -25,7 +25,6 @@ final readonly class UrlGenerator implements UrlGeneratorInterface
             /** @var mixed $value */
             foreach (get_object_vars($request) as $name => $value) {
                 if ($value !== null && !array_key_exists($name, $parameters)) {
-                    /** @var mixed */
                     $parameters[$name] = $value;
                 }
             }

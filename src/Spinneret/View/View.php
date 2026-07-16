@@ -121,7 +121,7 @@ final class View
      * Translate the given message to the current locale
      *
      * @param string|TranslatableInterface|null $message The message pattern, or a translatable object. If null, an empty string is returned.
-     * @param array $parameters The parameters to replace in the message. Use {key} or %key% syntax in the message
+     * @param array<string, mixed> $parameters The parameters to replace in the message. Use {key} or %key% syntax in the message
      *
      * @return string
      *
@@ -148,7 +148,7 @@ final class View
      * This is a shortcut for `htmlentities($this->_($message, $parameters))`
      *
      * @param string|TranslatableInterface|null $message The message pattern, or a translatable object. If null, an empty string is returned.
-     * @param array $parameters The parameters to replace in the message. Use {key} or %key% syntax in the message
+     * @param array<string, mixed> $parameters The parameters to replace in the message. Use {key} or %key% syntax in the message
      *
      * @return string
      *

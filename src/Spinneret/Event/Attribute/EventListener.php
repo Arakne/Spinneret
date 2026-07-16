@@ -167,6 +167,7 @@ final readonly class EventListener implements ServiceConfiguratorAttributeInterf
             );
         }
 
+        /** @var list<class-string> $classes */
         return $classes;
     }
 }

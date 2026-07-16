@@ -12,7 +12,7 @@ use Override;
 final readonly class ObjectUserHandler implements UserHandlerInterface
 {
     #[Override]
-    public function fromArray(array $data): ?object
+    public function fromArray(array $data): object
     {
         return (object) $data;
     }
@@ -24,7 +24,7 @@ final readonly class ObjectUserHandler implements UserHandlerInterface
     }
 
     #[Override]
-    public function refresh(object $user): ?object
+    public function refresh(object $user): object
     {
         return $user;
     }

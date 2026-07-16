@@ -40,7 +40,6 @@ class Application implements RunnerInterface, ContainerInterface
 
     /**
      * @var array<class-string, object>|null
-     * @psalm-var class-string-map<T, T>|null
      */
     private ?array $config = null;
 
@@ -72,7 +71,7 @@ class Application implements RunnerInterface, ContainerInterface
         private readonly ConfigLoaderInterface $configLoader = new PhpConfigLoader(),
     ) {
         $this->container = $this->loadContainer();
-        /** @psalm-suppress MixedAssignment : The service RunnerInterface may be overridden, but it will raise an error anyway */
+        // @phpstan-ignore assign.propertyType (The service RunnerInterface may be overridden, but it will raise an error anyway)
         $this->runner = $this->container->get(RunnerInterface::class);
 
         foreach ($this->modules() as $module) {
@@ -161,14 +160,9 @@ class Application implements RunnerInterface, ContainerInterface
      * Config instances will be created only once, so the exact same array will be returned on each call.
      *
      * @return array<class-string, object>
-     * @psalm-return class-string-map<T, T>
      */
     final public function config(): array
     {
-        /**
-         * @var class-string-map<T, T>
-         * @psalm-suppress MixedAssignment
-         */
         return $this->config ??= $this->configLoader->load($this);
     }
 

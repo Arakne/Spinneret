@@ -16,6 +16,12 @@ class Console extends ConsoleApplication
 {
     public function __construct(
         public readonly SpinneretApplication $application,
+
+        /**
+         * Map of command name to command service id
+         *
+         * @var array<string, string>
+         */
         private readonly array $commandMap,
     ) {
         // @todo resolve application name and version

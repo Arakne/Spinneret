@@ -78,7 +78,6 @@ final readonly class PropertyAccess implements NestedValueInterface, Validatable
     public function traverse(): Generator
     {
         $object = yield $this->object;
-        assert($object instanceof ValueInterface || $object === null);
 
         if ($object === null || $object === $this->object) {
             return $this;

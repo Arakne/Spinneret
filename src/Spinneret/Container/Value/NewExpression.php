@@ -82,7 +82,7 @@ final readonly class NewExpression implements NestedValueInterface, ValidatableI
     }
 
     #[Override]
-    public function type(): ?string
+    public function type(): string
     {
         return $this->className;
     }
@@ -100,13 +100,10 @@ final readonly class NewExpression implements NestedValueInterface, ValidatableI
 
             if ($value instanceof ValueInterface) {
                 $newValue = yield $value;
-                assert($newValue instanceof ValueInterface || $newValue === null);
             } else {
-                /** @var mixed */
                 $newValue = $value;
             }
 
-            /** @var mixed */
             $values[$key] = $newValue ?? $value;
         }
 

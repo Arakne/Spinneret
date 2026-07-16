@@ -9,6 +9,7 @@ use Throwable;
 
 use function assert;
 use function hrtime;
+use function is_int;
 use function max;
 use function pcntl_fork;
 use function pcntl_waitpid;
@@ -176,7 +177,7 @@ final class Scheduler implements SchedulerInterface
         foreach ($this->runningTasks as $id => $pid) {
             $result = pcntl_waitpid($pid, $status, WNOHANG);
 
-            assert($result !== -1);
+            assert($result !== -1 && is_int($status));
 
             // The child process is still running
             if ($result === 0) {

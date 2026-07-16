@@ -5,6 +5,7 @@ namespace Arakne\Spinneret\Util;
 use ReflectionClass;
 use RuntimeException;
 
+use function assert;
 use function dirname;
 use function is_file;
 
@@ -26,6 +27,8 @@ final class Project
     public static function directory(string $applicationClass): string
     {
         $r = new ReflectionClass($applicationClass);
+        assert($r->getFileName() !== false);
+
         $currentDir = dirname($r->getFileName());
 
         while (!is_file($currentDir.'/composer.json')) {

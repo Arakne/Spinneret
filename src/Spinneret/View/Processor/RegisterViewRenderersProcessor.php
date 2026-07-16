@@ -23,7 +23,7 @@ final readonly class RegisterViewRenderersProcessor implements ContainerBuilderP
             $service->public();
 
             foreach ($tags as $tag) {
-                /** @psalm-suppress RedundantConditionGivenDocblockType */
+                // @phpstan-ignore instanceof.alwaysTrue
                 assert($tag instanceof Renderer);
 
                 if ($tag->theme === null) {

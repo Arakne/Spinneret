@@ -90,7 +90,6 @@ final readonly class Call implements NestedValueInterface, ValidatableInterface
 
         if ($function instanceof MethodServiceFactory) {
             $object = yield $function->object;
-            assert($object instanceof ValueInterface || $object === null);
 
             if ($object !== null && $object !== $function->object) {
                 $function = new MethodServiceFactory($object, $function->method);
@@ -106,12 +105,9 @@ final readonly class Call implements NestedValueInterface, ValidatableInterface
             }
 
             if ($argument instanceof ValueInterface) {
-                /** @psalm-suppress InvalidArgument, MixedAssignment */
                 $argument = (yield $argument) ?? $argument;
-                assert($argument instanceof ValueInterface || $argument === null);
             }
 
-            /** @var mixed */
             $arguments[] = $argument;
         }
 

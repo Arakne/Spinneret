@@ -52,7 +52,9 @@ final class DatabaseExceptionFactory
      */
     public static function fromQueryExecution(PDOException $e, string|UnitEnum $connection, string $query, array $parameters = []): DatabaseExceptionInterface
     {
+        // @phpstan-ignore cast.string
         $code = (string) ($e->errorInfo[0] ?? '');
+        // @phpstan-ignore cast.string
         $message = (string) ($e->errorInfo[2] ?? '');
 
         // SQLite unique constraint violation

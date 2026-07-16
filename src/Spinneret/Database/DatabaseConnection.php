@@ -12,6 +12,8 @@ use PDOException;
 use Psr\Log\LoggerInterface;
 use UnitEnum;
 
+use function assert;
+use function sprintf;
 use function strstr;
 
 /**
@@ -39,7 +41,7 @@ final class DatabaseConnection implements DatabaseConnectionInterface
     #[Override]
     public function driver(): string
     {
-        return $this->driver ??= strstr($this->config->dsn, ':', true);
+        return $this->driver ??= (strstr($this->config->dsn, ':', true) ?: throw new LogicException(sprintf('Missing driver on DSN %s', $this->config->dsn)));
     }
 
     #[Override]
@@ -51,7 +53,10 @@ final class DatabaseConnection implements DatabaseConnectionInterface
         for (;;) {
             try {
                 // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"
-                return new QueryResult(@$this->internalConnection()->query($query));
+                $stmt = @$this->internalConnection()->query($query);
+                assert($stmt !== false);
+
+                return new QueryResult($stmt);
             } catch (PDOException $e) {
                 $e = DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);
 
@@ -74,6 +79,7 @@ final class DatabaseConnection implements DatabaseConnectionInterface
         for (;;) {
             try {
                 // Ignore warning "Packets out of order. Expected 1 received 0. Packet size=145"
+                /** @var int - false cannot be returned due to PDO config */
                 return @$this->internalConnection()->exec($query);
             } catch (PDOException $e) {
                 $e = DatabaseExceptionFactory::fromQueryExecution($e, $this->name(), $query);

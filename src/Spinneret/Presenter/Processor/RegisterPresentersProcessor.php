@@ -22,7 +22,7 @@ final readonly class RegisterPresentersProcessor implements ContainerBuilderProc
             $service->public();
 
             foreach ($tags as $tag) {
-                /** @psalm-suppress RedundantConditionGivenDocblockType */
+                // @phpstan-ignore instanceof.alwaysTrue
                 assert($tag instanceof Presenter);
                 $presenters[$tag->request] = $service->id;
             }

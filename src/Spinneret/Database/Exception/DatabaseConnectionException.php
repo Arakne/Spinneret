@@ -12,6 +12,9 @@ use UnitEnum;
  */
 final class DatabaseConnectionException extends RuntimeException implements DatabaseExceptionInterface
 {
+    /**
+     * @param array<array-key, mixed>|null $errorInfo
+     */
     public function __construct(
         public readonly string|UnitEnum $connection,
         public readonly ?array $errorInfo,

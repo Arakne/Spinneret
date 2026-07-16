@@ -100,8 +100,6 @@ final readonly class Router implements RouterInterface
 
         // @todo optimisation: field extractor vide et request en singleton
         $form = $this->formFactory->create($target);
-
-        /** @var callable(RequestInterface):array<string, mixed> $fieldsExtractor */
         $fieldsExtractor = new $fieldsExtractorClassName($target);
 
         if (!is_callable($fieldsExtractor)) {

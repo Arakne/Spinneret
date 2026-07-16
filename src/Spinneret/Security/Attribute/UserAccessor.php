@@ -34,7 +34,7 @@ final readonly class UserAccessor implements DependentValueInterface
     }
 
     #[Override]
-    public function resolve(ContainerInterface $container): ?object
+    public function resolve(ContainerInterface $container): object
     {
         $accessor = $container->get(AuthenticatedUserAccessor::class);
         assert($accessor instanceof AuthenticatedUserAccessor);
@@ -59,7 +59,7 @@ final readonly class UserAccessor implements DependentValueInterface
     }
 
     #[Override]
-    public function type(): ?string
+    public function type(): string
     {
         return $this->userClassName ?? 'object';
     }

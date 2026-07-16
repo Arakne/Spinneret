@@ -24,6 +24,9 @@ final readonly class TaggedServiceIterator implements ValueInterface
     use ValueHelperTrait;
 
     public function __construct(
+        /**
+         * @var class-string
+         */
         public string $tag,
 
         /**
@@ -32,6 +35,9 @@ final readonly class TaggedServiceIterator implements ValueInterface
         public bool $asArray = false,
     ) {}
 
+    /**
+     * @return iterable<mixed>
+     */
     #[Override]
     public function resolve(ContainerInterface $container): iterable
     {
@@ -41,7 +47,6 @@ final readonly class TaggedServiceIterator implements ValueInterface
 
         $values = $container->findByTag($this->tag);
 
-        /** @psalm-suppress InvalidArgument */
         return $this->asArray ? iterator_to_array($values) : $values;
     }
 

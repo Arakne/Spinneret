@@ -97,8 +97,7 @@ final readonly class FieldsExtractor implements FieldsExtractorInterface
      * Load all fields extractors from the request class attributes
      *
      * @param string $method The HTTP method of the request
-     * @return array<string, RequestFieldInterface>{"\0": RequestFieldInterface}
-     * @psalm-return array{"\0": RequestFieldInterface, ...<string, RequestFieldInterface>}
+     * @return array{"\0": RequestFieldInterface, ...<string, RequestFieldInterface>}
      */
     private function fieldsExtractors(string $method): array
     {
@@ -110,12 +109,10 @@ final readonly class FieldsExtractor implements FieldsExtractorInterface
             $extractors[self::DEFAULT_EXTRACTOR] = $attribute->newInstance();
         }
 
-        if (!isset($extractors[self::DEFAULT_EXTRACTOR])) {
-            $extractors[self::DEFAULT_EXTRACTOR] = match ($method) {
-                'GET', 'HEAD', 'OPTIONS', 'DELETE' => new QueryString(),
-                default => new RequestBody(),
-            };
-        }
+        $extractors[self::DEFAULT_EXTRACTOR] ??= match ($method) {
+            'GET', 'HEAD', 'OPTIONS', 'DELETE' => new QueryString(),
+            default => new RequestBody(),
+        };
 
         foreach ($reflection->getProperties() as $property) {
             $attributes = $property->getAttributes(RequestFieldInterface::class, ReflectionAttribute::IS_INSTANCEOF);
@@ -125,6 +122,7 @@ final readonly class FieldsExtractor implements FieldsExtractorInterface
             }
         }
 
+        /** @var array{"\0": RequestFieldInterface, ...<string, RequestFieldInterface>} */
         return $extractors;
     }
 }

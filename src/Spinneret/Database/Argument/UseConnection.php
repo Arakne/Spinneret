@@ -45,7 +45,7 @@ final readonly class UseConnection implements ValueInterface
     }
 
     #[Override]
-    public function type(): ?string
+    public function type(): string
     {
         return DatabaseConnectionInterface::class;
     }

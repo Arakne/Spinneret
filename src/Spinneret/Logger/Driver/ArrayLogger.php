@@ -14,7 +14,7 @@ final class ArrayLogger implements LoggerInterface
     use LoggerTrait;
 
     /**
-     * @var list<array{level: mixed, message: string, context: array}>
+     * @var list<array{level: mixed, message: string, context: array<array-key, mixed>}>
      */
     public array $logs = [];
 

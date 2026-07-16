@@ -194,6 +194,10 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
         return $instantiation;
     }
 
+    /**
+     * @param list<ValueInterface> $arguments
+     * @return string
+     */
     private function buildArguments(array $arguments): string
     {
         return implode(', ', array_map($this->buildArgument(...), $arguments));

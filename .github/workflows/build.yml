@@ -112,10 +112,10 @@ jobs:
               run: composer install --prefer-dist --no-progress
 
             - name: Run type coverage
-              run: ./vendor/bin/psalm --shepherd --no-cache --output-format=github
+              run: ./vendor/bin/phpstan --no-progress
 
-            - name: Run type coverage (Web)
-              run: ./vendor/bin/psalm --no-cache --output-format=github -c psalm-web.xml
+#            - name: Run type coverage (Web)
+#              run: ./vendor/bin/psalm --no-cache --output-format=github -c psalm-web.xml
 
             - name: Run checkstyle
               run: PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer check --diff

@@ -32,7 +32,7 @@ function service_nullable(string $id): Reference
 /**
  * Inject to service parameter an iterable of services with a specific tag.
  *
- * @param string $tag The tag name
+ * @param class-string $tag The tag name
  * @return TaggedServiceIterator
  */
 function tagged_services(string $tag): TaggedServiceIterator

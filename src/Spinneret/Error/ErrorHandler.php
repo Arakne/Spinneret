@@ -100,7 +100,7 @@ final class ErrorHandler
         }
 
         if ($this->previousErrorHandler !== null) {
-            /** @psalm-suppress MixedArgument */
+            // @phpstan-ignore argument.type
             return ($this->previousErrorHandler)(...func_get_args());
         }
 

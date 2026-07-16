@@ -41,6 +41,7 @@ final class DebugConfigCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $style = new SymfonyStyle($input, $output);
+        // @phpstan-ignore cast.string
         $filter = (string) $input->getArgument('filter');
 
         /**
@@ -63,6 +64,10 @@ final class DebugConfigCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @param object $config
+     * @return list<list{array-key, string}>
+     */
     private function dumpConfigValues(object $config): array
     {
         $values = [];

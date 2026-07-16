@@ -10,6 +10,10 @@ use UnitEnum;
  */
 final class TableNotFoundException extends QueryExecutionException
 {
+    /**
+     * @param list<mixed> $parameters
+     * @param array<array-key, mixed>|null $errorInfo
+     */
     public function __construct(
         /**
          * The requested table name or view name

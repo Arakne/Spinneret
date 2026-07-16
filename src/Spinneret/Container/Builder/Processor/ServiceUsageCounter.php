@@ -88,6 +88,9 @@ final class ServiceUsageCounter
         }
     }
 
+    /**
+     * @param array<array-key, mixed> $value
+     */
     private static function processArray(ContainerBuilder $builder, self $counter, array $value): void
     {
         /** @var mixed $item */

@@ -50,7 +50,6 @@ final class ContainerListenerProvider implements ListenerProviderInterface
         $listeners = [];
 
         foreach ($this->listeners[$eventClass] ?? [] as $listener) {
-            /** @var callable(E):void */
             $listeners[] = $this->container->get($listener);
         }
 

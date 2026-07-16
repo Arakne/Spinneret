@@ -50,7 +50,7 @@ final readonly class LoggerConfiguration
      * Get the filter for the log channel of the given offset.
      *
      * @param string|int $offset The offset of the channel (i.e. the key in the configuration array)
-     * @return (Closure(mixed, string|\Stringable, array):bool)|null
+     * @return (Closure(mixed, string|\Stringable, array<array-key, mixed>):bool)|null
      *
      * @internal Use by the module to build the logger filter
      */

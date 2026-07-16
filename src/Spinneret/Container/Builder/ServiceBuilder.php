@@ -15,6 +15,7 @@ use Arakne\Spinneret\Container\Service\ServiceFactoryConverter;
 use Arakne\Spinneret\Container\Service\ServiceFactoryInterface;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Closure;
+use InvalidArgumentException;
 use Override;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -230,7 +231,7 @@ final class ServiceBuilder implements ValidatableInterface
      */
     public function set(int $index, mixed $value): self
     {
-        /** @psalm-suppress PropertyTypeCoercion */
+        // @phpstan-ignore assign.propertyType
         $this->arguments[$index] = $value;
 
         return $this;
@@ -517,7 +518,10 @@ final class ServiceBuilder implements ValidatableInterface
                 return new Call($factory, $this->buildArguments());
             }
 
-            /** @psalm-suppress PossiblyNullArgument */
+            if ($this->class === null) {
+                return null;
+            }
+
             return new NewExpression($this->class, $this->buildArguments());
         } catch (Throwable) {
             return null;

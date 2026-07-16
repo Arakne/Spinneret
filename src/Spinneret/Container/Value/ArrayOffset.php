@@ -39,7 +39,7 @@ final readonly class ArrayOffset implements NestedValueInterface, ValidatableInt
     #[Override]
     public function resolve(ContainerInterface $container): mixed
     {
-        /** @psalm-suppress MixedArrayAccess */
+        /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
         return $this->array->resolve($container)[$this->offset];
     }
 
@@ -60,7 +60,6 @@ final readonly class ArrayOffset implements NestedValueInterface, ValidatableInt
     public function traverse(): Generator
     {
         $newArray = yield $this->array;
-        assert($newArray instanceof ValueInterface || $newArray === null);
 
         if ($newArray === null || $newArray === $this->array) {
             return $this;

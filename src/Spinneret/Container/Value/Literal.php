@@ -155,7 +155,6 @@ final readonly class Literal implements ValueInterface
 
         foreach ($constructor->getParameters() as $parameter) {
             if ($parameter->isPromoted()) {
-                /** @var mixed */
                 $arguments[] = $reflection->getProperty($parameter->name)->getValue($obj);
                 continue;
             }

@@ -38,7 +38,7 @@ final readonly class RegisterScheduledTaskProcessor implements ContainerBuilderP
                     }
 
                     $tag = $reflectionAttribute->newInstance();
-                    /** @psalm-suppress RedundantConditionGivenDocblockType */
+                    // @phpstan-ignore instanceof.alwaysTrue
                     assert($tag instanceof ScheduledTask);
 
                     $tag->registerServiceClosureAsTask($builder, $service, $method);

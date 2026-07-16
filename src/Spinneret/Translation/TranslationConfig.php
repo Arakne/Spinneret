@@ -93,7 +93,6 @@ final readonly class TranslationConfig
          */
         public bool $pseudoLocalizationBrackets = true,
     ) {
-        /** @var array<string, string> */
         $this->availableLocales = array_combine($availableLocales, $availableLocales);
     }
 
