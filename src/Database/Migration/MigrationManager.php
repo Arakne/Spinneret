@@ -191,9 +191,9 @@ final readonly class MigrationManager
         $names = array_flip($names);
 
         if ($oldersBefore) {
-            usort($migrations, fn (MigrationInterface $a, MigrationInterface $b) => $a->date() <=> $b->date());
+            usort($migrations, fn(MigrationInterface $a, MigrationInterface $b) => $a->date() <=> $b->date());
         } else {
-            usort($migrations, fn (MigrationInterface $a, MigrationInterface $b) => $b->date() <=> $a->date());
+            usort($migrations, fn(MigrationInterface $a, MigrationInterface $b) => $b->date() <=> $a->date());
         }
 
         $filtered = [];

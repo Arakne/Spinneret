@@ -33,7 +33,7 @@ final readonly class ClosureValue implements NestedValueInterface, ValidatableIn
     #[Override]
     public function resolve(ContainerInterface $container): Closure
     {
-        return fn (): mixed => $this->value->resolve($container);
+        return fn(): mixed => $this->value->resolve($container);
     }
 
     #[Override]

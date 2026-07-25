@@ -118,7 +118,7 @@ final readonly class EventListener implements ServiceConfiguratorAttributeInterf
         }
 
         return array_map(
-            static fn (string $eventClass): self => new self($eventClass),
+            static fn(string $eventClass): self => new self($eventClass),
             self::resolveEventClasses($reflectionMethod)
         );
     }

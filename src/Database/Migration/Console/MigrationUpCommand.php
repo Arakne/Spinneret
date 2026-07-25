@@ -29,7 +29,7 @@ final class MigrationUpCommand extends Command
         // @todo up force migrations list
         $io = new SymfonyStyle($input, $output);
 
-        if ($this->migrationManager->up(fn (string $line, bool $newLine = true) => $output->write($line, $newLine)) === 0) {
+        if ($this->migrationManager->up(fn(string $line, bool $newLine = true) => $output->write($line, $newLine)) === 0) {
             $io->success('No pending migrations');
         } else {
             $io->success('Migrations applied');

@@ -235,7 +235,7 @@ final readonly class PhpConfigLoader implements ConfigLoaderInterface
             };
             PHP;
 
-        Files::write($app->cacheDir().'/'.$this->cacheFile, $content);
+        Files::write($app->cacheDir() . '/' . $this->cacheFile, $content);
     }
 }
 

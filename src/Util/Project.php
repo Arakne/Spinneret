@@ -31,7 +31,7 @@ final class Project
 
         $currentDir = dirname($r->getFileName());
 
-        while (!is_file($currentDir.'/composer.json')) {
+        while (!is_file($currentDir . '/composer.json')) {
             $parentDir = dirname($currentDir);
 
             if ($parentDir === $currentDir) {

@@ -27,7 +27,7 @@ final readonly class FormFactoryLoader
 
         return DefaultFormFactory::generated(
             $this->registry,
-            fn (string $className) => $application->cacheDir() . '/form/' . str_replace('\\', '_', $className) . '.php',
+            fn(string $className) => $application->cacheDir() . '/form/' . str_replace('\\', '_', $className) . '.php',
         );
     }
 }

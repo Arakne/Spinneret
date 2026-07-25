@@ -39,7 +39,7 @@ final readonly class ContextLogger implements LoggerInterface
             if ($marker === null) {
                 $this->marker = $logger->marker;
             } else {
-                $this->marker = $logger->marker !== null ? $marker . ' ' .$logger->marker : $marker;
+                $this->marker = $logger->marker !== null ? $marker . ' ' . $logger->marker : $marker;
             }
         }
     }

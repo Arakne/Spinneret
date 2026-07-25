@@ -15,7 +15,7 @@ use function is_int;
  * @param int|string|float|null|Stringable $value Value to escape
  * @return string Escaped value
  */
-function e(int|string|float|null|Stringable $value): string
+function e(int|string|float|Stringable|null $value): string
 {
     if ($value === null) {
         return '';

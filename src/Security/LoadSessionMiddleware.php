@@ -74,7 +74,7 @@ final readonly class LoadSessionMiddleware implements MiddlewareInterface
 
         // A new cookie has already been set, so no need to add another one
         foreach ($response->getHeader('Set-Cookie') as $header) {
-            if (str_starts_with($header, $this->cookieName.'=')) {
+            if (str_starts_with($header, $this->cookieName . '=')) {
                 return $response;
             }
         }

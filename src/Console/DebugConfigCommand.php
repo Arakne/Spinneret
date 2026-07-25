@@ -89,12 +89,12 @@ final class DebugConfigCommand extends Command
                 return '[' . implode(', ', array_map($this->dumpValue(...), $value)) . ']';
             }
 
-            return "[\n" . implode(",\n", array_map(fn ($key, $value) => '  ' . (string) $key . ' => ' . $this->dumpValue($value), array_keys($value), $value)) . "\n]";
+            return "[\n" . implode(",\n", array_map(fn($key, $value) => '  ' . (string) $key . ' => ' . $this->dumpValue($value), array_keys($value), $value)) . "\n]";
         }
 
         if (is_object($value)) {
             $arrValue = (array) $value;
-            return $value::class . " {\n" . implode(",\n", array_map(fn ($key, $value) => '  ' . (string) $key . ' = ' . $this->dumpValue($value), array_keys($arrValue), $arrValue)) . "\n}";
+            return $value::class . " {\n" . implode(",\n", array_map(fn($key, $value) => '  ' . (string) $key . ' = ' . $this->dumpValue($value), array_keys($arrValue), $arrValue)) . "\n}";
         }
 
         return var_export($value, true);

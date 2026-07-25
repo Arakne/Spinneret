@@ -126,7 +126,7 @@ final readonly class Literal implements ValueInterface
     private static function dumpObject(object $obj): string
     {
         if ($obj instanceof stdClass) {
-            return sprintf('((object) %s)', self::dump((array)$obj));
+            return sprintf('((object) %s)', self::dump((array) $obj));
         }
 
         if ($obj instanceof UnitEnum) {

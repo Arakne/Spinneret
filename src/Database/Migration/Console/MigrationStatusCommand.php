@@ -33,7 +33,7 @@ final class MigrationStatusCommand extends Command
         $style->table(
             ['Name', 'Date', 'Version', 'Applied'],
             array_map(
-                fn (MigrationStatus $migration) => [
+                fn(MigrationStatus $migration) => [
                     $migration->migration->name(),
                     $migration->migration->date()->format('Y-m-d H:i:s'),
                     $migration->migration->version(),

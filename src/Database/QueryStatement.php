@@ -374,7 +374,7 @@ final class QueryStatement implements QueryStatementInterface
         /** @var string */
         return preg_replace_callback(
             '/\{([a-z0-9_.-]+)}/iu',
-            fn ($matches) => $this->expressions[$matches[1]] ?? '',
+            fn($matches) => $this->expressions[$matches[1]] ?? '',
             $query
         );
     }

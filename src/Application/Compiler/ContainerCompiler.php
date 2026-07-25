@@ -32,7 +32,7 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
     #[Override]
     public function load(Application $application): ?SpinneretContainerInterface
     {
-        $containerClassPath = $application->cacheDir().'/'.$this->savePath.'/'.$this->containerClassName($application).'.php';
+        $containerClassPath = $application->cacheDir() . '/' . $this->savePath . '/' . $this->containerClassName($application) . '.php';
 
         if (!is_file($containerClassPath)) {
             return null;
@@ -73,6 +73,6 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
 
     private function containerClassName(Application $application): string
     {
-        return preg_replace('/[^A-Z0-9_]/i', '_', $application::class).'Container';
+        return preg_replace('/[^A-Z0-9_]/i', '_', $application::class) . 'Container';
     }
 }

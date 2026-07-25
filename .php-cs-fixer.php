@@ -5,7 +5,7 @@ use PhpCsFixer\Config;
 return (new Config())
     ->setUsingCache(false)
     ->setRules([
-        '@PSR12' => true,
+        '@PER' => true,
         '@PHP83Migration' => true,
         'single_line_empty_body' => true,
     ])

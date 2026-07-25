@@ -84,7 +84,7 @@ final readonly class FieldsExtractor implements FieldsExtractorInterface
                 continue;
             }
 
-            $fields .= var_export($name, true) . ' => ' . $extractor->compileExtract('$request', $name).', ';
+            $fields .= var_export($name, true) . ' => ' . $extractor->compileExtract('$request', $name) . ', ';
         }
 
         $fields .= ']';
