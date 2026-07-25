@@ -92,6 +92,7 @@ final readonly class RouterModule implements ConfigurableModuleInterface
         $containerBuilder->register(UrlGeneratorLoader::class)
             ->arg(new Reference(RouteCollectionLoaderInterface::class))
             ->arg(new Reference(RequestContext::class))
+            ->arg(new Reference(FormFactoryInterface::class))
             ->arg(new Reference(UrlGeneratorCompilerInterface::class, nullOnInvalid: true))
         ;
         $containerBuilder->alias(UrlGeneratorLoaderInterface::class, UrlGeneratorLoader::class);

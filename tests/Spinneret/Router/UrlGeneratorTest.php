@@ -8,6 +8,7 @@ use Arakne\Tests\Spinneret\Application\Fixtures\Registration\RegistrationRequest
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Quatrevieux\Form\DefaultFormFactory;
 use Symfony\Component\Routing\Generator\UrlGenerator as SfUrlGenerator;
 use Symfony\Component\Routing\RequestContext;
 
@@ -25,7 +26,8 @@ class UrlGeneratorTest extends TestCase
             new SfUrlGenerator(
                 $builder->routes,
                 RequestContext::fromUri('http://localhost')
-            )
+            ),
+            DefaultFormFactory::runtime(),
         );
     }
 

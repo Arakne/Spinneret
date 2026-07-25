@@ -78,7 +78,10 @@ final readonly class EventListener implements ServiceConfiguratorAttributeInterf
     #[Override]
     public function configure(ServiceBuilder $service, ContainerBuilder $container): void
     {
-        $service->public();
+        $service
+            ->ignorable(false)
+            ->public()
+        ;
 
         if ($this->eventClass !== null) {
             $service->tag($this);

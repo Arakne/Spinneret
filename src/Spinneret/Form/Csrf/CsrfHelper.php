@@ -8,8 +8,7 @@ use Quatrevieux\Form\FormInterface;
 use ReflectionClass;
 use ReflectionProperty;
 
-use function is_object;
-use function is_string;
+use function iterator_to_array;
 
 /**
  * Helper for handle form with CSRF token
@@ -29,32 +28,6 @@ final class CsrfHelper
     public function __construct(
         private readonly FormFactoryInterface $formFactory,
     ) {}
-
-    /**
-     * Inject the CSRF token to the request object
-     *
-     * Note: this method will directly modify the request object
-     *
-     * @param R $request The request object
-     * @param ServerRequestInterface $psrRequest The server request, use to extract the session token.
-     *
-     * @return R
-     * @template R as object The modified request object
-     */
-    public function setCsrf(object $request, ServerRequestInterface $psrRequest): object
-    {
-        $properties = ($this->cache[$request::class] ??= $this->extractCsrfProperties($request));
-
-        foreach ($properties as $name => $csrf) {
-            $token = $csrf->extract($psrRequest, $name);
-
-            if ($token) {
-                $request->$name = $token;
-            }
-        }
-
-        return $request;
-    }
 
     /**
      * Try to generate the CSRF token for the given request class
@@ -89,11 +62,10 @@ final class CsrfHelper
      */
     public function getCsrfFields(string $request, ServerRequestInterface $psrRequest): array
     {
-        $properties = ($this->cache[$request] ??= $this->extractCsrfProperties($request));
         $fields = [];
 
-        foreach ($properties as $name => $csrf) {
-            $token = $csrf->extract($psrRequest, $name)?->token();
+        foreach ($this->getCsrfParameters($request, $psrRequest) as $name => $csrf) {
+            $token = $csrf->token();
 
             if ($token !== null) {
                 $fields[$name] = $token;
@@ -115,27 +87,17 @@ final class CsrfHelper
      * $view['csrf']->value; // The CSRF token
      * ```
      *
-     * @param class-string<T>|T $request The request class name, or an instance of the request class.
+     * @param class-string<T> $request The request class name
      * @param ServerRequestInterface $serverRequest The server request, use to extract the CSRF token.
+     * @param array<string, mixed> $data Base form data
      *
      * @return FormInterface<T>
      *
      * @template T as object
      */
-    public function form(string|object $request, ServerRequestInterface $serverRequest): FormInterface
+    public function form(string $request, ServerRequestInterface $serverRequest, array $data = []): FormInterface
     {
-        if (is_object($request)) {
-            $requestClassName = $request::class;
-        } else {
-            $requestClassName = $request;
-            /** @psalm-suppress MixedMethodCall */
-            $request = new $request();
-        }
-
-        return $this->formFactory
-            ->create($requestClassName)
-            ->import($this->setCsrf($request, $serverRequest))
-        ;
+        return $this->formFactory->create($request, iterator_to_array($this->getCsrfParameters($request, $serverRequest)) + $data);
     }
 
     /**
@@ -154,5 +116,26 @@ final class CsrfHelper
         }
 
         return $ret;
+    }
+
+    /**
+     * Try to generate all CSRF tokens fields for the given request class
+     *
+     * @param class-string $request The request class
+     * @param ServerRequestInterface $psrRequest The server request, use to extract the session token.
+     *
+     * @return iterable<string, CsrfTokenParameters> Map of field name to CSRF token parameters
+     */
+    public function getCsrfParameters(string $request, ServerRequestInterface $psrRequest): iterable
+    {
+        $properties = ($this->cache[$request] ??= $this->extractCsrfProperties($request));
+
+        foreach ($properties as $name => $csrf) {
+            $token = $csrf->extract($psrRequest, $name);
+
+            if ($token !== null) {
+                yield $name => $token;
+            }
+        }
     }
 }

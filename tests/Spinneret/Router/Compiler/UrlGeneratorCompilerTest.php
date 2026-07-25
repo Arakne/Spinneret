@@ -3,6 +3,7 @@
 namespace Arakne\Tests\Spinneret\Router\Compiler;
 
 use Arakne\Spinneret\Application\Application;
+use Arakne\Spinneret\Form\FormFactoryLoader;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompiler;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\UrlGenerator;
@@ -11,6 +12,7 @@ use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Quatrevieux\Form\DefaultFormFactory;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 
@@ -59,7 +61,7 @@ class UrlGeneratorCompilerTest extends TestCase
     {
         $routes = clone $this->routes;
 
-        $compiler = new UrlGeneratorCompiler();
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
         $compiler->compile($this->app, $this->routes);
 
         $this->assertEquals($routes, $this->routes);
@@ -83,14 +85,14 @@ PHP
     #[Test]
     public function loadNotYetCompiled()
     {
-        $compiler = new UrlGeneratorCompiler();
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
         $this->assertNull($compiler->load($this->app, new RequestContext()));
     }
 
     #[Test]
     public function loadCompiled()
     {
-        $compiler = new UrlGeneratorCompiler();
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
         $compiler->compile($this->app, $this->routes);
 
         $loaded = $compiler->load($this->app, new RequestContext());
@@ -102,7 +104,7 @@ PHP
     #[Test]
     public function loadCompiledInvalidFile()
     {
-        $compiler = new UrlGeneratorCompiler();
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
         $compiler->compile($this->app, $this->routes);
 
         file_put_contents($this->cacheDir . '/url_generator_routes.php', '<?php return 42;');
@@ -113,7 +115,7 @@ PHP
     #[Test]
     public function loadCompiledError()
     {
-        $compiler = new UrlGeneratorCompiler();
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
         $compiler->compile($this->app, $this->routes);
 
         file_put_contents($this->cacheDir . '/url_generator_routes.php', '<?php syntax error!');

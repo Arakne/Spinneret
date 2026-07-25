@@ -7,6 +7,7 @@ use Arakne\Spinneret\Router\UrlGenerator;
 use Arakne\Spinneret\Router\UrlGeneratorInterface;
 use Arakne\Spinneret\Util\Files;
 use Override;
+use Quatrevieux\Form\FormFactoryInterface;
 use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
 use Symfony\Component\Routing\Generator\Dumper\CompiledUrlGeneratorDumper;
 use Symfony\Component\Routing\RequestContext;
@@ -23,6 +24,7 @@ use function is_file;
 final readonly class UrlGeneratorCompiler implements UrlGeneratorCompilerInterface
 {
     public function __construct(
+        private FormFactoryInterface $formFactory,
         private string $targetFile = 'url_generator_routes.php',
     ) {}
 
@@ -42,7 +44,7 @@ final readonly class UrlGeneratorCompiler implements UrlGeneratorCompilerInterfa
                 return null;
             }
 
-            return new UrlGenerator(new CompiledUrlGenerator($compiledRoutes, $context));
+            return new UrlGenerator(new CompiledUrlGenerator($compiledRoutes, $context), $this->formFactory);
         } catch (Throwable) {
             return null;
         }

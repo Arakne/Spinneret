@@ -13,6 +13,7 @@ use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Quatrevieux\Form\DefaultFormFactory;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 
@@ -54,7 +55,7 @@ class UrlGeneratorLoaderTest extends TestCase
     public function loadDevModeShouldNotLoadCompiledRoutes()
     {
         $app = $this->createApp(true);
-        $loader = new UrlGeneratorLoader($this->routesLoader, new RequestContext(), new UrlGeneratorCompiler());
+        $loader = new UrlGeneratorLoader($this->routesLoader, new RequestContext(), DefaultFormFactory::runtime(), new UrlGeneratorCompiler(DefaultFormFactory::runtime()));
 
         $generator = $loader->load($app);
 
@@ -72,7 +73,7 @@ class UrlGeneratorLoaderTest extends TestCase
     public function loadWithoutCompiler()
     {
         $app = $this->createApp(true);
-        $loader = new UrlGeneratorLoader($this->routesLoader, new RequestContext(), null);
+        $loader = new UrlGeneratorLoader($this->routesLoader, new RequestContext(), DefaultFormFactory::runtime(), null);
 
         $generator = $loader->load($app);
 
@@ -89,7 +90,7 @@ class UrlGeneratorLoaderTest extends TestCase
     public function loadNotDevModeShouldNotLoadCompiledRoutesIfPresent()
     {
         $app = $this->createApp(false);
-        $loader = new UrlGeneratorLoader($this->routesLoader, new RequestContext(), new UrlGeneratorCompiler());
+        $loader = new UrlGeneratorLoader($this->routesLoader, new RequestContext(), DefaultFormFactory::runtime(), new UrlGeneratorCompiler(DefaultFormFactory::runtime()));
 
         $generator = $loader->load($app);
         $this->assertFileExists($this->cacheDir . '/url_generator_routes.php');

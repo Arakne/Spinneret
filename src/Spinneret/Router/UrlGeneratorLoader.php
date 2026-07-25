@@ -5,6 +5,7 @@ namespace Arakne\Spinneret\Router;
 use Arakne\Spinneret\Application\Application;
 use Arakne\Spinneret\Router\Compiler\UrlGeneratorCompilerInterface;
 use Override;
+use Quatrevieux\Form\FormFactoryInterface;
 use Symfony\Component\Routing\Generator\UrlGenerator as SfUrlGenerator;
 use Symfony\Component\Routing\RequestContext;
 
@@ -16,6 +17,7 @@ final readonly class UrlGeneratorLoader implements UrlGeneratorLoaderInterface
     public function __construct(
         private RouteCollectionLoaderInterface $routesLoader,
         private RequestContext $requestContext,
+        private FormFactoryInterface $formFactory,
         private ?UrlGeneratorCompilerInterface $compiler = null,
     ) {}
 
@@ -31,6 +33,6 @@ final readonly class UrlGeneratorLoader implements UrlGeneratorLoaderInterface
 
         $sfGenerator = new SfUrlGenerator($routes, $this->requestContext);
 
-        return new UrlGenerator($sfGenerator);
+        return new UrlGenerator($sfGenerator, $this->formFactory);
     }
 }

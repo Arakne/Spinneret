@@ -2,11 +2,11 @@
 
 namespace Arakne\Spinneret\Container\Compiler;
 
-use Arakne\Spinneret\Container\Value\ValueInterface;
 use Arakne\Spinneret\Container\BuiltContainer;
 use Arakne\Spinneret\Container\Exception\ContainerBuildException;
 use Arakne\Spinneret\Container\Service\ServiceMetadata;
 use Arakne\Spinneret\Container\SpinneretContainerInterface;
+use Arakne\Spinneret\Container\Value\ValueInterface;
 use Override;
 use Psr\Container\ContainerInterface;
 use Throwable;
