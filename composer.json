@@ -36,11 +36,11 @@
   },
   "autoload": {
     "psr-4": {
-      "Arakne\\": "src/"
+      "Arakne\\Spinneret\\": "src/"
     },
     "files": [
-      "src/Spinneret/View/helpers.php",
-      "src/Spinneret/Application/functions.php"
+      "src/View/helpers.php",
+      "src/Application/functions.php"
     ]
   },
   "autoload-dev": {

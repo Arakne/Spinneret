@@ -19,7 +19,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                php-versions: ['8.4']
+                php-versions: ['8.4', '8.5']
         name: PHP ${{ matrix.php-versions }}
 
         steps:
@@ -46,11 +46,6 @@ jobs:
                   mysql database: 'test'
                   mysql user: 'test'
                   mysql password: 'test'
-
-            - name: Install SVG renderer commands
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y librsvg2-bin
 
             - name: Validate composer.json and composer.lock
               run: composer validate --strict
@@ -95,11 +90,6 @@ jobs:
                   mysql user: 'test'
                   mysql password: 'test'
 
-            - name: Install SVG renderer commands
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y librsvg2-bin
-
             - name: Install Infection
               run: |
                 wget https://github.com/infection/infection/releases/download/0.28.1/infection.phar
@@ -115,9 +105,6 @@ jobs:
 
             - name: Run type coverage
               run: ./vendor/bin/phpstan --no-progress
-
-#            - name: Run type coverage (Web)
-#              run: ./vendor/bin/psalm --no-cache --output-format=github -c psalm-web.xml
 
             - name: Run checkstyle
               run: PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer check --diff

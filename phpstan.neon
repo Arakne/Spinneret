@@ -1,9 +1,9 @@
 parameters:
     level: 10
     paths:
-        - src/Spinneret
+        - src
     ignoreErrors:
         - identifier: function.alreadyNarrowedType
         - identifier: missingType.generics
         - identifier: argument.type
-          path: src/Spinneret/Runner/Backend/Workerman/WorkermanBackend.php
+          path: src/Runner/Backend/Workerman/WorkermanBackend.php

@@ -10,6 +10,6 @@ return (new Config())
         'single_line_empty_body' => true,
     ])
     ->setFinder(
-        PhpCsFixer\Finder::create()->in(__DIR__.'/src/Spinneret')
+        PhpCsFixer\Finder::create()->in(__DIR__.'/src')
     )
 ;
