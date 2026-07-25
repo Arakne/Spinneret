@@ -1,9 +1,9 @@
 {
-  "name": "arakne/web",
-  "description": "Web site for Araknemu server",
-  "keywords": ["araknemu", "dofus retro", "dofus 1.29"],
+  "name": "arakne/spinneret",
+  "description": "Light and modern PHP framework",
+  "keywords": ["framework"],
   "license": "LGPL-3.0-or-later",
-  "type": "project",
+  "type": "library",
   "authors": [
     {
       "name": "Vincent QUATREVIEUX",
@@ -23,11 +23,8 @@
     "symfony/translation": "~7.1",
     "vincent4vx/form": "dev-master@dev",
     "psr/log": "^3.0",
-    "league/commonmark": "^2.5.3",
     "psr/clock": "^1.0",
     "workerman/workerman": "~5.0",
-    "arakne/swf": "^0.5.3",
-    "arakne/php-map-parser": "~0.1",
     "psr/event-dispatcher": "^1.0",
     "psr/simple-cache": "^3.0",
     "symfony/polyfill-php85": "~1.38"
@@ -35,10 +32,6 @@
   "require-dev": {
     "phpunit/phpunit": "~10.5",
     "friendsofphp/php-cs-fixer": "^3.62",
-    "masterminds/html5": "^2.9",
-    "symfony/css-selector": "^7.1",
-    "sapientpro/image-comparator": "^1.2",
-    "deptrac/deptrac": "^4.2",
     "phpstan/phpstan": "^2.2"
   },
   "autoload": {
