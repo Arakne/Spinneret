@@ -2,9 +2,11 @@ name: Build
 
 on:
     push:
-        branches: [ master ]
+        branches:
+          - '[1-9]\.[0-9]+'
     pull_request:
-        branches: [ master ]
+        branches:
+          - '[1-9]\.[0-9]+'
 
 env:
     MYSQL_TEST_HOST: '127.0.0.1'
