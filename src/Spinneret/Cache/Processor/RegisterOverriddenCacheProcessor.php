@@ -13,7 +13,6 @@ use Arakne\Spinneret\Container\Value\NewExpression;
 use Arakne\Spinneret\Container\Value\Reference;
 use Override;
 use Psr\Container\ContainerInterface;
-
 use Psr\SimpleCache\CacheInterface;
 
 use function class_exists;

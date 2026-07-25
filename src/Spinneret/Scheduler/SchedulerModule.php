@@ -25,7 +25,7 @@ final readonly class SchedulerModule implements ModuleInterface
     {
         $containerBuilder->processor(new RegisterScheduledTaskProcessor());
         $containerBuilder->register(ScheduledTaskRegistry::class, [
-            new TaggedServiceIterator(ScheduledTask::class, true)
+            new TaggedServiceIterator(ScheduledTask::class, true),
         ]);
         $containerBuilder->register(StartSchedulerCommand::class, [
             new Reference(ScheduledTaskRegistry::class),

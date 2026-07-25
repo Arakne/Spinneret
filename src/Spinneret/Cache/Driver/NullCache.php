@@ -75,7 +75,7 @@ final readonly class NullCache implements CacheDriverInterface
     public static function instance(): self
     {
         /** @var self $instance */
-        static $instance = new self;
+        static $instance = new self();
 
         return $instance;
     }

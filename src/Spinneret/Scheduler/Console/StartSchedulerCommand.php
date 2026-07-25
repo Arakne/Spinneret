@@ -49,7 +49,7 @@ final class StartSchedulerCommand extends Command
 
         $io->info(sprintf('Starting scheduler with %d task(s):', count($tasks)));
         $io->listing(array_map(
-            static fn(ScheduledTaskInterface $task) => sprintf(
+            static fn (ScheduledTaskInterface $task) => sprintf(
                 '%s (%s %s)',
                 $task->name(),
                 $task->perpetual() ? 'every' : 'in',

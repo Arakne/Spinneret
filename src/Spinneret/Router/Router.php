@@ -90,13 +90,13 @@ final readonly class Router implements RouterInterface
             }
         }
 
-         foreach ($this->checkers as $checker) {
-             $result = $checker->check($request, $target, $attributes);
+        foreach ($this->checkers as $checker) {
+            $result = $checker->check($request, $target, $attributes);
 
-             if ($result !== null) {
-                 return new RoutedRequest($request, $result, false, null);
-             }
-         }
+            if ($result !== null) {
+                return new RoutedRequest($request, $result, false, null);
+            }
+        }
 
         // @todo optimisation: field extractor vide et request en singleton
         $form = $this->formFactory->create($target);
