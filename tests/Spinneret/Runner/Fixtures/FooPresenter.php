@@ -4,7 +4,6 @@ namespace Arakne\Tests\Spinneret\Runner\Fixtures;
 
 use Arakne\Spinneret\Presenter\PresenterInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
-use Arakne\Web\Foundation\Error\Exception\AccessDeniedException;
 use Override;
 
 class FooPresenter implements PresenterInterface

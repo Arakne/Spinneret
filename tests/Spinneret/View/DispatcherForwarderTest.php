@@ -8,7 +8,7 @@ use Arakne\Spinneret\View\ViewEngineInterface;
 use Arakne\Tests\Spinneret\Application\Fixtures\Forward\TestForwardModule;
 use Arakne\Tests\Spinneret\Application\Fixtures\Hello\HelloRequest;
 use Arakne\Tests\Spinneret\Application\Fixtures\TestApplication;
-use Arakne\Tests\Web\TestModule;
+use Arakne\Tests\Spinneret\View\Fixtures\TestModule;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
