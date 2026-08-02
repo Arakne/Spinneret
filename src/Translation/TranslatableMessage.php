@@ -17,7 +17,7 @@ final readonly class TranslatableMessage implements TranslatableInterface
         /**
          * Replacement parameters
          *
-         * @var array<string, scalar>
+         * @var array<string, mixed>
          */
         public array $parameters = [],
     ) {}
