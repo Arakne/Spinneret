@@ -3,6 +3,7 @@
 namespace Arakne\Spinneret\Router;
 
 use Arakne\Spinneret\Router\Attribute\Get;
+use Arakne\Spinneret\Router\Attribute\Route;
 use Arakne\Spinneret\Router\Field\RequestFieldInterface;
 use Override;
 use Quatrevieux\Form\FormFactoryInterface;
@@ -83,16 +84,12 @@ final class UrlGenerator implements UrlGeneratorInterface
     {
         $class = new ReflectionClass($request);
 
-        if ($isGet === null) {
-            foreach ($class->getAttributes(RequestFieldInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-                $isGet = $attribute->newInstance()->isUrl();
-            }
-
-            if ($isGet === null) {
-                $isGet = $class->getAttributes(Get::class) !== [];
-            }
-
+        foreach ($class->getAttributes(RequestFieldInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            $isExportedByDefault = $attribute->newInstance()->isUrl();
         }
+
+        $isExportedByDefault ??= $isGet;
+        $isExportedByDefault ??= self::isQueryStringRequest($class);
 
         $exportedFields = [];
 
@@ -103,7 +100,7 @@ final class UrlGenerator implements UrlGeneratorInterface
                 $isExported = $attribute->newInstance()->isUrl();
             }
 
-            $isExported ??= $isGet;
+            $isExported ??= $isExportedByDefault;
 
             if ($isExported) {
                 $exportedFields[$property->name] = true;
@@ -111,5 +108,24 @@ final class UrlGenerator implements UrlGeneratorInterface
         }
 
         return $exportedFields;
+    }
+
+    /**
+     * Check if the given request class will use by default query string for its parameters?
+     * Will return true if the request is registered as GET, HEAD, OPTIONS or DELETE HTTP method
+     */
+    private static function isQueryStringRequest(ReflectionClass $class): bool
+    {
+        foreach ($class->getAttributes(Route::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            $attr = $attribute->newInstance();
+
+            foreach ($attr->methods as $method) {
+                if ($method === 'GET' || $method === 'HEAD' || $method === 'OPTIONS' || $method === 'DELETE') {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

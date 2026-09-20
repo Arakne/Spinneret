@@ -11,6 +11,7 @@ use Quatrevieux\Form\FormFactoryInterface;
 use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
 use Symfony\Component\Routing\Generator\Dumper\CompiledUrlGeneratorDumper;
 use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Throwable;
 
@@ -86,7 +87,7 @@ final readonly class UrlGeneratorCompiler implements UrlGeneratorCompilerInterfa
             $request = $route->getDefault('_target');
 
             if (is_string($request) && class_exists($request)) {
-                $exportedFieldsByRequest[$request] = UrlGenerator::computedExportedFields($request, in_array('GET', $route->getMethods(), true));
+                $exportedFieldsByRequest[$request] = UrlGenerator::computedExportedFields($request, self::useQueryString($route));
             }
         }
 
@@ -145,5 +146,16 @@ final readonly class UrlGeneratorCompiler implements UrlGeneratorCompilerInterfa
         } catch (Throwable) {
             return null;
         }
+    }
+
+    private static function useQueryString(Route $route): bool
+    {
+        foreach ($route->getMethods() as $method) {
+            if ($method === 'GET' || $method === 'HEAD' || $method === 'OPTIONS' || $method === 'DELETE') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

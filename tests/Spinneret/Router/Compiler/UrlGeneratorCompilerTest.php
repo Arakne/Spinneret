@@ -9,6 +9,8 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\UrlGenerator;
 use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
+use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsBodyRequest;
+use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsQueryStringRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -130,6 +132,75 @@ PHP
             HelloRequest::class => ['name' => true],
             MixedFieldsRequest::class => ['key' => true],
         ], $fields->getValue($loaded));
+    }
+
+    #[Test]
+    public function loadCompiledShouldHonorRequestBodyOnGetRoute()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->get('/body/{id}', MixedFieldsBodyRequest::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/body/42?name=John', $loaded->url(new MixedFieldsBodyRequest(
+            id: 42,
+            name: 'John',
+            user: (object) ['login' => 'bob'],
+            referrer: 'https://example.com',
+            value: 'must-not-be-exported',
+        )));
+    }
+
+    #[Test]
+    public function loadCompiledShouldHonorQueryStringOnPostRoute()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->post('/query/{id}', MixedFieldsQueryStringRequest::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/query/42?name=John', $loaded->url(new MixedFieldsQueryStringRequest(
+            id: 42,
+            name: 'John',
+            user: (object) ['login' => 'bob'],
+            referrer: 'https://example.com',
+        )));
+    }
+
+    #[
+        Test,
+        TestWith(['HEAD']),
+        TestWith(['OPTIONS']),
+        TestWith(['DELETE']),
+    ]
+    public function loadCompiledShouldUseQueryStringByDefaultForMethod(string $method)
+    {
+        $routes = new RouteCollectionBuilder()
+            ->add('/query', HelloRequest::class, [$method])
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+        $request = new HelloRequest();
+        $request->name = 'John';
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/query?name=John', $loaded->url($request));
     }
 
     #[Test]
