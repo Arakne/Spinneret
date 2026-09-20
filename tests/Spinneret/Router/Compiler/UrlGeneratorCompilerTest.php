@@ -11,10 +11,16 @@ use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
+use ReflectionProperty;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
+
+use function file_get_contents;
+use function file_put_contents;
+use function unlink;
 
 class UrlGeneratorCompilerTest extends TestCase
 {
@@ -80,6 +86,25 @@ return [
 PHP
             , file_get_contents($this->cacheDir . '/url_generator_routes.php')
         );
+
+        $this->assertFileExists($this->cacheDir . '/url_generator_fields.php');
+        $this->assertEquals(<<<'PHP'
+<?php
+
+// Generated file: do not modify
+return array (
+  'Arakne\\Tests\\Spinneret\\Router\\Fixtures\\HelloRequest' => 
+  array (
+    'name' => true,
+  ),
+  'Arakne\\Tests\\Spinneret\\Router\\Fixtures\\MixedFieldsRequest' => 
+  array (
+    'key' => true,
+  ),
+);
+PHP
+            , file_get_contents($this->cacheDir . '/url_generator_fields.php')
+        );
     }
 
     #[Test]
@@ -99,6 +124,50 @@ PHP
 
         $this->assertInstanceOf(UrlGenerator::class, $loaded);
         $this->assertSame('http://localhost/hello', $loaded->url(HelloRequest::class));
+
+        $fields = new ReflectionProperty(UrlGenerator::class, 'exportedFieldsCache');
+        $this->assertSame([
+            HelloRequest::class => ['name' => true],
+            MixedFieldsRequest::class => ['key' => true],
+        ], $fields->getValue($loaded));
+    }
+
+    #[Test]
+    public function loadCompiledWithoutFieldCache()
+    {
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $this->routes);
+
+        unlink($this->cacheDir . '/url_generator_fields.php');
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/hello', $loaded->url(HelloRequest::class));
+
+        $fields = new ReflectionProperty(UrlGenerator::class, 'exportedFieldsCache');
+        $this->assertSame([], $fields->getValue($loaded));
+    }
+
+    #[
+        Test,
+        TestWith(['<?php sdfsdffd->fdssdfsd:f:;s']),
+        TestWith(['<?php return 42;']),
+    ]
+    public function loadCompiledInvalidFieldCache(string $content)
+    {
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $this->routes);
+
+        file_put_contents($this->cacheDir . '/url_generator_fields.php', $content);
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/hello', $loaded->url(HelloRequest::class));
+
+        $fields = new ReflectionProperty(UrlGenerator::class, 'exportedFieldsCache');
+        $this->assertSame([], $fields->getValue($loaded));
     }
 
     #[Test]

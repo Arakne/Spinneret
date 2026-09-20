@@ -19,17 +19,19 @@ use function is_object;
  */
 final class UrlGenerator implements UrlGeneratorInterface
 {
-    /**
-     * Map of request class name to exported fields.
-     * Exported fields will be defined as array keys.
-     *
-     * @var array<class-string, array<string, true>>
-     */
-    private array $exportedFieldsCache = [];
-
     public function __construct(
         private readonly SfUrlGeneratorInterface $sfUrlGenerator,
         private readonly FormFactoryInterface $formFactory,
+
+        /**
+         * Map of request class name to exported fields.
+         * Exported fields will be defined as array keys.
+         *
+         * Must not be set manually: this parameter should only be used by the url generator compiler.
+         *
+         * @var array<class-string, array<string, true>>
+         */
+        private array $exportedFieldsCache = [],
     ) {}
 
     #[Override]
@@ -52,8 +54,6 @@ final class UrlGenerator implements UrlGeneratorInterface
     /**
      * Extract request parameters as array
      *
-     * @todo Use router information about properties to extract or not
-     *
      * @param object $request
      * @return array<string, mixed>
      */
@@ -70,21 +70,28 @@ final class UrlGenerator implements UrlGeneratorInterface
      */
     private function exportedFields(object $request): array
     {
-        $cached = $this->exportedFieldsCache[$request::class] ?? null;
+        return $this->exportedFieldsCache[$request::class] ??= self::computedExportedFields($request::class);
+    }
 
-        if ($cached !== null) {
-            return $cached;
-        }
-
+    /**
+     * @param class-string $request
+     * @param bool|null $isGet Does the current request is for a get route? Set to null to deduce it from the class.
+     * @return array<string, true>
+     * @internal
+     */
+    public static function computedExportedFields(string $request, ?bool $isGet = null): array
+    {
         $class = new ReflectionClass($request);
-        $isExportedByDefault = null;
 
-        foreach ($class->getAttributes(RequestFieldInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-            $isExportedByDefault = $attribute->newInstance()->isUrl();
-        }
+        if ($isGet === null) {
+            foreach ($class->getAttributes(RequestFieldInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                $isGet = $attribute->newInstance()->isUrl();
+            }
 
-        if ($isExportedByDefault === null) {
-            $isExportedByDefault = $class->getAttributes(Get::class) !== [];
+            if ($isGet === null) {
+                $isGet = $class->getAttributes(Get::class) !== [];
+            }
+
         }
 
         $exportedFields = [];
@@ -96,13 +103,13 @@ final class UrlGenerator implements UrlGeneratorInterface
                 $isExported = $attribute->newInstance()->isUrl();
             }
 
-            $isExported ??= $isExportedByDefault;
+            $isExported ??= $isGet;
 
             if ($isExported) {
                 $exportedFields[$property->name] = true;
             }
         }
 
-        return $this->exportedFieldsCache[$request::class] = $exportedFields;
+        return $exportedFields;
     }
 }
