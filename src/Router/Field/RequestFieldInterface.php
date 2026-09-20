@@ -62,10 +62,10 @@ interface RequestFieldInterface
     public function compileExtractAll(string $requestVarName): string;
 
     /**
-     * Does the current field is present on the URL (i.e. path or query string)
+     * Get the exported URL field name, if the current field belongs to the URL (i.e. query string or path).
+     * Return null if it's not an URL field.
      *
-     * If true, the field will be exported on the URL generation.
-     * If false, the field will be ignored.
+     * @param string $property The request property name to export
      */
-    public function isUrl(): bool;
+    public function urlFieldName(string $property): ?string;
 }

@@ -124,7 +124,7 @@ final readonly class UrlGeneratorCompiler implements UrlGeneratorCompilerInterfa
 
     /**
      * @param Application $application
-     * @return array<class-string, array<string, true>>|null
+     * @return array<class-string, array<string, string>>|null
      */
     private function loadCompiledExportedFields(Application $application): ?array
     {
@@ -141,7 +141,7 @@ final readonly class UrlGeneratorCompiler implements UrlGeneratorCompilerInterfa
                 return null;
             }
 
-            /** @var array<class-string, array<string, true>> */
+            /** @var array<class-string, array<string, string>> */
             return $fields;
         } catch (Throwable) {
             return null;

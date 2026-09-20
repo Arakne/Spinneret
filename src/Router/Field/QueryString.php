@@ -49,8 +49,8 @@ final readonly class QueryString implements RequestFieldInterface
     }
 
     #[Override]
-    public function isUrl(): bool
+    public function urlFieldName(string $property): string
     {
-        return true;
+        return $property;
     }
 }

@@ -109,9 +109,9 @@ final readonly class Csrf implements RequestFieldInterface, ConstraintInterface,
     }
 
     #[Override]
-    public function isUrl(): bool
+    public function urlFieldName(string $property): ?string
     {
-        return false;
+        return null;
     }
 
     #[Override]

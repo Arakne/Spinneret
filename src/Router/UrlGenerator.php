@@ -2,16 +2,17 @@
 
 namespace Arakne\Spinneret\Router;
 
-use Arakne\Spinneret\Router\Attribute\Get;
 use Arakne\Spinneret\Router\Attribute\Route;
+use Arakne\Spinneret\Router\Field\QueryString;
+use Arakne\Spinneret\Router\Field\RequestBody;
 use Arakne\Spinneret\Router\Field\RequestFieldInterface;
 use Override;
 use Quatrevieux\Form\FormFactoryInterface;
+use Quatrevieux\Form\Transformer\Field\HttpField;
 use ReflectionAttribute;
 use ReflectionClass;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface as SfUrlGeneratorInterface;
 
-use function array_intersect_key;
 use function array_key_exists;
 use function is_object;
 
@@ -26,11 +27,13 @@ final class UrlGenerator implements UrlGeneratorInterface
 
         /**
          * Map of request class name to exported fields.
-         * Exported fields will be defined as array keys.
+         *
+         * Exported fields will be defined as array keys
+         * and values corresponds to the http value name.
          *
          * Must not be set manually: this parameter should only be used by the url generator compiler.
          *
-         * @var array<class-string, array<string, true>>
+         * @var array<class-string, array<string, string>>
          */
         private array $exportedFieldsCache = [],
     ) {}
@@ -61,13 +64,22 @@ final class UrlGenerator implements UrlGeneratorInterface
     private function extractRequestData(object $request): array
     {
         $data = $this->formFactory->import($request)->httpValue();
+        $exported = [];
 
-        return array_intersect_key($data, $this->exportedFields($request));
+        foreach ($this->exportedFields($request) as $name => $http) {
+            $value = $data[$http] ?? null;
+
+            if ($value !== null) {
+                $exported[$name] = $value;
+            }
+        }
+
+        return $exported;
     }
 
     /**
      * @param object $request
-     * @return array<string, true>
+     * @return array<string, string>
      */
     private function exportedFields(object $request): array
     {
@@ -77,34 +89,51 @@ final class UrlGenerator implements UrlGeneratorInterface
     /**
      * @param class-string $request
      * @param bool|null $isGet Does the current request is for a get route? Set to null to deduce it from the class.
-     * @return array<string, true>
+     * @return array<string, string> Map of exported name to http field name
      * @internal
      */
     public static function computedExportedFields(string $request, ?bool $isGet = null): array
     {
         $class = new ReflectionClass($request);
 
+        $defaultRequestField = null;
+
         foreach ($class->getAttributes(RequestFieldInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-            $isExportedByDefault = $attribute->newInstance()->isUrl();
+            $defaultRequestField = $attribute->newInstance();
         }
 
-        $isExportedByDefault ??= $isGet;
-        $isExportedByDefault ??= self::isQueryStringRequest($class);
+        if ($defaultRequestField === null) {
+            $isGet ??= self::isQueryStringRequest($class);
+
+            if ($isGet === true) {
+                $defaultRequestField = new QueryString();
+            } else {
+                $defaultRequestField = new RequestBody();
+            }
+        }
 
         $exportedFields = [];
 
         foreach ($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
-            $isExported = null;
+            $requestField = $defaultRequestField;
 
             foreach ($property->getAttributes(RequestFieldInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-                $isExported = $attribute->newInstance()->isUrl();
+                $requestField = $attribute->newInstance();
             }
 
-            $isExported ??= $isExportedByDefault;
+            $httpFieldName = $property->name;
 
-            if ($isExported) {
-                $exportedFields[$property->name] = true;
+            foreach ($property->getAttributes(HttpField::class) as $attribute) {
+                $httpFieldName = $attribute->newInstance()->name;
             }
+
+            $fieldName = $requestField->urlFieldName($httpFieldName);
+
+            if ($fieldName === null) {
+                continue;
+            }
+
+            $exportedFields[$fieldName] = $httpFieldName;
         }
 
         return $exportedFields;

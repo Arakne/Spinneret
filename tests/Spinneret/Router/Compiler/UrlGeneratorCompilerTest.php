@@ -9,6 +9,8 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\UrlGenerator;
 use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
+use Arakne\Tests\Spinneret\Router\Fixtures\MappedQueryStringRequest;
+use Arakne\Tests\Spinneret\Router\Fixtures\MappedRequestPath;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsBodyRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsQueryStringRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
@@ -97,11 +99,11 @@ PHP
 return array (
   'Arakne\\Tests\\Spinneret\\Router\\Fixtures\\HelloRequest' => 
   array (
-    'name' => true,
+    'name' => 'name',
   ),
   'Arakne\\Tests\\Spinneret\\Router\\Fixtures\\MixedFieldsRequest' => 
   array (
-    'key' => true,
+    'key' => 'key',
   ),
 );
 PHP
@@ -129,8 +131,8 @@ PHP
 
         $fields = new ReflectionProperty(UrlGenerator::class, 'exportedFieldsCache');
         $this->assertSame([
-            HelloRequest::class => ['name' => true],
-            MixedFieldsRequest::class => ['key' => true],
+            HelloRequest::class => ['name' => 'name'],
+            MixedFieldsRequest::class => ['key' => 'key'],
         ], $fields->getValue($loaded));
     }
 
@@ -155,6 +157,51 @@ PHP
             referrer: 'https://example.com',
             value: 'must-not-be-exported',
         )));
+    }
+
+    #[Test]
+    public function compileShouldPreserveRequestPathNameMapping()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->get('/mapped/{slug}', MappedRequestPath::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $this->assertSame([
+            MappedRequestPath::class => ['slug' => 'id'],
+        ], require $this->cacheDir . '/url_generator_fields.php');
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/mapped/42', $loaded->url(new MappedRequestPath('42')));
+    }
+
+    #[Test]
+    public function compileShouldPreserveQueryStringHttpFieldMapping()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->get('/search', MappedQueryStringRequest::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $this->assertSame([
+            MappedQueryStringRequest::class => ['search' => 'search'],
+        ], require $this->cacheDir . '/url_generator_fields.php');
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame(
+            'http://localhost/search?search=spinneret',
+            $loaded->url(new MappedQueryStringRequest('spinneret')),
+        );
     }
 
     #[Test]

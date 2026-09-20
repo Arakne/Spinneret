@@ -59,8 +59,8 @@ final readonly class RequestPath implements RequestFieldInterface
     }
 
     #[Override]
-    public function isUrl(): bool
+    public function urlFieldName(string $property): string
     {
-        return true;
+        return $this->name ?? $property;
     }
 }

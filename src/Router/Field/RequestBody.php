@@ -46,8 +46,8 @@ final readonly class RequestBody implements RequestFieldInterface
     }
 
     #[Override]
-    public function isUrl(): bool
+    public function urlFieldName(string $property): ?string
     {
-        return false;
+        return null;
     }
 }
