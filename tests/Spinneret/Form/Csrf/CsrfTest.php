@@ -9,9 +9,12 @@ use Arakne\Spinneret\Form\Csrf\Csrf;
 use Arakne\Spinneret\Form\Csrf\CsrfTokenParameters;
 use Arakne\Spinneret\Form\FormModule;
 use Arakne\Spinneret\Presenter\Attribute\Presenter;
+use Arakne\Spinneret\Router\Field\QueryString;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\RouteConfiguratorInterface;
 use Arakne\Spinneret\Router\RoutedRequest;
+use Arakne\Spinneret\Router\Router;
+use Arakne\Spinneret\Router\UrlGenerator;
 use Arakne\Spinneret\Security\SecurityModule;
 use Arakne\Spinneret\Security\Serializer\ParsedCookie;
 use Arakne\Spinneret\View\Attribute\Renderer;
@@ -24,9 +27,12 @@ use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
+use Quatrevieux\Form\DefaultFormFactory;
 use Quatrevieux\Form\Validator\FieldError;
 use Quatrevieux\Form\View\FieldView;
 use stdClass;
+use Symfony\Component\Routing\Generator\UrlGenerator as SfUrlGenerator;
+use Symfony\Component\Routing\RequestContext;
 
 class CsrfTest extends TestCase
 {
@@ -248,5 +254,29 @@ class CsrfTest extends TestCase
         $this->assertSame('147933218aaabc0b8b10a2b3a5c34684c8d94341bcf10a4736dc7270f7741851', $view->value);
         $this->assertSame('csrf', $view->name);
         $this->assertNull($view->error);
+    }
+
+    #[Test]
+    public function shouldNotBeExposedOnUrl()
+    {
+        $req = new #[QueryString] class {
+            #[Csrf(key: 'foo')]
+            public CsrfTokenParameters $csrf;
+        };
+
+        $req->csrf = new CsrfTokenParameters('foo', 'bar', null);
+        $routes = new RouteCollectionBuilder()
+            ->get('/test', $req::class)
+            ->routes
+        ;
+        $generator = new UrlGenerator(
+            new SfUrlGenerator(
+                $routes,
+                RequestContext::fromUri('http://localhost')
+            ),
+            DefaultFormFactory::runtime(),
+        );
+
+        $this->assertSame('http://localhost/test', $generator->url($req));
     }
 }

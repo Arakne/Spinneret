@@ -109,6 +109,12 @@ final readonly class Csrf implements RequestFieldInterface, ConstraintInterface,
     }
 
     #[Override]
+    public function urlFieldName(string $property): ?string
+    {
+        return null;
+    }
+
+    #[Override]
     public function validate(ConstraintInterface $constraint, mixed $value, object $data): ?FieldError
     {
         if (!$value instanceof CsrfTokenParameters || !$value->validate()) {

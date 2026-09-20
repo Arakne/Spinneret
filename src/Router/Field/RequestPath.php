@@ -3,6 +3,7 @@
 namespace Arakne\Spinneret\Router\Field;
 
 use Attribute;
+use BadMethodCallException;
 use Override;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -10,22 +11,18 @@ use function sprintf;
 use function var_export;
 
 /**
- * Define the target as filled with the server request attribute ({@see ServerRequestInterface::getAttribute()})
+ * Define the target as filled with the path parameters (extracted from {@see ServerRequestInterface::getAttribute()})
  *
- * When set to a form field, the field will be filled with the attribute.
- * When set to the class, by default all fields will be filled with all attributes.
+ * This attribute can only target a property, and never the entire class.
  *
- * The attribute on the property will override the attribute on the class.
- *
- *  Note: Prefer use {@see RequestPath} to extract parameters from paths, even if it's functionnally
- *        identical: request path will be exported to generate URL, request attribute will be skiped.
+ * Note: This attribute is same as {@see RequestAttribute} except it will be exported to generate the URL.
  *
  * @see RequestBody for request body parameters
  * @see QueryString for request query string parameters
- * @see RequestPath for path attributes
+ * @see RequestAttribute for attribute parameters
  */
-#[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS)]
-final readonly class RequestAttribute implements RequestFieldInterface
+#[Attribute(Attribute::TARGET_PROPERTY)]
+final readonly class RequestPath implements RequestFieldInterface
 {
     public function __construct(
         /**
@@ -46,9 +43,7 @@ final readonly class RequestAttribute implements RequestFieldInterface
     #[Override]
     public function extractAll(ServerRequestInterface $request): array
     {
-        // Not actually the case (keys may be int), but adding a check is costly for nothing
-        /** @var array<string, mixed> */
-        return $request->getAttributes();
+        throw new BadMethodCallException('RequestPath only supports single property');
     }
 
     #[Override]
@@ -60,12 +55,12 @@ final readonly class RequestAttribute implements RequestFieldInterface
     #[Override]
     public function compileExtractAll(string $requestVarName): string
     {
-        return sprintf('%s->getAttributes()', $requestVarName);
+        throw new BadMethodCallException('RequestPath only supports single property');
     }
 
     #[Override]
-    public function urlFieldName(string $property): ?string
+    public function urlFieldName(string $property): string
     {
-        return null;
+        return $this->name ?? $property;
     }
 }

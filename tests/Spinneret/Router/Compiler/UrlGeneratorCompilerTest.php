@@ -9,12 +9,22 @@ use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Spinneret\Router\UrlGenerator;
 use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
+use Arakne\Tests\Spinneret\Router\Fixtures\MappedQueryStringRequest;
+use Arakne\Tests\Spinneret\Router\Fixtures\MappedRequestPath;
+use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsBodyRequest;
+use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsQueryStringRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Quatrevieux\Form\DefaultFormFactory;
+use ReflectionProperty;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
+
+use function file_get_contents;
+use function file_put_contents;
+use function unlink;
 
 class UrlGeneratorCompilerTest extends TestCase
 {
@@ -80,6 +90,25 @@ return [
 PHP
             , file_get_contents($this->cacheDir . '/url_generator_routes.php')
         );
+
+        $this->assertFileExists($this->cacheDir . '/url_generator_fields.php');
+        $this->assertEquals(<<<'PHP'
+<?php
+
+// Generated file: do not modify
+return array (
+  'Arakne\\Tests\\Spinneret\\Router\\Fixtures\\HelloRequest' => 
+  array (
+    'name' => 'name',
+  ),
+  'Arakne\\Tests\\Spinneret\\Router\\Fixtures\\MixedFieldsRequest' => 
+  array (
+    'key' => 'key',
+  ),
+);
+PHP
+            , file_get_contents($this->cacheDir . '/url_generator_fields.php')
+        );
     }
 
     #[Test]
@@ -99,6 +128,164 @@ PHP
 
         $this->assertInstanceOf(UrlGenerator::class, $loaded);
         $this->assertSame('http://localhost/hello', $loaded->url(HelloRequest::class));
+
+        $fields = new ReflectionProperty(UrlGenerator::class, 'exportedFieldsCache');
+        $this->assertSame([
+            HelloRequest::class => ['name' => 'name'],
+            MixedFieldsRequest::class => ['key' => 'key'],
+        ], $fields->getValue($loaded));
+    }
+
+    #[Test]
+    public function loadCompiledShouldHonorRequestBodyOnGetRoute()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->get('/body/{id}', MixedFieldsBodyRequest::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/body/42?name=John', $loaded->url(new MixedFieldsBodyRequest(
+            id: 42,
+            name: 'John',
+            user: (object) ['login' => 'bob'],
+            referrer: 'https://example.com',
+            value: 'must-not-be-exported',
+        )));
+    }
+
+    #[Test]
+    public function compileShouldPreserveRequestPathNameMapping()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->get('/mapped/{slug}', MappedRequestPath::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $this->assertSame([
+            MappedRequestPath::class => ['slug' => 'id'],
+        ], require $this->cacheDir . '/url_generator_fields.php');
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/mapped/42', $loaded->url(new MappedRequestPath('42')));
+    }
+
+    #[Test]
+    public function compileShouldPreserveQueryStringHttpFieldMapping()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->get('/search', MappedQueryStringRequest::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $this->assertSame([
+            MappedQueryStringRequest::class => ['search' => 'search'],
+        ], require $this->cacheDir . '/url_generator_fields.php');
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame(
+            'http://localhost/search?search=spinneret',
+            $loaded->url(new MappedQueryStringRequest('spinneret')),
+        );
+    }
+
+    #[Test]
+    public function loadCompiledShouldHonorQueryStringOnPostRoute()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->post('/query/{id}', MixedFieldsQueryStringRequest::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/query/42?name=John', $loaded->url(new MixedFieldsQueryStringRequest(
+            id: 42,
+            name: 'John',
+            user: (object) ['login' => 'bob'],
+            referrer: 'https://example.com',
+        )));
+    }
+
+    #[
+        Test,
+        TestWith(['HEAD']),
+        TestWith(['OPTIONS']),
+        TestWith(['DELETE']),
+    ]
+    public function loadCompiledShouldUseQueryStringByDefaultForMethod(string $method)
+    {
+        $routes = new RouteCollectionBuilder()
+            ->add('/query', HelloRequest::class, [$method])
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+        $request = new HelloRequest();
+        $request->name = 'John';
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/query?name=John', $loaded->url($request));
+    }
+
+    #[Test]
+    public function loadCompiledWithoutFieldCache()
+    {
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $this->routes);
+
+        unlink($this->cacheDir . '/url_generator_fields.php');
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/hello', $loaded->url(HelloRequest::class));
+
+        $fields = new ReflectionProperty(UrlGenerator::class, 'exportedFieldsCache');
+        $this->assertSame([], $fields->getValue($loaded));
+    }
+
+    #[
+        Test,
+        TestWith(['<?php sdfsdffd->fdssdfsd:f:;s']),
+        TestWith(['<?php return 42;']),
+    ]
+    public function loadCompiledInvalidFieldCache(string $content)
+    {
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $this->routes);
+
+        file_put_contents($this->cacheDir . '/url_generator_fields.php', $content);
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame('http://localhost/hello', $loaded->url(HelloRequest::class));
+
+        $fields = new ReflectionProperty(UrlGenerator::class, 'exportedFieldsCache');
+        $this->assertSame([], $fields->getValue($loaded));
     }
 
     #[Test]

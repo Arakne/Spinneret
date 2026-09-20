@@ -60,4 +60,12 @@ interface RequestFieldInterface
      * @return string The PHP expression
      */
     public function compileExtractAll(string $requestVarName): string;
+
+    /**
+     * Get the exported URL field name, if the current field belongs to the URL (i.e. query string or path).
+     * Return null if it's not an URL field.
+     *
+     * @param string $property The request property name to export
+     */
+    public function urlFieldName(string $property): ?string;
 }
