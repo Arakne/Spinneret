@@ -44,4 +44,10 @@ final readonly class RequestBody implements RequestFieldInterface
     {
         return sprintf('(array) (%s->getParsedBody() ?? [])', $requestVarName);
     }
+
+    #[Override]
+    public function isUrl(): bool
+    {
+        return false;
+    }
 }

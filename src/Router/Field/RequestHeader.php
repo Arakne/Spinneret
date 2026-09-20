@@ -50,4 +50,10 @@ final readonly class RequestHeader implements RequestFieldInterface
     {
         throw new BadMethodCallException('Cannot extract all headers');
     }
+
+    #[Override]
+    public function isUrl(): bool
+    {
+        return false;
+    }
 }

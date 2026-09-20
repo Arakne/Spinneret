@@ -60,4 +60,12 @@ interface RequestFieldInterface
      * @return string The PHP expression
      */
     public function compileExtractAll(string $requestVarName): string;
+
+    /**
+     * Does the current field is present on the URL (i.e. path or query string)
+     *
+     * If true, the field will be exported on the URL generation.
+     * If false, the field will be ignored.
+     */
+    public function isUrl(): bool;
 }

@@ -47,4 +47,10 @@ final readonly class QueryString implements RequestFieldInterface
     {
         return sprintf('%s->getQueryParams()', $requestVarName);
     }
+
+    #[Override]
+    public function isUrl(): bool
+    {
+        return true;
+    }
 }

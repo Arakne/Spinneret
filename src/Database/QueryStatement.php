@@ -344,7 +344,7 @@ final class QueryStatement implements QueryStatementInterface
         }
 
         /**
-         * @var int $position
+         * @var non-negative-int $position
          * @var mixed $value
          * @var PDO::PARAM_* $type
          */
