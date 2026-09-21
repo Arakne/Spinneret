@@ -13,6 +13,7 @@ use ReflectionAttribute;
 use ReflectionClass;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface as SfUrlGeneratorInterface;
 
+use function array_intersect_key;
 use function array_key_exists;
 use function is_object;
 
@@ -39,20 +40,26 @@ final class UrlGenerator implements UrlGeneratorInterface
     ) {}
 
     #[Override]
-    public function url(string|object $request, array $parameters = []): string
+    public function url(string|object $request, array $parameters = [], bool $strictParameters = false): string
     {
+        $urlParameters = $parameters;
+
         if (is_object($request)) {
             /** @var mixed $value */
             foreach ($this->extractRequestData($request) as $name => $value) {
-                if ($value !== null && !array_key_exists($name, $parameters)) {
-                    $parameters[$name] = $value;
+                if ($value !== null && !array_key_exists($name, $urlParameters)) {
+                    $urlParameters[$name] = $value;
                 }
             }
 
             $request = $request::class;
         }
 
-        return $this->sfUrlGenerator->generate($request, $parameters, SfUrlGeneratorInterface::ABSOLUTE_URL);
+        if ($strictParameters && $parameters !== []) {
+            $urlParameters = array_intersect_key($urlParameters, $this->exportedFields($request));
+        }
+
+        return $this->sfUrlGenerator->generate($request, $urlParameters, SfUrlGeneratorInterface::ABSOLUTE_URL);
     }
 
     /**
@@ -66,7 +73,7 @@ final class UrlGenerator implements UrlGeneratorInterface
         $data = $this->formFactory->import($request)->httpValue();
         $exported = [];
 
-        foreach ($this->exportedFields($request) as $name => $http) {
+        foreach ($this->exportedFields($request::class) as $name => $http) {
             $value = $data[$http] ?? null;
 
             if ($value !== null) {
@@ -78,12 +85,12 @@ final class UrlGenerator implements UrlGeneratorInterface
     }
 
     /**
-     * @param object $request
+     * @param class-string $requestClass
      * @return array<string, string>
      */
-    private function exportedFields(object $request): array
+    private function exportedFields(string $requestClass): array
     {
-        return $this->exportedFieldsCache[$request::class] ??= self::computedExportedFields($request::class);
+        return $this->exportedFieldsCache[$requestClass] ??= self::computedExportedFields($requestClass);
     }
 
     /**

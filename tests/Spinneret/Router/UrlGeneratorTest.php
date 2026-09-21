@@ -62,6 +62,52 @@ class UrlGeneratorTest extends TestCase
     }
 
     #[Test]
+    public function urlShouldFilterExplicitParametersInStrictMode()
+    {
+        $this->assertSame(
+            'http://localhost/hello/John',
+            $this->generator->url(
+                HelloRequestPath::class,
+                ['name' => 'John', 'other' => 'must-not-be-exported'],
+                strictParameters: true,
+            ),
+        );
+
+        $this->assertSame(
+            'http://localhost/mapped-fields?search=spinneret',
+            $this->generator->url(
+                MappedRequestFields::class,
+                [
+                    'search' => 'spinneret',
+                    'body' => 'must-not-be-exported',
+                    'other' => 'must-not-be-exported',
+                ],
+                strictParameters: true,
+            ),
+        );
+    }
+
+    #[Test]
+    public function urlShouldMergeObjectParametersBeforeStrictFiltering()
+    {
+        $request = new MappedRequestFields('from-object', 'must-not-be-exported');
+
+        $this->assertSame(
+            'http://localhost/mapped-fields?search=from-object',
+            $this->generator->url($request, strictParameters: true),
+        );
+
+        $this->assertSame(
+            'http://localhost/mapped-fields?search=explicit',
+            $this->generator->url(
+                $request,
+                ['search' => 'explicit', 'other' => 'must-not-be-exported'],
+                strictParameters: true,
+            ),
+        );
+    }
+
+    #[Test]
     public function urlShouldIgnoredNonUrlParametersOnGetRequest()
     {
         $req = new MixedFieldsGetRequest(

@@ -15,8 +15,10 @@ interface UrlGeneratorInterface
      *                                     Note: values will not be transformed by the form system, so make sure to provide values in the correct format.
      * @param array<string, mixed> $parameters The parameters to pass to the URL generator. If a parameter is already set in the request object (when an object is given),
      *                                         this parameter will take precedence over the object's property.
+     * @param bool $strictParameters If true, only will keep only parameters that are declared on the request and exposed on the URL (i.e. query string and path parameters).
+     *                               If false, all parameters passed as second argument will be kept.
      *
      * @return string The generated URL. The URL will be absolute.
      */
-    public function url(string|object $request, array $parameters = []): string;
+    public function url(string|object $request, array $parameters = [], bool $strictParameters = false): string;
 }

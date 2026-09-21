@@ -227,6 +227,14 @@ PHP
             'http://localhost/mapped-fields?search=spinneret',
             $loaded->url(new MappedRequestFields('spinneret', 'must-not-be-exported')),
         );
+        $this->assertSame(
+            'http://localhost/mapped-fields?search=spinneret',
+            $loaded->url(
+                new MappedRequestFields('spinneret', 'must-not-be-exported'),
+                ['other' => 'must-not-be-exported'],
+                strictParameters: true,
+            ),
+        );
     }
 
     #[Test]
