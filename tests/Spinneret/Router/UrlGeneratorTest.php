@@ -10,6 +10,7 @@ use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequestPath;
 use Arakne\Tests\Spinneret\Router\Fixtures\MappedQueryStringRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MappedRequestPath;
+use Arakne\Tests\Spinneret\Router\Fixtures\MappedRequestFields;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsBodyRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsGetRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsPostRequest;
@@ -30,6 +31,7 @@ class UrlGeneratorTest extends TestCase
         $builder->get('/hello/{name}', HelloRequestPath::class);
         $builder->get('/mapped/{slug}', MappedRequestPath::class);
         $builder->get('/search', MappedQueryStringRequest::class);
+        $builder->post('/mapped-fields', MappedRequestFields::class);
         $builder->get('/register', RegistrationRequest::class);
         $builder->get('/foo-{id}', MixedFieldsGetRequest::class);
         $builder->get('/foo-{id}', MixedFieldsPostRequest::class);
@@ -87,6 +89,15 @@ class UrlGeneratorTest extends TestCase
         $this->assertSame(
             'http://localhost/search?search=spinneret',
             $this->generator->url(new MappedQueryStringRequest('spinneret')),
+        );
+    }
+
+    #[Test]
+    public function urlShouldMapQueryStringName()
+    {
+        $this->assertSame(
+            'http://localhost/mapped-fields?search=spinneret',
+            $this->generator->url(new MappedRequestFields('spinneret', 'must-not-be-exported')),
         );
     }
 

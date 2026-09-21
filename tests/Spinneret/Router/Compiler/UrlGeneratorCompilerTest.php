@@ -11,6 +11,7 @@ use Arakne\Spinneret\Util\Files;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MappedQueryStringRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MappedRequestPath;
+use Arakne\Tests\Spinneret\Router\Fixtures\MappedRequestFields;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsBodyRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsQueryStringRequest;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
@@ -201,6 +202,30 @@ PHP
         $this->assertSame(
             'http://localhost/search?search=spinneret',
             $loaded->url(new MappedQueryStringRequest('spinneret')),
+        );
+    }
+
+    #[Test]
+    public function compileShouldPreserveQueryStringNameMapping()
+    {
+        $routes = new RouteCollectionBuilder()
+            ->post('/mapped-fields', MappedRequestFields::class)
+            ->routes
+        ;
+
+        $compiler = new UrlGeneratorCompiler(DefaultFormFactory::runtime());
+        $compiler->compile($this->app, $routes);
+
+        $this->assertSame([
+            MappedRequestFields::class => ['search' => 'query'],
+        ], require $this->cacheDir . '/url_generator_fields.php');
+
+        $loaded = $compiler->load($this->app, new RequestContext());
+
+        $this->assertInstanceOf(UrlGenerator::class, $loaded);
+        $this->assertSame(
+            'http://localhost/mapped-fields?search=spinneret',
+            $loaded->url(new MappedRequestFields('spinneret', 'must-not-be-exported')),
         );
     }
 

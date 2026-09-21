@@ -23,6 +23,9 @@ class RequestBodyTest extends TestCase
         $this->assertNull($field->extract($psrRequest, 'not_found'));
         $this->assertNull($field->extract($psrRequest->withParsedBody(null), 'not_found'));
         $this->assertSame('foo', $field->extract($psrRequest->withParsedBody((object) ['name' => 'foo']), 'name'));
+
+        $field = new RequestBody('other');
+        $this->assertSame('foo', $field->extract($psrRequest, 'name'));
     }
 
     #[Test]
@@ -68,6 +71,9 @@ class RequestBodyTest extends TestCase
     {
         $field = new RequestBody();
         $this->assertSame('((array) $request->getParsedBody())[\'name\'] ?? null', $field->compileExtract('$request', 'name'));
+
+        $field = new RequestBody('other');
+        $this->assertSame('((array) $request->getParsedBody())[\'other\'] ?? null', $field->compileExtract('$request', 'name'));
     }
 
     #[Test]

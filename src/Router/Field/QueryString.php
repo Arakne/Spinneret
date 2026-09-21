@@ -22,10 +22,20 @@ use function var_export;
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS)]
 final readonly class QueryString implements RequestFieldInterface
 {
+    public function __construct(
+        /**
+         * The name of the query string field to extract.
+         *
+         * If null, the name of the property will be used.
+         * Defining this value when using the attribute on the class will have no effect.
+         */
+        private ?string $name = null,
+    ) {}
+
     #[Override]
     public function extract(ServerRequestInterface $request, string $name): mixed
     {
-        return $request->getQueryParams()[$name] ?? null;
+        return $request->getQueryParams()[$this->name ?? $name] ?? null;
     }
 
     #[Override]
@@ -39,7 +49,7 @@ final readonly class QueryString implements RequestFieldInterface
     #[Override]
     public function compileExtract(string $requestVarName, string $name): string
     {
-        return sprintf('%s->getQueryParams()[%s] ?? null', $requestVarName, var_export($name, true));
+        return sprintf('%s->getQueryParams()[%s] ?? null', $requestVarName, var_export($this->name ?? $name, true));
     }
 
     #[Override]
@@ -51,6 +61,6 @@ final readonly class QueryString implements RequestFieldInterface
     #[Override]
     public function urlFieldName(string $property): string
     {
-        return $property;
+        return $this->name ?? $property;
     }
 }

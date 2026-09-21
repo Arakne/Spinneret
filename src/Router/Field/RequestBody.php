@@ -6,6 +6,9 @@ use Attribute;
 use Override;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function sprintf;
+use function var_export;
+
 /**
  * Define the target as filled with the request body (e.g. POST data)
  *
@@ -19,10 +22,20 @@ use Psr\Http\Message\ServerRequestInterface;
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS)]
 final readonly class RequestBody implements RequestFieldInterface
 {
+    public function __construct(
+        /**
+         * The name of the request body field to extract.
+         *
+         * If null, the name of the property will be used.
+         * Defining this value when using the attribute on the class will have no effect.
+         */
+        private ?string $name = null,
+    ) {}
+
     #[Override]
     public function extract(ServerRequestInterface $request, string $name): mixed
     {
-        return ((array) $request->getParsedBody())[$name] ?? null;
+        return ((array) $request->getParsedBody())[$this->name ?? $name] ?? null;
     }
 
     #[Override]
@@ -36,7 +49,7 @@ final readonly class RequestBody implements RequestFieldInterface
     #[Override]
     public function compileExtract(string $requestVarName, string $name): string
     {
-        return sprintf('((array) %s->getParsedBody())[%s] ?? null', $requestVarName, var_export($name, true));
+        return sprintf('((array) %s->getParsedBody())[%s] ?? null', $requestVarName, var_export($this->name ?? $name, true));
     }
 
     #[Override]
