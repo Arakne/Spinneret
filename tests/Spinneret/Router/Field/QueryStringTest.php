@@ -20,6 +20,9 @@ class QueryStringTest extends TestCase
 
         $this->assertSame('world', $field->extract($psrRequest, 'name'));
         $this->assertNull($field->extract($psrRequest, 'not_found'));
+
+        $field = new QueryString('other');
+        $this->assertSame('foo', $field->extract($psrRequest, 'name'));
     }
 
     #[Test]
@@ -39,6 +42,9 @@ class QueryStringTest extends TestCase
     {
         $field = new QueryString();
         $this->assertSame('$request->getQueryParams()[\'name\'] ?? null', $field->compileExtract('$request', 'name'));
+
+        $field = new QueryString('other');
+        $this->assertSame('$request->getQueryParams()[\'other\'] ?? null', $field->compileExtract('$request', 'name'));
     }
 
     #[Test]
@@ -46,5 +52,12 @@ class QueryStringTest extends TestCase
     {
         $field = new QueryString();
         $this->assertSame('$request->getQueryParams()', $field->compileExtractAll('$request'));
+    }
+
+    #[Test]
+    public function urlFieldName()
+    {
+        $this->assertSame('name', new QueryString()->urlFieldName('name'));
+        $this->assertSame('other', new QueryString('other')->urlFieldName('name'));
     }
 }

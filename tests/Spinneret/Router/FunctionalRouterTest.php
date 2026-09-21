@@ -8,6 +8,7 @@ use Arakne\Spinneret\Router\Result\NotFound;
 use Arakne\Spinneret\Router\Router;
 use Arakne\Spinneret\Router\RouteCollectionBuilder;
 use Arakne\Tests\Spinneret\Router\Fixtures\HelloRequest;
+use Arakne\Tests\Spinneret\Router\Fixtures\MappedRequestFields;
 use Arakne\Tests\Spinneret\Router\Fixtures\MixedFieldsRequest;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
@@ -26,6 +27,7 @@ class FunctionalRouterTest extends TestCase
         $builder = new RouteCollectionBuilder();
         $builder->get('/hello', HelloRequest::class);
         $builder->post('/mixed', MixedFieldsRequest::class);
+        $builder->post('/mapped-fields', MappedRequestFields::class);
 
         $this->router = new Router(
             new UrlMatcher($builder->routes, new RequestContext()),
@@ -133,6 +135,21 @@ class FunctionalRouterTest extends TestCase
         $this->assertEquals('0123456789', $resolved->routedRequest->key);
         $this->assertEquals('john.doe', $resolved->routedRequest->login);
         $this->assertEquals('$secret$', $resolved->routedRequest->password);
+    }
+
+    #[Test]
+    public function withMappedQueryStringAndRequestBodyFields()
+    {
+        $psrRequest = new ServerRequest('POST', '/mapped-fields');
+        $psrRequest = $psrRequest->withQueryParams(['search' => 'spinneret']);
+        $psrRequest = $psrRequest->withParsedBody(['content' => 'request body']);
+
+        $resolved = $this->router->request($psrRequest);
+
+        $this->assertTrue($resolved->success);
+        $this->assertInstanceOf(MappedRequestFields::class, $resolved->routedRequest);
+        $this->assertSame('spinneret', $resolved->routedRequest->query);
+        $this->assertSame('request body', $resolved->routedRequest->body);
     }
 
     public function test_with_bad_method()
