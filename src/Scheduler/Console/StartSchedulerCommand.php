@@ -16,6 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 use function array_map;
 use function sprintf;
+use function usort;
 
 #[AsCommand(
     name: 'scheduler:start',
@@ -48,6 +49,12 @@ final class StartSchedulerCommand extends Command
         }
 
         $io->info(sprintf('Starting scheduler with %d task(s):', count($tasks)));
+
+        usort(
+            $tasks,
+            static fn(ScheduledTaskInterface $a, ScheduledTaskInterface $b) => [$a->delay()->toMilliseconds(0), $a->name()] <=> [$b->delay()->toMilliseconds(0), $b->name()]
+        );
+
         $io->listing(array_map(
             static fn(ScheduledTaskInterface $task) => sprintf(
                 '%s (%s %s)',

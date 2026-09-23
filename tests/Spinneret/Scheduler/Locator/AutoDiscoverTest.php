@@ -9,8 +9,10 @@ use Arakne\Spinneret\Scheduler\ScheduleDelay;
 use Arakne\Spinneret\Scheduler\ScheduledTaskInterface;
 use Arakne\Spinneret\Scheduler\SchedulerModule;
 use Arakne\Spinneret\Scheduler\TimeUnit;
+use Arakne\Tests\Spinneret\Scheduler\Fixtures\AnonymousInvokableServiceTask;
 use LogicException;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 class AutoDiscoverTest extends TestCase
@@ -26,7 +28,7 @@ class AutoDiscoverTest extends TestCase
         $built = $container->build();
         $tasks = $built->get(ScheduledTaskRegistry::class)->tasks();
 
-        $this->assertCount(4, $tasks);
+        $this->assertCount(5, $tasks);
         $this->assertContainsOnlyInstancesOf(ScheduledTaskInterface::class, $tasks);
 
         $tasksByName = [];
@@ -38,21 +40,47 @@ class AutoDiscoverTest extends TestCase
         $this->assertArrayHasKey('foo', $tasksByName);
         $this->assertArrayHasKey('bar', $tasksByName);
         $this->assertArrayHasKey('invokable-service', $tasksByName);
+        $this->assertArrayHasKey('anonymous-invokable-service', $tasksByName);
 
         $this->assertEquals(new ScheduleDelay(100, TimeUnit::Millisecond), $tasksByName['simple-task']->delay());
         $this->assertEquals(new ScheduleDelay(1, TimeUnit::Hours), $tasksByName['foo']->delay());
         $this->assertEquals(new ScheduleDelay(1, TimeUnit::Hours), $tasksByName['bar']->delay());
         $this->assertEquals(new ScheduleDelay(15, TimeUnit::Minutes), $tasksByName['invokable-service']->delay());
+        $this->assertEquals(new ScheduleDelay(20, TimeUnit::Minutes), $tasksByName['anonymous-invokable-service']->delay());
 
         $this->assertTrue($tasksByName['simple-task']->perpetual());
         $this->assertTrue($tasksByName['foo']->perpetual());
         $this->assertFalse($tasksByName['bar']->perpetual());
         $this->assertTrue($tasksByName['invokable-service']->perpetual());
+        $this->assertTrue($tasksByName['anonymous-invokable-service']->perpetual());
 
         $this->assertTrue($tasksByName['simple-task']->run());
         $this->assertTrue($tasksByName['foo']->run());
         $this->assertTrue($tasksByName['bar']->run());
         $this->assertTrue($tasksByName['invokable-service']->run());
+        $this->assertTrue($tasksByName['anonymous-invokable-service']->run());
+    }
+
+    #[
+        Test,
+        TestWith(['RefreshPlayerCharacteristicsTask', 'refresh-player-characteristics']),
+        TestWith(['App\\Scheduler\\RefreshPlayerCharacteristicsTask', 'refresh-player-characteristics']),
+        TestWith(['App\\Scheduler\\RefreshPlayerCharacteristics', 'refresh-player-characteristics']),
+        TestWith(['CleanupTask', 'cleanup']),
+        TestWith(['AlreadyNormalizedTask', 'already-normalized']),
+        TestWith(['already-normalized-task', 'already-normalized-task']),
+    ]
+    public function normalizeServiceId(string $serviceId, string $expectedName): void
+    {
+        $container = new ContainerBuilder(registerAsPublic: true);
+
+        new SchedulerModule()->register($container);
+        $container->register($serviceId)->class(AnonymousInvokableServiceTask::class);
+
+        $tasks = $container->build()->get(ScheduledTaskRegistry::class)->tasks();
+
+        $this->assertCount(1, $tasks);
+        $this->assertSame($expectedName, $tasks[0]->name());
     }
 
     #[Test]
