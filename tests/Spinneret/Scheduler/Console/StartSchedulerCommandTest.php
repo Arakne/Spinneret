@@ -66,8 +66,8 @@ class StartSchedulerCommandTest extends TestCase
             '* simple-task (every 100 ms)',
             '* invokable-service (every 15 min)',
             '* anonymous-invokable-service (every 20 min)',
-            '* foo (every 1 h)',
             '* bar (in 1 h)',
+            '* foo (every 1 h)',
         ], array_values(array_filter(array_map(trim(...), explode(PHP_EOL, $tester->getDisplay(true))))));
     }
 
