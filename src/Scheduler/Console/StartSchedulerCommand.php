@@ -52,7 +52,7 @@ final class StartSchedulerCommand extends Command
 
         usort(
             $tasks,
-            static fn (ScheduledTaskInterface $a, ScheduledTaskInterface $b) => [$a->delay()->toMilliseconds(0), $a->name()] <=> [$b->delay()->toMilliseconds(0), $b->name()]
+            static fn(ScheduledTaskInterface $a, ScheduledTaskInterface $b) => [$a->delay()->toMilliseconds(0), $a->name()] <=> [$b->delay()->toMilliseconds(0), $b->name()]
         );
 
         $io->listing(array_map(
