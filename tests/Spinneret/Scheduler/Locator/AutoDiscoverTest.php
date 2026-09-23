@@ -46,7 +46,7 @@ class AutoDiscoverTest extends TestCase
         $this->assertEquals(new ScheduleDelay(1, TimeUnit::Hours), $tasksByName['foo']->delay());
         $this->assertEquals(new ScheduleDelay(1, TimeUnit::Hours), $tasksByName['bar']->delay());
         $this->assertEquals(new ScheduleDelay(15, TimeUnit::Minutes), $tasksByName['invokable-service']->delay());
-        $this->assertEquals(new ScheduleDelay(15, TimeUnit::Minutes), $tasksByName['anonymous-invokable-service']->delay());
+        $this->assertEquals(new ScheduleDelay(20, TimeUnit::Minutes), $tasksByName['anonymous-invokable-service']->delay());
 
         $this->assertTrue($tasksByName['simple-task']->perpetual());
         $this->assertTrue($tasksByName['foo']->perpetual());
