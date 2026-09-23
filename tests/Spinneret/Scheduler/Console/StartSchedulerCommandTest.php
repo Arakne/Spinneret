@@ -62,9 +62,10 @@ class StartSchedulerCommandTest extends TestCase
         $this->assertEqualsWithDelta(100, (apcu_fetch(SimpleTask::class) - $start) * 1000, 20);
 
         $this->assertEquals([
-            '[INFO] Starting scheduler with 4 task(s):',
+            '[INFO] Starting scheduler with 5 task(s):',
             '* simple-task (every 100 ms)',
             '* invokable-service (every 15 min)',
+            '* anonymous-invokable-service (every 15 min)',
             '* foo (every 1 h)',
             '* bar (in 1 h)',
         ], array_values(array_filter(array_map(trim(...), explode(PHP_EOL, $tester->getDisplay(true))))));

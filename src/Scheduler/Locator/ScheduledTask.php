@@ -15,7 +15,16 @@ use Override;
 use ReflectionException;
 use ReflectionMethod;
 
+use function assert;
+use function is_string;
+use function preg_replace;
 use function sprintf;
+use function str_contains;
+use function str_ends_with;
+use function strrchr;
+use function strrpos;
+use function strtolower;
+use function substr;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 final readonly class ScheduledTask implements ServiceConfiguratorAttributeInterface
@@ -69,7 +78,7 @@ final readonly class ScheduledTask implements ServiceConfiguratorAttributeInterf
             );
         }
 
-        $this->registerServiceClosureAsTask($container, $service, $method);
+        $this->registerServiceClosureAsTask($container, $service, $method, self::normalizeServiceId($service->id));
     }
 
     /**
@@ -77,7 +86,7 @@ final readonly class ScheduledTask implements ServiceConfiguratorAttributeInterf
      *
      * @internal
      */
-    public function registerServiceClosureAsTask(ContainerBuilder $container, ServiceBuilder $service, ReflectionMethod $method): void
+    public function registerServiceClosureAsTask(ContainerBuilder $container, ServiceBuilder $service, ReflectionMethod $method, ?string $fallbackName = null): void
     {
         if ($this->delay === null) {
             throw new LogicException(
@@ -94,9 +103,30 @@ final readonly class ScheduledTask implements ServiceConfiguratorAttributeInterf
                 new Reference($service->id)->method($method->name)->fcc(),
                 $this->delay,
                 $this->perpetual,
-                $this->name,
+                $this->name ?? $fallbackName,
             ])
             ->tag($this)
         ;
+    }
+
+    /**
+     * Get a task name from a service ID.
+     * The name will be in format my-task-name.
+     * For example, RefreshPlayerCharacteristicsTask will generate refresh-player-characteristics
+     */
+    private static function normalizeServiceId(string $id): string
+    {
+        if (($pos = strrpos($id, '\\')) !== false) {
+            $id = substr($id, $pos + 1);
+        }
+
+        if (str_ends_with($id, 'Task')) {
+            $id = substr($id, 0, -4);
+        }
+
+        $id = preg_replace('/([a-z0-9]+)([A-Z]+)/', '$1-$2', $id);
+        assert(is_string($id));
+
+        return strtolower($id);
     }
 }
