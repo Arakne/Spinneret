@@ -157,7 +157,7 @@ class FirstClassCallableTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->register(ArrayObject::class, [[new FirstClassCallable(strtoupper(...))]])->public();
-        eval($builder->build()->compile(new PhpClassContainerCompiler('ResolveFunctionalCompiledClosureContainer')));
+        eval($builder->build()->compile(new PhpClassContainerCompiler('ResolveFunctionalCompiledClosureContainer'))->body);
         $container = new \ResolveFunctionalCompiledClosureContainer();
 
         $ao = $container->get(ArrayObject::class);
@@ -176,7 +176,7 @@ class FirstClassCallableTest extends TestCase
         $builder->register(ArrayObject::class, [[
             new Reference(Randomizer::class)->method('getInt')->fcc()
         ]])->public();
-        eval($builder->build()->compile(new PhpClassContainerCompiler('ResolveFunctionalCompiledFactoryContainer')));
+        eval($builder->build()->compile(new PhpClassContainerCompiler('ResolveFunctionalCompiledFactoryContainer'))->body);
         $container = new \ResolveFunctionalCompiledFactoryContainer();
 
         $ao = $container->get(ArrayObject::class);
