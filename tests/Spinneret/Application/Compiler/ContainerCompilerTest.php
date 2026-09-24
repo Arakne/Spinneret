@@ -62,6 +62,7 @@ class ContainerCompilerTest extends TestCase
 
         $compiledContainer = $compiler->load($this->app);
         $this->assertInstanceOf(SpinneretContainerInterface::class, $compiledContainer);
+        $this->assertStringEndsWith('Spinneret_Application_Compiler_ContainerCompilerTest_php_23_bdContainer_b2d55ca61e18934045ddd4f250d38611', $compiledContainer::class);
 
         $this->assertInstanceOf(\stdClass::class, $compiledContainer->get('service'));
     }

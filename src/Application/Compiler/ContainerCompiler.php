@@ -55,17 +55,21 @@ final readonly class ContainerCompiler implements ContainerCompilerInterface
     public function compile(Application $application, BuiltContainer $container): void
     {
         $fileName = $this->containerClassName($application);
-        $className = $fileName . '_' . bin2hex(random_bytes(8));
+        $compiled = $container->compile(new PhpClassContainerCompiler($fileName . '_{hash}'));
+        $className = $compiled->className;
+
         $code = <<<PHP
             <?php
 
-            require_once __DIR__ . '/{$className}.php';
+            if (!class_exists({$className}::class)) {
+                require __DIR__ . '/{$className}.php';
+            }
 
             return new {$className}();
             PHP
         ;
 
-        $classCode = '<?php ' . $container->compile(new PhpClassContainerCompiler($className));
+        $classCode = '<?php ' . $compiled->body;
 
         Files::write($application->cacheDir() . '/' . $this->savePath . '/' . $className . '.php', $classCode);
         Files::write($application->cacheDir() . '/' . $this->savePath . '/' . $fileName . '.php', $code);

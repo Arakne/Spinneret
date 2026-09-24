@@ -13,13 +13,15 @@ use Throwable;
 
 use function assert;
 use function implode;
+use function md5;
 use function sprintf;
+use function str_replace;
 use function var_export;
 
 /**
  * Compile the container into a PHP class that implements `Psr\Container\ContainerInterface`.
  *
- * @implements ContainerCompilerInterface<string>
+ * @implements ContainerCompilerInterface<CompiledPhpClassContainer>
  */
 final readonly class PhpClassContainerCompiler implements ContainerCompilerInterface
 {
@@ -29,12 +31,9 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
     ) {}
 
     #[Override]
-    public function compile(BuiltContainer $container): string
+    public function compile(BuiltContainer $container): CompiledPhpClassContainer
     {
-        return <<<PHP
-            namespace {$this->namespace} {
-                final class {$this->className} implements \Arakne\Spinneret\Container\SpinneretContainerInterface
-                {
+        $body = <<<PHP
                     private array \$instances = [];
                     private array \$aliases = {$this->buildAliases($container)};
                     private array \$servicesByTag = {$this->buildTags($container)};
@@ -94,9 +93,25 @@ final readonly class PhpClassContainerCompiler implements ContainerCompilerInter
                             default => \$ignoreInvalid ? null : throw new \Arakne\Spinneret\Container\Exception\ServiceNotFoundException(sprintf('Service "%s" not found.', \$id)),
                         };   
                     }
+            PHP;
+
+        $hash = md5($body);
+        $className = str_replace('{hash}', $hash, $this->className);
+        $classCode = <<<PHP
+            namespace {$this->namespace} {
+                final class {$className} implements \Arakne\Spinneret\Container\SpinneretContainerInterface
+                {
+            {$body}
                 }
             }
             PHP;
+
+        return new CompiledPhpClassContainer(
+            namespace: $this->namespace,
+            simpleClassName: $className,
+            body: $classCode,
+            hash: $hash,
+        );
     }
 
     private function buildAliases(BuiltContainer $container): string
