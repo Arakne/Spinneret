@@ -62,7 +62,7 @@ class ContainerCompilerTest extends TestCase
 
         $compiledContainer = $compiler->load($this->app);
         $this->assertInstanceOf(SpinneretContainerInterface::class, $compiledContainer);
-        $this->assertSame('Arakne_Spinneret_Application_Application_anonymous__home_vincent_Documents_dev_php_Spinneret_tests_Spinneret_Application_Compiler_ContainerCompilerTest_php_23_bdContainer_b2d55ca61e18934045ddd4f250d38611', $compiledContainer::class);
+        $this->assertStringEndsWith('Spinneret_Application_Compiler_ContainerCompilerTest_php_23_bdContainer_b2d55ca61e18934045ddd4f250d38611', $compiledContainer::class);
 
         $this->assertInstanceOf(\stdClass::class, $compiledContainer->get('service'));
     }
